@@ -1,163 +1,221 @@
-﻿body {
-
-    margin: 0;
-    padding: 0;
-
-    font-family: 'Segoe UI';
-
-    background:
-    linear-gradient(135deg,#0f172a,#1e293b,#312e81);
-
+﻿@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+html, body {
     overflow-x: hidden;
+    height: 100%;
 }
-
-/* NAVBAR */
-
-.erp-navbar {
-
-    width: 100%;
-    height: 78px;
-
-    position: fixed;
-
-    top: 0;
-    left: 0;
-
-    z-index: 999;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: space-between;
-
-    padding: 0 30px;
-
-    background: rgba(15,23,42,0.94);
-
-    backdrop-filter: blur(12px);
-
-    border-bottom:
-    1px solid rgba(255,255,255,0.08);
-
-    box-shadow:
-    0 5px 20px rgba(0,0,0,0.4);
-
-    box-sizing: border-box;
-}
-
-/* LEFT */
-
-.erp-logo {
-
-    display: flex;
-    align-items: center;
-}
-
-.logo-icon {
-
-    width: 52px;
-    height: 52px;
-
-    border-radius: 14px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background:
-    linear-gradient(135deg,#06b6d4,#2563eb);
-
-    color: white;
-
-    font-size: 22px;
-
-    margin-right: 15px;
-
-    box-shadow:
-    0 5px 15px rgba(0,0,0,0.3);
-}
-
-.logo-text h2 {
-
+body {
+    background: #fff;
+    padding: 0;
     margin: 0;
-
-    color: white;
-
-    font-size: 25px;
-
-    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
 }
-
-.logo-text span {
-
-    color: #cbd5e1;
-
-    font-size: 12px;
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
 }
-
-/* MENU */
-
-.erp-menu {
-
-    display: flex;
-    align-items: center;
-
-    flex-wrap: wrap;
+.header {
+    display: block;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 100%;
+    box-shadow: none;
+    background-color: #272264;
+    position: fixed;
+    height: 60px!important;
+    overflow: hidden;
+    z-index: 10;
 }
-
-.erp-menu a {
-
-    text-decoration: none;
-
-    color: white;
-
-    margin-left: 10px;
-
-    padding: 10px 15px;
-
-    border-radius: 12px;
-
-    transition: 0.3s;
-
+.main {
+    margin: 0 auto;
+    display: block;
+    height: 100%;
+    margin-top: 60px;
+}
+.mainInner{
+    /*display: table;*/
+    height: 100%;
+    width: 100%;
+    text-align: center;
+}
+.mainInner div{
+    /*display:table-cell;*/
+    text-align:left;
+    vertical-align: middle;
+    /*font-size: 3em;*/
+    font-weight: bold;
+    letter-spacing: 1.25px;
+}
+#sidebarMenu {
+    height: 100%;
+    position: fixed;
+    left: 0;
+    width: 250px;
+    /*margin-top: 60px;*/
+    transform: translateX(-250px);
+    transition: transform 250ms ease-in-out;
+    background: linear-gradient(180deg, #1E0862 0%, #3F5EFB 100%);
+}
+.sidebarMenuInner{
+    margin-top:60px;
+    padding:0;
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+}
+.sidebarMenuInner li{
+    list-style: none;
+    color: #fff;
+    text-transform: uppercase;
+    font-weight: bold;
+    padding: 20px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+.sidebarMenuInner li span{
+    display: block;
     font-size: 14px;
-
-    font-weight: 600;
+    color: rgba(255, 255, 255, 0.50);
+}
+.sidebarMenuInner li a{
+    color: #fff;
+    text-transform: uppercase;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+}
+input[type="checkbox"]:checked ~ #sidebarMenu {
+    transform: translateX(0);
 }
 
-.erp-menu a i {
-
-    margin-right: 7px;
+input[type=checkbox] {
+    transition: all 0.3s;
+    box-sizing: border-box;
+    display: none;
+}
+.sidebarIconToggle {
+    transition: all 0.3s;
+    box-sizing: border-box;
+    cursor: pointer;
+    position: absolute;
+    z-index: 99;
+    height: 100%;
+    width: 100%;
+    top: 22px;
+    left: 15px;
+    height: 22px;
+    width: 22px;
+}
+.spinner {
+    transition: all 0.3s;
+    box-sizing: border-box;
+    position: absolute;
+    height: 3px;
+    width: 100%;
+    background-color: #fff;
+}
+.horizontal {
+    transition: all 0.3s;
+    box-sizing: border-box;
+    position: relative;
+    float: left;
+    margin-top: 3px;
+}
+.diagonal.part-1 {
+    position: relative;
+    transition: all 0.3s;
+    box-sizing: border-box;
+    float: left;
+}
+.diagonal.part-2 {
+    transition: all 0.3s;
+    box-sizing: border-box;
+    position: relative;
+    float: left;
+    margin-top: 3px;
+}
+input[type=checkbox]:checked ~ .sidebarIconToggle > .horizontal {
+    transition: all 0.3s;
+    box-sizing: border-box;
+    opacity: 0;
+}
+input[type=checkbox]:checked ~ .sidebarIconToggle > .diagonal.part-1 {
+    transition: all 0.3s;
+    box-sizing: border-box;
+    transform: rotate(135deg);
+    margin-top: 8px;
+}
+input[type=checkbox]:checked ~ .sidebarIconToggle > .diagonal.part-2 {
+    transition: all 0.3s;
+    box-sizing: border-box;
+    transform: rotate(-135deg);
+    margin-top: -9px;
+}
+/* Style inputs, select elements and textareas */
+input[type=text], select, textarea{
+  width: 100%;
+  /*padding: 12px;*/
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  resize: vertical;
 }
 
-.erp-menu a:hover {
-
-    background:
-    rgba(255,255,255,0.10);
-
-    transform: translateY(-2px);
-
-    color: #38bdf8;
+/* Style the label to display next to the inputs */
+label {
+  padding: 8px 8px 8px 0;
+  display: inline-block;
 }
 
-/* LOGOUT */
-
-.logout-btn {
-
-    background:
-    linear-gradient(135deg,#ef4444,#dc2626);
+/* Style the submit button */
+input[type=submit] {
+  background-color: #04AA6D;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  /*float: right;*/
 }
 
-.logout-btn:hover {
-
-    color: white !important;
+/* Style the container */
+.container {
+  border-radius: 5px;
+  /*background-color: #f2f2f2;*/
+  padding-left:40px;
+  padding-top:10px;
+  padding-right:40px;
+  padding-bottom:20px;
 }
 
-/* MOBILE */
+/* Floating column for labels: 25% width */
+.col-25 {
+  float: left;
+  width: 25%;
+  margin-top: 6px;
+}
+/* Floating column for labels: 50% width */
+.col-50 {
+  float: left;
+  width: 50%;
+  margin-top: 6px;
+}
 
-@media(max-width:1200px){
+/* Floating column for inputs: 75% width */
+.col-75 {
+  float: left;
+  width: 75%;
+  margin-top: 6px;
+}
 
-    .erp-menu{
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
 
-        display:none;
-    }
+/* Responsive layout - when the screen is less than 600px wide, make the two columns stack on top of each other instead of next to each other */
+@media screen and (max-width: 600px) {
+  .col-25, .col-75, input[type=submit] {
+    width: 100%;
+    margin-top: 0;
+  }
 }
