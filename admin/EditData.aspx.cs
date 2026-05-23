@@ -27,10 +27,39 @@ public partial class admin_EditData : System.Web.UI.Page
             Response.Redirect("../Login.aspx");
             return;
         }
+
         if (!Page.IsPostBack)
         {
             Session["EditTable"] = null;
             Session["EditID"] = null;
+            return;
+        }
+
+        // PostBack pe — pehle check karo kaunsa button click hua
+        string savedTable = Session["EditTable"] != null ? Session["EditTable"].ToString() : "";
+
+        // Edit button click check
+        string editPkVal = "";
+        foreach (string key in Request.Form.AllKeys)
+        {
+            if (key != null && key.StartsWith("editBtn_"))
+            {
+                editPkVal = key.Substring("editBtn_".Length);
+                break;
+            }
+        }
+
+        if (!string.IsNullOrEmpty(editPkVal) && !string.IsNullOrEmpty(savedTable))
+        {
+            // Edit button click hua — table load karo + form open karo
+            ddlTable.SelectedValue = savedTable;
+            LoadTableData(savedTable);
+            OpenEditForm(savedTable, editPkVal);
+        }
+        else if (!string.IsNullOrEmpty(savedTable) && IsAllowedTable(savedTable))
+        {
+            // Save ya Cancel ke baad table reload
+            ddlTable.SelectedValue = savedTable;
         }
     }
 
@@ -62,7 +91,9 @@ public partial class admin_EditData : System.Web.UI.Page
             string pkCol = GetPrimaryKeyColumn(tableName);
             dt = dac.GetDataTable("SELECT * FROM " + tableName + " ORDER BY " + pkCol + " DESC", param);
 
-            lblTableTitle.Text = ddlTable.SelectedItem.Text + " (" + dt.Rows.Count + " records)";
+            lblTableTitle.Text = ddlTable.SelectedItem != null
+                ? ddlTable.SelectedItem.Text + " (" + dt.Rows.Count + " records)"
+                : tableName + " (" + dt.Rows.Count + " records)";
             dataPanel.Visible = true;
 
             StringBuilder html = new StringBuilder();
@@ -82,7 +113,7 @@ public partial class admin_EditData : System.Web.UI.Page
                 {
                     string pkVal = row[pkCol].ToString();
                     html.Append("<tr><td style='white-space:nowrap;'>");
-                    html.Append("<input type='submit' name='editBtn_" + pkVal + "' value='Edit' class='btn-edit-row' />");
+                    html.Append("<input type='submit' name='editBtn_" + pkVal + "' value='Edit' class='btn-edit-row' style='background:#27ae60;color:#fff;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:12px;' />");
                     html.Append("</td>");
                     foreach (DataColumn col in dt.Columns)
                     {
@@ -94,19 +125,8 @@ public partial class admin_EditData : System.Web.UI.Page
                     html.Append("</tr>");
                 }
             }
-
             html.Append("</tbody></table>");
             phTable.Controls.Add(new LiteralControl(html.ToString()));
-
-            foreach (string key in Request.Form.AllKeys)
-            {
-                if (key != null && key.StartsWith("editBtn_"))
-                {
-                    string pkVal = key.Substring("editBtn_".Length);
-                    OpenEditForm(tableName, pkVal);
-                    break;
-                }
-            }
         }
         catch (Exception ex)
         {
@@ -129,21 +149,16 @@ public partial class admin_EditData : System.Web.UI.Page
             DataRow row = dt.Rows[0];
             hdnEditID.Value = pkVal;
             hdnTableName.Value = tableName;
-
-            // Cascade warning message
-            string warningMsg = GetCascadeWarning(tableName);
-            if (!string.IsNullOrEmpty(warningMsg))
-            {
-                ShowMessage("⚠️ Cascade Warning: " + warningMsg, false);
-            }
-
             lblEditID.Text = "(" + pkCol + " = " + pkVal + ")";
             editFormPanel.Visible = true;
             Session["EditID"] = pkVal;
-            Session["EditTable"] = tableName;
+
+            string warningMsg = GetCascadeWarning(tableName);
+            if (!string.IsNullOrEmpty(warningMsg))
+                ShowMessage("⚠️ " + warningMsg, false);
 
             StringBuilder html = new StringBuilder();
-            html.Append("<div style='column-count:2; column-gap:30px;'>");
+            html.Append("<div style='display:flex;flex-wrap:wrap;gap:12px;'>");
             foreach (DataColumn col in dt.Columns)
             {
                 string fieldVal = row[col] == DBNull.Value ? "" : row[col].ToString();
@@ -151,20 +166,20 @@ public partial class admin_EditData : System.Web.UI.Page
                                     col.DataType == typeof(long) || col.DataType == typeof(double) ||
                                     col.DataType == typeof(float)) ? "number" : "text";
 
-                html.Append("<div style='break-inside:avoid; margin-bottom:12px;'>");
-                html.Append("<label style='font-weight:bold;font-size:12px;color:#555;'>" + col.ColumnName + "</label>");
+                html.Append("<div style='flex:0 0 calc(50% - 12px);margin-bottom:10px;'>");
+                html.Append("<label style='font-weight:bold;font-size:12px;color:#555;display:block;'>" + col.ColumnName + "</label>");
 
                 if (col.ColumnName == pkCol)
                 {
                     html.Append("<input type='text' name='ef_" + col.ColumnName + "' value='"
                         + HttpUtility.HtmlEncode(fieldVal) + "' readonly "
-                        + "style='width:100%;padding:4px 8px;border:1px solid #ccc;border-radius:3px;background:#f5f5f5;color:#999;' />");
+                        + "style='width:100%;padding:4px 8px;border:1px solid #ccc;border-radius:3px;background:#f5f5f5;color:#999;box-sizing:border-box;' />");
                 }
                 else
                 {
                     html.Append("<input type='" + inputType + "' name='ef_" + col.ColumnName + "' value='"
                         + HttpUtility.HtmlEncode(fieldVal) + "' "
-                        + "style='width:100%;padding:4px 8px;border:1px solid #aaa;border-radius:3px;' />");
+                        + "style='width:100%;padding:4px 8px;border:1px solid #aaa;border-radius:3px;box-sizing:border-box;' />");
                 }
                 html.Append("</div>");
             }
@@ -195,14 +210,10 @@ public partial class admin_EditData : System.Web.UI.Page
             dac = new DataAccessLayer();
             param = new List<SqlParameter>();
             param.Add(new SqlParameter("@pkval", pkVal));
-
-            // Purana data fetch karo (cascade ke liye old values chahiye)
             dt = dac.GetDataTable("SELECT * FROM " + tableName + " WHERE " + pkCol + "=@pkval", param);
             if (dt.Rows.Count == 0) { ShowMessage("Record not found.", false); return; }
 
             DataRow oldRow = dt.Rows[0];
-
-            // Old values save karo cascade ke liye
             Dictionary<string, string> oldValues = new Dictionary<string, string>();
             Dictionary<string, string> newValues = new Dictionary<string, string>();
 
@@ -214,7 +225,6 @@ public partial class admin_EditData : System.Web.UI.Page
                 newValues[col.ColumnName] = newVal ?? oldValues[col.ColumnName];
             }
 
-            // Main table update
             StringBuilder setClauses = new StringBuilder();
             param = new List<SqlParameter>();
 
@@ -222,7 +232,6 @@ public partial class admin_EditData : System.Web.UI.Page
             {
                 if (col.ColumnName == pkCol) continue;
                 string newVal = newValues[col.ColumnName];
-
                 if (setClauses.Length > 0) setClauses.Append(", ");
                 setClauses.Append("[" + col.ColumnName + "]=@p_" + col.ColumnName);
 
@@ -249,17 +258,14 @@ public partial class admin_EditData : System.Web.UI.Page
             if (setClauses.Length == 0) { ShowMessage("No fields to update.", false); return; }
 
             param.Add(new SqlParameter("@pkval", pkVal));
-            string updateQ = "UPDATE " + tableName + " SET " + setClauses + " WHERE [" + pkCol + "]=@pkval";
             dac = new DataAccessLayer();
-            dac.update(updateQ, param);
+            dac.update("UPDATE " + tableName + " SET " + setClauses + " WHERE [" + pkCol + "]=@pkval", param);
 
-            // ✅ CASCADE UPDATES
             int cascadeCount = RunCascadeUpdates(tableName, oldValues, newValues);
 
             Session["EditID"] = null;
             editFormPanel.Visible = false;
             ddlTable.SelectedValue = tableName;
-            Session["EditTable"] = tableName;
             LoadTableData(tableName);
 
             string cascadeMsg = cascadeCount > 0 ? " + " + cascadeCount + " linked table(s) bhi update hue." : "";
@@ -269,165 +275,6 @@ public partial class admin_EditData : System.Web.UI.Page
         {
             ShowMessage("Error saving: " + ex.Message, false);
         }
-    }
-
-    // ================================================================
-    // CASCADE UPDATE LOGIC — Yahan sari linking hai
-    // ================================================================
-    private int RunCascadeUpdates(string tableName, Dictionary<string, string> oldVal, Dictionary<string, string> newVal)
-    {
-        int count = 0;
-        dac = new DataAccessLayer();
-
-        // -----------------------------------------------------------
-        // 1. Purchase_Party_Info → Party_Name change
-        //    Cascade: Purchase_Sauda_Info, Purchase_Master_Data, Purchase_Payment_Info
-        // -----------------------------------------------------------
-        if (tableName == "prabha.Purchase_Party_Info")
-        {
-            string oldName = oldVal.ContainsKey("Party_Name") ? oldVal["Party_Name"] : "";
-            string newName = newVal.ContainsKey("Party_Name") ? newVal["Party_Name"] : "";
-
-            if (oldName != newName && !string.IsNullOrEmpty(oldName))
-            {
-                // Purchase_Sauda_Info
-                CascadeUpdate("prabha.Purchase_Sauda_Info", "PartyName", oldName, newName);
-                // Purchase_Master_Data
-                CascadeUpdate("prabha.Purchase_Master_Data", "PartyName", oldName, newName);
-                // Purchase_Payment_Info (PName column)
-                CascadeUpdate("prabha.Purchase_Payment_Info", "PName", oldName, newName);
-                count += 3;
-            }
-        }
-
-        // -----------------------------------------------------------
-        // 2. PartyInfo → PartyName change (Sale side)
-        //    Cascade: Sale_Sauda_Master, Sale_Master_Data, Sale_Payment_Info
-        // -----------------------------------------------------------
-        if (tableName == "prabha.PartyInfo")
-        {
-            string oldName = oldVal.ContainsKey("PartyName") ? oldVal["PartyName"] : "";
-            string newName = newVal.ContainsKey("PartyName") ? newVal["PartyName"] : "";
-
-            if (oldName != newName && !string.IsNullOrEmpty(oldName))
-            {
-                CascadeUpdate("prabha.Sale_Sauda_Master", "PartyName", oldName, newName);
-                CascadeUpdate("prabha.Sale_Master_Data", "PartyName", oldName, newName);
-                CascadeUpdate("prabha.Sale_Payment_Info", "PName", oldName, newName);
-                count += 3;
-            }
-        }
-
-        // -----------------------------------------------------------
-        // 3. BrokerInfo → BrokerName change
-        //    Cascade: Purchase_Sauda_Info, Purchase_Master_Data,
-        //             Sale_Sauda_Master, Sale_Master_Data
-        // -----------------------------------------------------------
-        if (tableName == "prabha.BrokerInfo")
-        {
-            string oldName = oldVal.ContainsKey("BrokerName") ? oldVal["BrokerName"] : "";
-            string newName = newVal.ContainsKey("BrokerName") ? newVal["BrokerName"] : "";
-
-            if (oldName != newName && !string.IsNullOrEmpty(oldName))
-            {
-                CascadeUpdate("prabha.Purchase_Sauda_Info", "BrokerName", oldName, newName);
-                CascadeUpdate("prabha.Purchase_Master_Data", "BrokerName", oldName, newName);
-                CascadeUpdate("prabha.Sale_Sauda_Master", "BrokerName", oldName, newName);
-                CascadeUpdate("prabha.Sale_Master_Data", "BrokerName", oldName, newName);
-                count += 4;
-            }
-        }
-
-        // -----------------------------------------------------------
-        // 4. Purchase_Master_Data → ID change
-        //    Cascade: Purchase_Item_Info (Master_ID)
-        // -----------------------------------------------------------
-        if (tableName == "prabha.Purchase_Master_Data")
-        {
-            string oldID = oldVal.ContainsKey("ID") ? oldVal["ID"] : "";
-            string newID = newVal.ContainsKey("ID") ? newVal["ID"] : "";
-            if (oldID != newID && !string.IsNullOrEmpty(oldID))
-            {
-                CascadeUpdateNumeric("prabha.Purchase_Item_Info", "Master_ID", oldID, newID);
-                count += 1;
-            }
-
-            // Agar PartyName change hua
-            string oldParty = oldVal.ContainsKey("PartyName") ? oldVal["PartyName"] : "";
-            string newParty = newVal.ContainsKey("PartyName") ? newVal["PartyName"] : "";
-            if (oldParty != newParty && !string.IsNullOrEmpty(oldParty))
-            {
-                CascadeUpdate("prabha.Purchase_Payment_Info", "PName", oldParty, newParty);
-                count += 1;
-            }
-        }
-
-        // -----------------------------------------------------------
-        // 5. Sale_Master_Data → ID change
-        //    Cascade: Sale_Item_Info (Master_ID)
-        // -----------------------------------------------------------
-        if (tableName == "prabha.Sale_Master_Data")
-        {
-            string oldID = oldVal.ContainsKey("ID") ? oldVal["ID"] : "";
-            string newID = newVal.ContainsKey("ID") ? newVal["ID"] : "";
-            if (oldID != newID && !string.IsNullOrEmpty(oldID))
-            {
-                CascadeUpdateNumeric("prabha.Sale_Item_Info", "Master_ID", oldID, newID);
-                count += 1;
-            }
-
-            // Agar PartyName change hua
-            string oldParty = oldVal.ContainsKey("PartyName") ? oldVal["PartyName"] : "";
-            string newParty = newVal.ContainsKey("PartyName") ? newVal["PartyName"] : "";
-            if (oldParty != newParty && !string.IsNullOrEmpty(oldParty))
-            {
-                CascadeUpdate("prabha.Sale_Payment_Info", "PName", oldParty, newParty);
-                count += 1;
-            }
-        }
-
-        // -----------------------------------------------------------
-        // 6. Sale_Sauda_Master → ID change
-        //    Cascade: Sale_Sauda_Item_Info (MasterID)
-        // -----------------------------------------------------------
-        if (tableName == "prabha.Sale_Sauda_Master")
-        {
-            string oldID = oldVal.ContainsKey("ID") ? oldVal["ID"] : "";
-            string newID = newVal.ContainsKey("ID") ? newVal["ID"] : "";
-            if (oldID != newID && !string.IsNullOrEmpty(oldID))
-            {
-                CascadeUpdateNumeric("prabha.Sale_Sauda_Item_Info", "MasterID", oldID, newID);
-                count += 1;
-            }
-        }
-
-        return count;
-    }
-
-    // Text field cascade (PartyName, BrokerName etc.)
-    private void CascadeUpdate(string table, string column, string oldVal, string newVal)
-    {
-        try
-        {
-            var p = new List<SqlParameter>();
-            p.Add(new SqlParameter("@newVal", newVal));
-            p.Add(new SqlParameter("@oldVal", oldVal));
-            dac.update("UPDATE " + table + " SET [" + column + "]=@newVal WHERE [" + column + "]=@oldVal", p);
-        }
-        catch { }
-    }
-
-    // Numeric field cascade (Master_ID etc.)
-    private void CascadeUpdateNumeric(string table, string column, string oldVal, string newVal)
-    {
-        try
-        {
-            var p = new List<SqlParameter>();
-            p.Add(new SqlParameter("@newVal", Convert.ToDecimal(newVal)));
-            p.Add(new SqlParameter("@oldVal", Convert.ToDecimal(oldVal)));
-            dac.update("UPDATE " + table + " SET [" + column + "]=@newVal WHERE [" + column + "]=@oldVal", p);
-        }
-        catch { }
     }
 
     protected void btnCancelEdit_ServerClick(object sender, EventArgs e)
@@ -442,24 +289,130 @@ public partial class admin_EditData : System.Web.UI.Page
         }
     }
 
+    private int RunCascadeUpdates(string tableName, Dictionary<string, string> oldVal, Dictionary<string, string> newVal)
+    {
+        int count = 0;
+        dac = new DataAccessLayer();
+
+        if (tableName == "prabha.Purchase_Party_Info")
+        {
+            string oldName = oldVal.ContainsKey("Party_Name") ? oldVal["Party_Name"] : "";
+            string newName = newVal.ContainsKey("Party_Name") ? newVal["Party_Name"] : "";
+            if (oldName != newName && !string.IsNullOrEmpty(oldName))
+            {
+                CascadeUpdate("prabha.Purchase_Sauda_Info", "PartyName", oldName, newName);
+                CascadeUpdate("prabha.Purchase_Master_Data", "PartyName", oldName, newName);
+                CascadeUpdate("prabha.Purchase_Payment_Info", "PName", oldName, newName);
+                count += 3;
+            }
+        }
+        if (tableName == "prabha.PartyInfo")
+        {
+            string oldName = oldVal.ContainsKey("PartyName") ? oldVal["PartyName"] : "";
+            string newName = newVal.ContainsKey("PartyName") ? newVal["PartyName"] : "";
+            if (oldName != newName && !string.IsNullOrEmpty(oldName))
+            {
+                CascadeUpdate("prabha.Sale_Sauda_Master", "PartyName", oldName, newName);
+                CascadeUpdate("prabha.Sale_Master_Data", "PartyName", oldName, newName);
+                CascadeUpdate("prabha.Sale_Payment_Info", "PName", oldName, newName);
+                count += 3;
+            }
+        }
+        if (tableName == "prabha.BrokerInfo")
+        {
+            string oldName = oldVal.ContainsKey("BrokerName") ? oldVal["BrokerName"] : "";
+            string newName = newVal.ContainsKey("BrokerName") ? newVal["BrokerName"] : "";
+            if (oldName != newName && !string.IsNullOrEmpty(oldName))
+            {
+                CascadeUpdate("prabha.Purchase_Sauda_Info", "BrokerName", oldName, newName);
+                CascadeUpdate("prabha.Purchase_Master_Data", "BrokerName", oldName, newName);
+                CascadeUpdate("prabha.Sale_Sauda_Master", "BrokerName", oldName, newName);
+                CascadeUpdate("prabha.Sale_Master_Data", "BrokerName", oldName, newName);
+                count += 4;
+            }
+        }
+        if (tableName == "prabha.Purchase_Master_Data")
+        {
+            string oldID = oldVal.ContainsKey("ID") ? oldVal["ID"] : "";
+            string newID = newVal.ContainsKey("ID") ? newVal["ID"] : "";
+            if (oldID != newID && !string.IsNullOrEmpty(oldID))
+            {
+                CascadeUpdateNumeric("prabha.Purchase_Item_Info", "Master_ID", oldID, newID);
+                count++;
+            }
+            string oldParty = oldVal.ContainsKey("PartyName") ? oldVal["PartyName"] : "";
+            string newParty = newVal.ContainsKey("PartyName") ? newVal["PartyName"] : "";
+            if (oldParty != newParty && !string.IsNullOrEmpty(oldParty))
+            {
+                CascadeUpdate("prabha.Purchase_Payment_Info", "PName", oldParty, newParty);
+                count++;
+            }
+        }
+        if (tableName == "prabha.Sale_Master_Data")
+        {
+            string oldID = oldVal.ContainsKey("ID") ? oldVal["ID"] : "";
+            string newID = newVal.ContainsKey("ID") ? newVal["ID"] : "";
+            if (oldID != newID && !string.IsNullOrEmpty(oldID))
+            {
+                CascadeUpdateNumeric("prabha.Sale_Item_Info", "Master_ID", oldID, newID);
+                count++;
+            }
+            string oldParty = oldVal.ContainsKey("PartyName") ? oldVal["PartyName"] : "";
+            string newParty = newVal.ContainsKey("PartyName") ? newVal["PartyName"] : "";
+            if (oldParty != newParty && !string.IsNullOrEmpty(oldParty))
+            {
+                CascadeUpdate("prabha.Sale_Payment_Info", "PName", oldParty, newParty);
+                count++;
+            }
+        }
+        if (tableName == "prabha.Sale_Sauda_Master")
+        {
+            string oldID = oldVal.ContainsKey("ID") ? oldVal["ID"] : "";
+            string newID = newVal.ContainsKey("ID") ? newVal["ID"] : "";
+            if (oldID != newID && !string.IsNullOrEmpty(oldID))
+            {
+                CascadeUpdateNumeric("prabha.Sale_Sauda_Item_Info", "MasterID", oldID, newID);
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private void CascadeUpdate(string table, string column, string oldVal, string newVal)
+    {
+        try
+        {
+            var p = new List<SqlParameter>();
+            p.Add(new SqlParameter("@newVal", newVal));
+            p.Add(new SqlParameter("@oldVal", oldVal));
+            dac.update("UPDATE " + table + " SET [" + column + "]=@newVal WHERE [" + column + "]=@oldVal", p);
+        }
+        catch { }
+    }
+
+    private void CascadeUpdateNumeric(string table, string column, string oldVal, string newVal)
+    {
+        try
+        {
+            var p = new List<SqlParameter>();
+            p.Add(new SqlParameter("@newVal", Convert.ToDecimal(newVal)));
+            p.Add(new SqlParameter("@oldVal", Convert.ToDecimal(oldVal)));
+            dac.update("UPDATE " + table + " SET [" + column + "]=@newVal WHERE [" + column + "]=@oldVal", p);
+        }
+        catch { }
+    }
+
     private string GetCascadeWarning(string tableName)
     {
         switch (tableName)
         {
-            case "prabha.Purchase_Party_Info":
-                return "Party Name badalne se Purchase Sauda, Purchase Bill aur Purchase Payment bhi update honge.";
-            case "prabha.PartyInfo":
-                return "Party Name badalne se Sale Sauda, Sale Bill aur Sale Payment bhi update honge.";
-            case "prabha.BrokerInfo":
-                return "Broker Name badalne se Purchase Sauda, Purchase Bill, Sale Sauda aur Sale Bill bhi update honge.";
-            case "prabha.Purchase_Master_Data":
-                return "Is record se linked Purchase Items bhi affect honge.";
-            case "prabha.Sale_Master_Data":
-                return "Is record se linked Sale Items bhi affect honge.";
-            case "prabha.Sale_Sauda_Master":
-                return "Is record se linked Sale Sauda Items bhi affect honge.";
-            default:
-                return "";
+            case "prabha.Purchase_Party_Info": return "Party Name badalne se Purchase Sauda, Purchase Bill aur Purchase Payment bhi update honge.";
+            case "prabha.PartyInfo": return "Party Name badalne se Sale Sauda, Sale Bill aur Sale Payment bhi update honge.";
+            case "prabha.BrokerInfo": return "Broker Name badalne se Purchase Sauda, Purchase Bill, Sale Sauda aur Sale Bill bhi update honge.";
+            case "prabha.Purchase_Master_Data": return "Is record se linked Purchase Items bhi affect honge.";
+            case "prabha.Sale_Master_Data": return "Is record se linked Sale Items bhi affect honge.";
+            case "prabha.Sale_Sauda_Master": return "Is record se linked Sale Sauda Items bhi affect honge.";
+            default: return "";
         }
     }
 
