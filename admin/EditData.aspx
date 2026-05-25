@@ -58,6 +58,7 @@
                     <asp:ListItem Value="">-- Select Table --</asp:ListItem>
                     <asp:ListItem Value="prabha.Purchase_Party_Info">Purchase Party Info</asp:ListItem>
                     <asp:ListItem Value="prabha.Purchase_Sauda_Info">Purchase Sauda Info</asp:ListItem>
+                    <asp:ListItem Value="prabha.Purchase_Item_Info">Purchase Item Info</asp:ListItem>
                     <asp:ListItem Value="prabha.Purchase_Master_Data">Purchase Master Data</asp:ListItem>
                     <asp:ListItem Value="prabha.Purchase_Payment_Info">Purchase Payment Info</asp:ListItem>
                     <asp:ListItem Value="prabha.Sale_Sauda_Master">Sale Sauda Master</asp:ListItem>
@@ -69,6 +70,7 @@
                     <asp:ListItem Value="prabha.Expense_Info">Expense Info</asp:ListItem>
                     <asp:ListItem Value="prabha.SalePurchaseExpense">Sale Purchase Expense</asp:ListItem>
                     <asp:ListItem Value="prabha.UserInfo">User Info</asp:ListItem>
+
                 </asp:DropDownList>
               </div>
               <div class="col-sm-3" style="padding-top:24px;">
