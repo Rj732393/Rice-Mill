@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="PurchaseReport.aspx.cs" Inherits="PurchaseReport" %>
+<%@ Page Language="C#" AutoEventWireup="true" CodeFile="PurchaseReport.aspx.cs" Inherits="PurchaseReport" %>
 
 <%@ Register Src="~/Includes/menu.ascx"
     TagName="Menu"
@@ -57,8 +57,8 @@ body{
 /* ===== MAIN ===== */
 
 .main-content{
-    margin-left:110px;
-    padding-top:100px;
+    margin-left:120px;
+    padding-top:130px;
     transition:0.3s;
 }
 

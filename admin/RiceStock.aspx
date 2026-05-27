@@ -10,7 +10,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"/>
-    <link href="../CSS/Menu.css" rel="stylesheet" type="text/css" />
+    <%--<link href="../CSS/Menu.css" rel="stylesheet" type="text/css" />--%>
 </head>
 <body>
     <form id="form1" runat="server">
@@ -28,7 +28,7 @@
   <div id='center' class="main center">
     <div class="mainInner">
     
-       <h2><span style="background-color:Yellow;">Rashmi Rice Mills Private Limited</span>
+       <h2><span>Rashmi Rice Mills Private Limited</span>
       <br />Rice Stock Report</h2>
       <div class="row" style="text-align:right !important;">
       <span style="font-weight:bold; color:Maroon;">Welcome Admin</span>

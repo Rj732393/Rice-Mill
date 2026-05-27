@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true"
+<%@ Page Language="C#" AutoEventWireup="true"
     CodeFile="SaleSauda.aspx.cs"
     Inherits="SaleSauda" %>
 
@@ -53,8 +53,8 @@ body{
 /* ===== MAIN ===== */
 
 .main-content{
-    margin-left:110px;
-    padding-top:85px;
+    margin-left:120px;
+    padding-top:130px;
     transition:0.3s;
 }
 

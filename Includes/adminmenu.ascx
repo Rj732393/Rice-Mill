@@ -5,6 +5,6 @@
       <li><a href="SalePurchaseExpense.aspx">Sale, Purchase & Expense</a></li>
       <li><a href="EditData.aspx"> Edit Data</a></li>
       <li><a href="../Login.aspx"><span style="color:Silver;">Logout</span></a></li>
-      <li><a href="EditBySauda.aspx" style="color:#90ee90;font-weight:bold;">🔍 Edit By Sauda No.</a></li>
+      <li><a href="EditBySauda.aspx">Edit By Sauda No.</a></li>
       
     </ul>
