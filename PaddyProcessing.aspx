@@ -133,19 +133,28 @@ select:focus{
 /* ===== BUTTON ===== */
 
 .btn-card{
-    background:#f97316;
+    background:linear-gradient(135deg,#16a34a,#15803d);
     color:white !important;
     border:none;
-    border-radius:30px;
-    padding:12px 28px;
+    border-radius:50px;
+    padding:12px 30px;
     font-size:15px;
-    font-weight:bold;
-    transition:0.3s;
+    font-weight:700;
+    letter-spacing:0.5px;
+    box-shadow:0 8px 20px rgba(37,99,235,0.35);
+    transition:all 0.3s ease;
 }
 
+
 .btn-card:hover{
-    background:#ea580c;
-    color:white !important;
+   background:linear-gradient(135deg,#15803d,#166534);
+    transform:translateY(-2px);
+    box-shadow:0 12px 25px rgba(37,99,235,0.45);
+    color:#fff !important;
+}
+
+.btn-card i{
+    margin-left:8px;
 }
 
 /* ===== TABLE ===== */

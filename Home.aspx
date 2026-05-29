@@ -1,6 +1,6 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Home.aspx.cs" Inherits="Home" %>
 
-
+<%@ Register Src="~/Includes/menu.ascx" TagPrefix="uc1" TagName="Menu" %>
 
 <!DOCTYPE html>
 
@@ -8,20 +8,19 @@
 
 <head id="Head1" runat="server">
 
-    <title>Rice Mill Management System</title>
+    <title>Rashmi Rice Mill Management System</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- Bootstrap -->
-
     <link rel="stylesheet"
         href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
 
     <!-- Font Awesome -->
-
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
+    <!-- JQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
@@ -31,158 +30,243 @@
 body{
     margin:0;
     padding:0;
-    font-family:'Segoe UI';
-    background:#f4f7fb;
+    font-family:'Segoe UI',sans-serif;
+    background:#f5fff7;
+    overflow-x:hidden;
 }
 
+/* ===== MAIN CONTENT ===== */
 
-
-
-
-/* ===== NAVBAR ===== */
-
-.navbar-custom{
-    background:white;
-    border:none !important;
-    border-radius:0 !important;
-    margin-bottom:0 !important;
-    padding:12px 0;
-    box-shadow:0 2px 12px rgba(0,0,0,0.08);
-}
-
-.navbar-header{
-    width:100%;
-}
-
-.navbar-brand{
-    float:left !important;
-    text-align:left !important;
-    width:100%;
-    color:#f97316 !important;
-    font-size:30px;
-    font-weight:900;
-}
-
-.navbar-nav > li > a{
-    color:#1e293b !important;
-    font-size:16px;
-    font-weight:700;
-    padding:14px 18px !important;
+.main-content{
+    margin-left:250px;
+    padding:90px 20px 20px;
     transition:0.3s;
-    
 }
 
-.navbar-nav > li > a:hover{
-    color:#f97316 !important;
-    background:none !important;
+.main-content.sidebar-hidden{
+    margin-left:0;
 }
 
+/* ===== TOP WELCOME ===== */
 
-
-/* ===== HERO ===== */
-
-.hero-section{
-    background:linear-gradient(135deg,#fff7ed,#ffffff);
-    padding:10px 0 20px 0;
-    text-align:center;
-    border-bottom:1px solid #e5e7eb;
+.top-banner{
+    background:linear-gradient(135deg,#16a34a,#15803d);
+    border-radius:20px;
+    padding:28px;
+    margin-bottom:25px;
+    color:white;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 10px 25px rgba(22,163,74,0.18);
 }
 
-.hero-section h1{
-    font-size:42px;
-    font-weight:900;
-    color:#1e293b;
-    margin-bottom:8px;
+.top-banner:before{
+    content:'';
+    position:absolute;
+    right:-40px;
+    top:-40px;
+    width:180px;
+    height:180px;
+    background:rgba(255,255,255,0.08);
+    border-radius:50%;
 }
 
-
-
-
-
-/* ===== DASHBOARD ===== */
-
-.dashboard-section{
-    padding:30px 0 60px 0;
+.top-banner h1{
+    margin:0;
+    font-size:30px;
+    font-weight:800;
 }
 
+.top-banner p{
+    margin-top:8px;
+    font-size:14px;
+    opacity:0.95;
+}
 
-/* ===== CARDS ===== */
+/* ===== SECTION ===== */
 
-.dashboard-card{
+.section-box{
     background:white;
-    border-radius:22px;
-    padding:28px 20px;
-    text-align:center;
-    height:280px;
-    margin-bottom:30px;
-    transition:0.35s;
-    box-shadow:0 5px 22px rgba(0,0,0,0.08);
-    border-top:5px solid #f97316;
+    border-radius:18px;
+    padding:18px;
+    margin-bottom:22px;
+    box-shadow:0 3px 12px rgba(0,0,0,0.06);
+    border:1px solid #e5f7ea;
 }
 
-.dashboard-card:hover{
-    transform:translateY(-8px);
-    box-shadow:0 15px 35px rgba(0,0,0,0.12);
-}
+/* ===== SECTION TITLE ===== */
 
-.dashboard-card i{
-    font-size:52px;
+.section-title{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
     margin-bottom:18px;
 }
 
-.dashboard-card h3{
+.section-title-left{
+    display:flex;
+    align-items:center;
+}
+
+.section-title-left i{
+    width:38px;
+    height:38px;
+    background:#dcfce7;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#16a34a;
+    margin-right:10px;
+    font-size:16px;
+}
+
+.section-title h2{
+    margin:0;
+    font-size:20px;
+    color:#14532d;
+    font-weight:700;
+}
+
+.section-badge{
+    background:#dcfce7;
+    color:#166534;
+    padding:5px 12px;
+    border-radius:30px;
+    font-size:12px;
+    font-weight:600;
+}
+
+/* ===== DASHBOARD CARD ===== */
+
+.dashboard-card{
+    background:#fbfffc;
+    border:1px solid #e5f7ea;
+    border-radius:16px;
+    padding:18px 15px;
+    transition:0.3s;
+    cursor:pointer;
+    margin-bottom:18px;
+    position:relative;
+    overflow:hidden;
+    min-height:185px;
+}
+
+.dashboard-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 8px 22px rgba(0,0,0,0.08);
+    border-color:#16a34a;
+}
+
+/* ===== ICON ===== */
+
+.card-icon{
+    width:55px;
+    height:55px;
+    border-radius:14px;
+    background:linear-gradient(135deg,#dcfce7,#bbf7d0);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:15px;
+}
+
+.card-icon i{
     font-size:24px;
-    font-weight:800;
-    color:#1e293b;
-    margin-bottom:12px;
+    color:#16a34a;
+}
+
+/* ===== CARD TEXT ===== */
+
+.dashboard-card h3{
+    margin:0 0 8px;
+    font-size:18px;
+    font-weight:700;
+    color:#14532d;
 }
 
 .dashboard-card p{
+    font-size:13px;
     color:#64748b;
-    font-size:15px;
-    line-height:28px;
-    min-height:60px;
+    line-height:22px;
+    min-height:42px;
 }
 
 
 /* ===== BUTTON ===== */
 
-.btn-card{
-    background:#f97316;
-    color:white !important;
-    border:none;
-    border-radius:30px;
-    padding:10px 28px;
-    font-size:15px;
-    font-weight:bold;
-    transition:0.3s;
+.open-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+
+    margin-top:12px;
+
+    background:linear-gradient(135deg,#16a34a,#15803d);
+    color:#ffffff !important;
+
+    padding:8px 18px;
+
+    border-radius:10px;
+
+    font-size:12px;
+    font-weight:700;
+
     text-decoration:none !important;
+
+    border:none;
+
+    box-shadow:0 4px 10px rgba(22,163,74,0.22);
+
+    transition:all 0.25s ease;
 }
 
-.btn-card:hover{
-    background:#ea580c;
-    color:white !important;
+/* Hover */
+
+.open-btn:hover{
+
+    background:linear-gradient(135deg,#15803d,#166534);
+
+    transform:translateY(-2px);
+
+    box-shadow:0 8px 18px rgba(22,163,74,0.30);
+
+    color:#ffffff !important;
 }
 
+/* Arrow Icon */
 
+.open-btn i{
+    font-size:11px;
+    transition:0.25s;
+}
 
+/* Hover Icon Animation */
 
+.dashboard-card:hover .open-btn i{
+    transform:translateX(3px);
+}
 
 /* ===== MOBILE ===== */
 
-@media(max-width:768px){
+@media(max-width:991px){
 
-    .hero-section h1{
-        font-size:38px;
-        line-height:50px;
+    .main-content{
+        margin-left:0;
+        padding:85px 12px 15px;
+    }
+
+    .top-banner h1{
+        font-size:24px;
+    }
+
+    .section-title h2{
+        font-size:18px;
     }
 
     .dashboard-card{
-        height:auto;
-    }
-
-    .navbar-brand{
-        font-size:24px;
+        min-height:auto;
     }
 }
 
@@ -194,269 +278,292 @@ body{
 
 <form id="form1" runat="server">
 
+    <!-- MENU -->
+    <uc1:Menu ID="Menu1" runat="server" />
 
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
 
-<!-- NAVBAR -->
+        <div class="container-fluid">
 
-<nav class="navbar navbar-custom">
+            <!-- PURCHASE SECTION -->
+            <div class="section-box">
 
-    <div class="container-fluid">
+                <div class="section-title">
 
-        <div class="navbar-header">
+                    <div class="section-title-left">
 
-            <a class="navbar-brand" href="#">
-                Rashmi Rice Mill Management System
-            </a>
+                        <i class="fa-solid fa-cart-shopping"></i>
+
+                        <h2>Purchase Management</h2>
+
+                    </div>
+
+                    <div class="section-badge">
+                        3 Modules
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <!-- Purchase Sauda -->
+                    <div class="col-md-4 col-sm-6">
+
+                        <div class="dashboard-card"
+                            onclick="window.location='PurchaseSauda.aspx'">
+
+                            <div class="card-icon">
+                                <i class="fa-solid fa-cart-shopping"></i>
+                            </div>
+
+                            <h3>Purchase Sauda</h3>
+
+                            <p>
+                                Manage paddy purchase entries and supplier records.
+                            </p>
+
+                            <span class="open-btn">
+                                Open
+                                <i class="fa fa-arrow-right"></i>
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Purchase Payment -->
+                    <div class="col-md-4 col-sm-6">
+
+                        <div class="dashboard-card"
+                            onclick="window.location='Payment.aspx'">
+
+                            <div class="card-icon">
+                                <i class="fa-solid fa-money-bill-wave"></i>
+                            </div>
+
+                            <h3>Purchase Payment</h3>
+
+                            <p>
+                                Handle supplier payments and transactions.
+                            </p>
+
+                            <span class="open-btn">
+                                Open
+                                <i class="fa fa-arrow-right"></i>
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Purchase Report -->
+                    <div class="col-md-4 col-sm-6">
+
+                        <div class="dashboard-card"
+                            onclick="window.location='PurchaseReport.aspx'">
+
+                            <div class="card-icon">
+                                <i class="fa-solid fa-chart-column"></i>
+                            </div>
+
+                            <h3>Purchase Report</h3>
+
+                            <p>
+                                View and generate detailed purchase reports.
+                            </p>
+
+                            <span class="open-btn">
+                                Open
+                                <i class="fa fa-arrow-right"></i>
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- SALE SECTION -->
+            <div class="section-box">
+
+                <div class="section-title">
+
+                    <div class="section-title-left">
+
+                        <i class="fa-solid fa-bag-shopping"></i>
+
+                        <h2>Sale Management</h2>
+
+                    </div>
+
+                    <div class="section-badge">
+                        3 Modules
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <!-- Sale Sauda -->
+                    <div class="col-md-4 col-sm-6">
+
+                        <div class="dashboard-card"
+                            onclick="window.location='Sale.aspx'">
+
+                            <div class="card-icon">
+                                <i class="fa-solid fa-bag-shopping"></i>
+                            </div>
+
+                            <h3>Sale Sauda</h3>
+
+                            <p>
+                                Manage rice sales and customer information.
+                            </p>
+
+                            <span class="open-btn">
+                                Open
+                                <i class="fa fa-arrow-right"></i>
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Sale Payment -->
+                    <div class="col-md-4 col-sm-6">
+
+                        <div class="dashboard-card"
+                            onclick="window.location='SalePayment.aspx'">
+
+                            <div class="card-icon">
+                                <i class="fa-solid fa-credit-card"></i>
+                            </div>
+
+                            <h3>Sale Payment</h3>
+
+                            <p>
+                                Handle customer payments and dues.
+                            </p>
+
+                            <span class="open-btn">
+                                Open
+                                <i class="fa fa-arrow-right"></i>
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Sale Report -->
+                    <div class="col-md-4 col-sm-6">
+
+                        <div class="dashboard-card"
+                            onclick="window.location='SaleReport.aspx'">
+
+                            <div class="card-icon">
+                                <i class="fa-solid fa-file-lines"></i>
+                            </div>
+
+                            <h3>Sale Report</h3>
+
+                            <p>
+                                Generate detailed sales analytics and reports.
+                            </p>
+
+                            <span class="open-btn">
+                                Open
+                                <i class="fa fa-arrow-right"></i>
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- OTHER SECTION -->
+            <div class="section-box">
+
+                <div class="section-title">
+
+                    <div class="section-title-left">
+
+                        <i class="fa-solid fa-industry"></i>
+
+                        <h2>Operations</h2>
+
+                    </div>
+
+                    <div class="section-badge">
+                        2 Modules
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <!-- Paddy Processing -->
+                    <div class="col-md-6 col-sm-6">
+
+                        <div class="dashboard-card"
+                            onclick="window.location='PaddyProcessing.aspx'">
+
+                            <div class="card-icon">
+                                <i class="fa-solid fa-industry"></i>
+                            </div>
+
+                            <h3>Paddy Processing</h3>
+
+                            <p>
+                                Monitor rice processing and production activities.
+                            </p>
+
+                            <span class="open-btn">
+                                Open
+                                <i class="fa fa-arrow-right"></i>
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Daily Expense -->
+                    <div class="col-md-6 col-sm-6">
+
+                        <div class="dashboard-card"
+                            onclick="window.location='Expense.aspx'">
+
+                            <div class="card-icon">
+                                <i class="fa-solid fa-wallet"></i>
+                            </div>
+
+                            <h3>Daily Expense</h3>
+
+                            <p>
+                                Track and manage daily rice mill expenses.
+                            </p>
+
+                            <span class="open-btn">
+                                Open
+                                <i class="fa fa-arrow-right"></i>
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
     </div>
-
-</nav>
-
-
-
-<!-- DASHBOARD -->
-
-<div class="dashboard-section" id="dashboard">
-
-    <div class="container">
-
-        <div class="row">
-
-            <!-- Purchase Sauda -->
-
-            <div class="col-md-3">
-
-                <div class="dashboard-card">
-
-                    <i class="fa-solid fa-cart-shopping"
-                        style="color:#2563eb"></i>
-
-                    <h3>Purchase Sauda</h3>
-
-                    <p>
-                        Manage paddy purchase and supplier records.
-                    </p>
-
-                    <a href="PurchaseSauda.aspx"
-                        class="btn btn-card">
-
-                        Open
-
-                    </a>
-
-                </div>
-
-            </div>
-
-
-            <!-- Purchase Payment -->
-
-            <div class="col-md-3">
-
-                <div class="dashboard-card">
-
-                    <i class="fa-solid fa-money-bill-wave"
-                        style="color:#16a34a"></i>
-
-                    <h3>Purchase Payment</h3>
-
-                    <p>
-                        Manage purchase payment transactions.
-                    </p>
-
-                    <a href="Payment.aspx"
-                        class="btn btn-card">
-
-                        Open
-
-                    </a>
-
-                </div>
-
-            </div>
-
-
-            <!-- Purchase Report -->
-
-            <div class="col-md-3">
-
-                <div class="dashboard-card">
-
-                    <i class="fa-solid fa-chart-column"
-                        style="color:#9333ea"></i>
-
-                    <h3>Purchase Report</h3>
-
-                    <p>
-                        Generate purchase reports instantly.
-                    </p>
-
-                    <a href="PurchaseReport.aspx"
-                        class="btn btn-card">
-
-                        Open
-
-                    </a>
-
-                </div>
-
-            </div>
-
-
-            <!-- Sale Sauda -->
-
-            <div class="col-md-3">
-
-                <div class="dashboard-card">
-
-                    <i class="fa-solid fa-bag-shopping"
-                        style="color:#f59e0b"></i>
-
-                    <h3>Sale Sauda</h3>
-
-                    <p>
-                        Manage rice sale and customer records.
-                    </p>
-
-                    <a href="Sale.aspx"
-                        class="btn btn-card">
-
-                        Open
-
-                    </a>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- SECOND ROW -->
-
-        <div class="row">
-
-            <!-- Sale Payment -->
-
-            <div class="col-md-3">
-
-                <div class="dashboard-card">
-
-                    <i class="fa-solid fa-credit-card"
-                        style="color:#dc2626"></i>
-
-                    <h3>Sale Payment</h3>
-
-                    <p>
-                        Manage customer payment transactions.
-                    </p>
-
-                    <a href="SalePayment.aspx"
-                        class="btn btn-card">
-
-                        Open
-
-                    </a>
-
-                </div>
-
-            </div>
-
-
-            <!-- Sale Report -->
-
-            <div class="col-md-3">
-
-                <div class="dashboard-card">
-
-                    <i class="fa-solid fa-file-lines"
-                        style="color:#0891b2"></i>
-
-                    <h3>Sale Report</h3>
-
-                    <p>
-                        Generate sale reports and analytics.
-                    </p>
-
-                    <a href="SaleReport.aspx"
-                        class="btn btn-card">
-
-                        Open
-
-                    </a>
-
-                </div>
-
-            </div>
-
-
-            <!-- Paddy Processing -->
-
-            <div class="col-md-3">
-
-                <div class="dashboard-card">
-
-                    <i class="fa-solid fa-industry"
-                        style="color:#7c3aed"></i>
-
-                    <h3>Paddy Processing</h3>
-
-                    <p>
-                        Monitor paddy processing activities.
-                    </p>
-
-                    <a href="PaddyProcessing.aspx"
-                        class="btn btn-card">
-
-                        Open
-
-                    </a>
-
-                </div>
-
-            </div>
-
-
-            <!-- Daily Expense -->
-
-            <div class="col-md-3">
-
-                <div class="dashboard-card">
-
-                    <i class="fa-solid fa-wallet"
-                        style="color:#ea580c"></i>
-
-                    <h3>Daily Expense</h3>
-
-                    <p>
-                        Manage daily rice mill expenses.
-                    </p>
-
-                    <a href="Expense.aspx"
-                        class="btn btn-card">
-
-                        Open
-
-                    </a>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-
-
-    </div>
-
-</div>
 
 </form>
 

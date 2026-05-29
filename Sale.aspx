@@ -38,7 +38,7 @@
 body{
     margin:0;
     padding:0;
-    font-family:'Segoe UI';
+    font-family:'Segoe UI',sans-serif;
     background:#f4f7fb;
     overflow-x:hidden;
 }
@@ -46,8 +46,8 @@ body{
 /* ===== MAIN ===== */
 
 .main-content{
-    margin-left:110px;
-    padding-top:90px;
+    margin-left:120px;
+    padding-top:130px;
     transition:0.3s;
 }
 
@@ -62,10 +62,10 @@ body{
 }
 
 .sale-box{
-    background:white;
-    border-radius:25px;
-    padding:35px;
-    box-shadow:0 8px 30px rgba(0,0,0,0.08);
+    background:#ffffff;
+    border-radius:28px;
+    padding:38px;
+    box-shadow:0 10px 35px rgba(0,0,0,0.08);
 }
 
 .sale-title{
@@ -74,9 +74,10 @@ body{
 }
 
 .sale-title h2{
-    font-size:36px;
+    font-size:38px;
     font-weight:800;
     color:#1e293b;
+    margin-bottom:8px;
 }
 
 .sale-title p{
@@ -92,8 +93,8 @@ body{
 
 .input-group-custom label{
     display:block;
-    margin-bottom:7px;
-    font-size:16px;
+    margin-bottom:8px;
+    font-size:15px;
     font-weight:700;
     color:#334155;
 }
@@ -104,54 +105,68 @@ body{
 
 .input-box i{
     position:absolute;
-    top:13px;
-    left:14px;
+    top:14px;
+    left:15px;
     color:#94a3b8;
     z-index:9;
-    font-size:13px;
+    font-size:14px;
 }
 
 .form-control{
-    height:42px !important;
-    border-radius:10px !important;
+    height:45px !important;
+    border-radius:12px !important;
     border:1px solid #dbe2ea !important;
-    padding-left:42px !important;
+    padding-left:45px !important;
     box-shadow:none !important;
-    font-size:13px !important;
+    font-size:14px !important;
+    transition:0.3s;
 }
 
 .form-control:focus{
-    border-color:#f97316 !important;
-    box-shadow:0 0 0 4px rgba(249,115,22,0.12) !important;
+    border-color:#16a34a !important;
+    box-shadow:0 0 0 4px rgba(22,163,74,0.12) !important;
 }
 
 /* ===== BUTTON ===== */
 
 .btn-card{
-    background:#f97316;
-    color:white !important;
-    border:none;
-    border-radius:30px;
-    padding:12px 28px;
-    font-size:15px;
-    font-weight:bold;
+    background:linear-gradient(135deg,#16a34a,#15803d) !important;
+    color:#ffffff !important;
+    border:none !important;
+    border-radius:30px !important;
+    padding:12px 32px !important;
+    font-size:15px !important;
+    font-weight:700 !important;
+    letter-spacing:0.3px;
     transition:0.3s;
+    box-shadow:0 8px 20px rgba(22,163,74,0.25);
 }
 
 .btn-card:hover{
-    background:#ea580c;
-    color:white !important;
+    background:linear-gradient(135deg,#15803d,#166534) !important;
+    transform:translateY(-2px);
+    color:#ffffff !important;
 }
 
 /* ===== TABLE ===== */
 
 .table-box{
-    background:#fff;
+    background:#ffffff;
     border-radius:18px;
-    padding:20px;
-    margin-top:30px;
+    padding:22px;
+    margin-top:35px;
     box-shadow:0 5px 18px rgba(0,0,0,0.06);
     overflow:auto;
+}
+
+.table th{
+    background:#16a34a !important;
+    color:#ffffff !important;
+    border:none !important;
+}
+
+.table td{
+    vertical-align:middle !important;
 }
 
 /* ===== MOBILE ===== */
@@ -160,6 +175,7 @@ body{
 
     .main-content{
         margin-left:0;
+        padding-top:100px;
     }
 
     .sale-wrapper{
@@ -167,12 +183,26 @@ body{
     }
 
     .sale-box{
-        padding:20px;
+        padding:22px;
+    }
+
+    .sale-title h2{
+        font-size:28px;
     }
 
 }
 
 </style>
+
+<script>
+
+    function toggleSidebar() {
+
+        $(".main-content").toggleClass("full");
+
+    }
+
+</script>
 
 </head>
 
@@ -301,7 +331,7 @@ body{
                 <!-- BUTTON -->
 
                 <div class="text-center"
-                    style="margin-top:20px;">
+                    style="margin-top:25px;">
 
                     <asp:Button ID="btnSave"
                         runat="server"

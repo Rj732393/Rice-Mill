@@ -1,3 +1,4 @@
+```aspx
 <%@ Page Language="C#" AutoEventWireup="true"
     CodeFile="Payment.aspx.cs"
     Inherits="Payment" %>
@@ -18,17 +19,14 @@
         content="width=device-width, initial-scale=1" />
 
     <!-- Bootstrap -->
-
     <link rel="stylesheet"
         href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
 
     <!-- Font Awesome -->
-
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
     <!-- JQuery -->
-
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
@@ -38,7 +36,7 @@
 body{
     margin:0;
     padding:0;
-    font-family:'Segoe UI';
+    font-family:'Segoe UI',sans-serif;
     background:#f4f7fb;
     overflow-x:hidden;
 }
@@ -47,7 +45,7 @@ body{
 
 .main-content{
     margin-left:120px;
-    padding-top:130px;
+    padding-top:120px;
     transition:0.3s;
 }
 
@@ -55,18 +53,23 @@ body{
     margin-left:0;
 }
 
-/* ===== FORM ===== */
+/* ===== WRAPPER ===== */
 
 .payment-wrapper{
     padding:30px;
 }
 
+/* ===== BOX ===== */
+
 .payment-box{
-    background:white;
-    border-radius:25px;
+    background:#ffffff;
+    border-radius:24px;
     padding:35px;
-    box-shadow:0 8px 30px rgba(0,0,0,0.08);
+    box-shadow:0 10px 35px rgba(0,0,0,0.07);
+    border:1px solid #eef2f7;
 }
+
+/* ===== TITLE ===== */
 
 .payment-title{
     text-align:center;
@@ -74,26 +77,27 @@ body{
 }
 
 .payment-title h2{
-    font-size:36px;
+    font-size:34px;
     font-weight:800;
-    color:#1e293b;
+    color:#14532d;
+    margin-bottom:8px;
 }
 
 .payment-title p{
     color:#64748b;
-    font-size:15px;
+    font-size:14px;
 }
 
 /* ===== INPUT ===== */
 
 .input-group-custom{
-    margin-bottom:25px;
+    margin-bottom:24px;
 }
 
 .input-group-custom label{
     display:block;
-    margin-bottom:7px;
-    font-size:16px;
+    margin-bottom:8px;
+    font-size:15px;
     font-weight:700;
     color:#334155;
 }
@@ -104,7 +108,7 @@ body{
 
 .input-box i{
     position:absolute;
-    top:13px;
+    top:14px;
     left:14px;
     color:#94a3b8;
     z-index:9;
@@ -113,42 +117,79 @@ body{
 
 .form-control,
 select{
-    height:42px !important;
-    border-radius:10px !important;
+    height:46px !important;
+    border-radius:12px !important;
     border:1px solid #dbe2ea !important;
     padding-left:42px !important;
     box-shadow:none !important;
     font-size:13px !important;
+    transition:0.3s;
 }
 
 .form-control:focus,
 select:focus{
-    border-color:#f97316 !important;
-    box-shadow:0 0 0 4px rgba(249,115,22,0.12) !important;
+    border-color:#16a34a !important;
+    box-shadow:0 0 0 4px rgba(22,163,74,0.12) !important;
 }
 
 /* ===== BUTTON ===== */
 
 .btn-card{
-    background:#f97316;
-    color:white !important;
-    border:none;
-    border-radius:30px;
-    padding:12px 28px;
-    font-size:15px;
-    font-weight:bold;
-    transition:0.3s;
+    background:linear-gradient(135deg,#16a34a,#15803d) !important;
+    color:#ffffff !important;
+    border:none !important;
+    border-radius:14px !important;
+    padding:12px 28px !important;
+    font-size:14px !important;
+    font-weight:700 !important;
+    letter-spacing:0.3px;
+    box-shadow:0 6px 16px rgba(22,163,74,0.22);
+    transition:all 0.3s ease;
+    outline:none !important;
 }
 
 .btn-card:hover{
-    background:#ea580c;
-    color:white !important;
+    background:linear-gradient(135deg,#15803d,#166534) !important;
+    color:#ffffff !important;
+    transform:translateY(-2px);
+    box-shadow:0 10px 24px rgba(22,163,74,0.35);
+}
+
+.btn-card:focus{
+    color:#ffffff !important;
+    outline:none !important;
+}
+
+.btn-card:active{
+    transform:scale(0.98);
+}
+
+/* ===== BUTTON COLORS ===== */
+
+#btnContinue{
+    background:linear-gradient(135deg,#16a34a,#15803d) !important;
+}
+
+#btnSave{
+    background:linear-gradient(135deg,#0f766e,#0d9488) !important;
+}
+
+#btnSave:hover{
+    background:linear-gradient(135deg,#115e59,#0f766e) !important;
+}
+
+#btnReset{
+    background:linear-gradient(135deg,#dc2626,#b91c1c) !important;
+}
+
+#btnReset:hover{
+    background:linear-gradient(135deg,#b91c1c,#991b1b) !important;
 }
 
 /* ===== TABLE ===== */
 
 .table-box{
-    background:#fff;
+    background:#ffffff;
     border-radius:18px;
     padding:20px;
     margin-top:30px;
@@ -172,6 +213,9 @@ select:focus{
         padding:20px;
     }
 
+    .payment-title h2{
+        font-size:28px;
+    }
 }
 
 </style>
@@ -210,10 +254,8 @@ select:focus{
         }
         else {
 
-            $("#Panel2").show();
+            $("#Panel2").hide();
             $("#Panel3").hide();
-
-            $("#lblTransaction").html("Receiver Name & Mobile No.");
 
         }
     }
@@ -227,11 +269,9 @@ select:focus{
 <form id="form1" runat="server">
 
     <!-- MENU -->
-
     <uc1:Menu ID="Menu1" runat="server" />
 
     <!-- MAIN CONTENT -->
-
     <div class="main-content">
 
         <div class="payment-wrapper">
@@ -447,6 +487,8 @@ select:focus{
 
                     </div>
 
+                    <!-- BANK ROW -->
+
                     <div class="row">
 
                         <div class="col-md-6">
@@ -541,7 +583,7 @@ select:focus{
                 <!-- BUTTONS -->
 
                 <div class="text-center"
-                    style="margin-top:20px;">
+                    style="margin-top:25px;">
 
                     <input type="submit"
                         id="btnContinue"
@@ -558,6 +600,13 @@ select:focus{
                         value="Submit Payment"
                         class="btn btn-card"
                         onserverclick="btnSave_ServerClick" />
+
+                    &nbsp;&nbsp;
+
+                    <input type="reset"
+                        id="btnReset"
+                        value="Reset Form"
+                        class="btn btn-card" />
 
                 </div>
 
@@ -582,3 +631,4 @@ select:focus{
 </body>
 
 </html>
+```

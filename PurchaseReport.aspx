@@ -4,8 +4,6 @@
     TagName="Menu"
     TagPrefix="uc1" %>
 
-
-
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -52,7 +50,6 @@ body{
     font-family:'Poppins',sans-serif;
     overflow-x:hidden;
 }
-
 
 /* ===== MAIN ===== */
 
@@ -133,28 +130,29 @@ select{
 }
 
 .form-control:focus{
-    border-color:#f59e0b !important;
-    box-shadow:0 0 0 4px rgba(245,158,11,0.12) !important;
+    border-color:#16a34a !important;
+    box-shadow:0 0 0 4px rgba(22,163,74,0.12) !important;
 }
 
 /* ===== BUTTON ===== */
 
 .btn-save{
-    background:linear-gradient(90deg,#f59e0b,#ea580c);
+    background:linear-gradient(135deg,#16a34a,#15803d);
     color:white !important;
     border:none !important;
-    height:52px;
+    height:50px;
     padding:0 28px;
     border-radius:14px;
-    font-size:16px;
+    font-size:15px;
     font-weight:700;
     transition:0.3s;
-    box-shadow:0 8px 20px rgba(234,88,12,0.22);
+    box-shadow:0 8px 20px rgba(22,163,74,0.22);
 }
 
 .btn-save:hover{
-    background:linear-gradient(90deg,#ea580c,#dc2626);
+    background:linear-gradient(135deg,#15803d,#166534);
     transform:translateY(-2px);
+    color:white !important;
 }
 
 /* ===== TABLE ===== */
@@ -173,7 +171,7 @@ select{
 }
 
 .table th{
-    background:#f59e0b;
+    background:#16a34a !important;
     color:white;
     border:none !important;
 }
@@ -185,8 +183,6 @@ select{
 /* ===== MOBILE ===== */
 
 @media(max-width:768px){
-
-    
 
     .main-content{
         margin-left:0;
@@ -212,7 +208,6 @@ select{
 
     function toggleSidebar() {
 
-
         $(".main-content").toggleClass("full");
 
     }
@@ -226,9 +221,6 @@ select{
 <form id="form1" runat="server">
 
 <uc1:Menu ID="Menu1" runat="server" />
-
-
-
 
 <!-- MAIN CONTENT -->
 
@@ -265,8 +257,8 @@ select{
                             <input id="fdate"
                                 name="fdate"
                                 runat="server"
-                                required
-                                class="form-control" />
+                                class="form-control"
+                                type="text" />
 
                         </div>
 
@@ -287,8 +279,8 @@ select{
                             <input id="tdate"
                                 name="tdate"
                                 runat="server"
-                                required
-                                class="form-control" />
+                                class="form-control"
+                                type="text" />
 
                         </div>
 
