@@ -37,7 +37,7 @@ public partial class Login : System.Web.UI.Page
             Session["User"] = userName.Value.Trim();
             if (userName.Value == "admin")
             {
-                Response.Redirect("Admin/RiceStock.aspx");
+                Response.Redirect("Admin/Dashboard.aspx");
             }
             else
             {

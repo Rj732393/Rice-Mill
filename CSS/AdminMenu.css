@@ -1,0 +1,168 @@
+﻿*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+/* SIDEBAR */
+
+.rm-sidebar{
+    position:fixed;
+    top:0;
+    left:0;
+    width:270px;
+    height:100vh;
+    background:linear-gradient(180deg,#0f172a,#1e3a8a);
+    overflow-y:auto;
+    z-index:9999;
+    padding-top:20px;
+}
+
+/* LOGO */
+
+.rm-logo{
+    padding:20px;
+}
+
+.rm-logo h2{
+    color:white;
+    font-size:34px;
+    font-weight:700;
+    margin:0;
+}
+
+.rm-logo span{
+    color:#cbd5e1;
+    font-size:15px;
+}
+
+/* MENU */
+
+.rm-menu{
+    list-style:none;
+    padding:15px;
+}
+
+.rm-menu li{
+    margin-bottom:10px;
+}
+
+.rm-menu li a{
+    display:block;
+    text-decoration:none !important;
+    color:#dbeafe !important;
+    padding:15px 18px;
+    border-radius:14px;
+    font-size:17px;
+    transition:0.3s;
+}
+
+.rm-menu li a:hover{
+    background:#2563eb;
+    color:white !important;
+}
+
+.rm-menu li a.active{
+    background:linear-gradient(135deg,#2563eb,#06b6d4);
+    color:white !important;
+}
+
+.rm-menu li a i{
+    margin-right:12px;
+}
+
+/* NAVBAR */
+
+.rm-navbar{
+    position:fixed;
+    top:0;
+    left:270px;
+    width:calc(100% - 270px);
+    height:80px;
+    background:white;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 30px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.08);
+    z-index:999;
+}
+
+/* TITLE */
+
+.rm-title{
+    font-size:30px;
+    font-weight:700;
+    color:#1e293b;
+}
+
+/* ADMIN */
+
+.rm-admin{
+    background:linear-gradient(135deg,#2563eb,#06b6d4);
+    color:white;
+    padding:10px 20px;
+    border-radius:40px;
+    font-weight:600;
+}
+
+.rm-admin i{
+    margin-right:8px;
+}
+
+/* NAV LEFT */
+
+.rm-nav-left{
+    display:flex;
+    align-items:center;
+    gap:20px;
+}
+
+/* TOGGLE BUTTON */
+
+.rm-toggle{
+    width:45px;
+    height:45px;
+    border-radius:12px;
+    background:#eff6ff;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.rm-toggle:hover{
+    background:#dbeafe;
+}
+
+.rm-toggle span{
+    width:22px;
+    height:3px;
+    background:#2563eb;
+    margin:2px 0;
+    border-radius:10px;
+}
+
+/* HIDE SIDEBAR */
+
+.hideSidebar{
+    left:-270px !important;
+}
+
+/* FULL NAVBAR */
+
+.fullNavbar{
+    left:0 !important;
+    width:100% !important;
+}
+
+/* FULL MAIN */
+
+.fullMain{
+    margin-left:0 !important;
+    width:100% !important;
+}
+

@@ -38,7 +38,7 @@
             <a class="navbar-brand"
                 href="Home.aspx">
 
-                Rashmi i💓u Rice Mill Management System
+                Rashmi Rice Mill Management System
 
             </a>
 
