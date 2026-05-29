@@ -46,13 +46,10 @@
             </div>
         </div>
 
-<<<<<<< HEAD
-                Rashmi Rice Mill Management System
-=======
         <!-- Right: Nav links + User -->
         <div class="nav-right">
             <a href="Home.aspx" class="nav-link-item">Home</a>
->>>>>>> 142e84a7cc553931f4021ab129795d4c5cb79082
+
 
             <div class="nav-dropdown">
                 <a href="#" class="nav-link-item dropdown-toggle-link">
