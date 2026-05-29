@@ -1,56 +1,83 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true"
+<%@ Control Language="C#" AutoEventWireup="true"
     CodeFile="menu.ascx.cs"
     Inherits="Includes_WebUserControl" %>
 
-<link rel="stylesheet"
-      type="text/css"
-      href="<%= ResolveUrl("~/Content/Navbar.css") %>" />
-
+      <link rel="stylesheet" type="text/css" 
+      href="<%= ResolveUrl("~/CSS/Menu.css") %>" />
 
 <script type="text/javascript">
 
     function toggleSidebar() {
-
         $(".sidebar").toggleClass("hide");
-
-        $(".main-content").toggleClass("full");
-
+        $(".main-content").toggleClass("sidebar-hidden");
     }
+
+    // Highlight active sidebar card based on current page
+    $(document).ready(function () {
+        var path = window.location.pathname.toLowerCase();
+        $(".side-card").each(function () {
+            var href = $(this).closest("a").attr("href");
+            if (href && path.indexOf(href.toLowerCase().replace(".aspx", "")) !== -1) {
+                $(".side-card").removeClass("active-side-card");
+                $(this).addClass("active-side-card");
+            }
+        });
+    });
 
 </script>
 
-<!-- NAVBAR -->
+<!-- ===== TOP NAVBAR ===== -->
+<nav class="navbar-custom">
+    <div class="navbar-inner">
 
-<nav class="navbar navbar-custom">
-
-    <div class="container-fluid">
-
-        <div class="navbar-header nav-flex">
-
-            <button type="button"
-                class="menu-toggle"
-                onclick="toggleSidebar()">
-
+        <!-- Left: Hamburger + Logo -->
+        <div class="nav-left">
+            <button class="menu-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">
                 <i class="fa fa-bars"></i>
-
             </button>
 
-            <a class="navbar-brand"
-                href="Home.aspx">
+            <div class="brand-wrap">
+                <img src="<%= ResolveUrl("~/Content/Images/logo.png") %>"
+                     class="brand-logo" alt="Logo"
+                     onerror="this.style.display='none'" />
+                <a class="navbar-brand" href="Home.aspx">
+                    Rashmi Rice Mill Management System
+                </a>
+            </div>
+        </div>
 
+<<<<<<< HEAD
                 Rashmi Rice Mill Management System
+=======
+        <!-- Right: Nav links + User -->
+        <div class="nav-right">
+            <a href="Home.aspx" class="nav-link-item">Home</a>
+>>>>>>> 142e84a7cc553931f4021ab129795d4c5cb79082
 
-            </a>
+            <div class="nav-dropdown">
+                <a href="#" class="nav-link-item dropdown-toggle-link">
+                    Reports <i class="fa fa-chevron-down" style="font-size:11px;"></i>
+                </a>
+                <div class="nav-dropdown-menu">
+                    <a href="PurchaseReport.aspx">Purchase Report</a>
+                    <a href="SaleReport.aspx">Sale Report</a>
+                </div>
+            </div>
 
+            <div class="nav-user">
+                <div class="user-avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <span class="user-name">Admin User</span>
+            </div>
         </div>
 
     </div>
-
 </nav>
 
-<!-- SIDEBAR -->
 
-<div class="sidebar">
+<!-- ===== LEFT SIDEBAR ===== -->
+<div class="sidebar" id="mainSidebar">
 
     <a href="Home.aspx" style="text-decoration:none;">
         <div class="side-card">
@@ -81,7 +108,7 @@
     </a>
 
     <a href="Sale.aspx" style="text-decoration:none;">
-        <div class="side-card active-side-card">
+        <div class="side-card">
             <i class="fa-solid fa-bag-shopping"></i>
             <h5>Sale Sauda</h5>
         </div>

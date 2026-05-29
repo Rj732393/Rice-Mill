@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true"
+<%@ Page Language="C#" AutoEventWireup="true"
     CodeFile="PaddyProcessing.aspx.cs"
     Inherits="PaddyProcessing" %>
 
@@ -48,8 +48,8 @@ body{
 /* ===== MAIN ===== */
 
 .main-content{
-    margin-left:110px;
-    padding-top:90px;
+    margin-left:120px;
+    padding-top:130px;
     transition:0.3s;
 }
 

@@ -146,7 +146,14 @@ public partial class PurchaseReport : System.Web.UI.Page
             htmlTable.Append("<td>" + DtData.Rows[i]["KantaNo"].ToString() + "</td>");
             htmlTable.Append("<td>" + DtData.Rows[i]["Advance"].ToString() + "</td>");
             string[] calc = dataDisplay(DtData.Rows[i]["ID"].ToString()).Split('-');
-            DtData.Rows[i]["Amount"] = Math.Round(Convert.ToDouble(calc[0].ToString()),0);
+            if (calc[0].ToString().Trim() == "")
+            {
+                DtData.Rows[i]["Amount"] = "0";
+            }
+            else
+            {
+                DtData.Rows[i]["Amount"] = Math.Round(Convert.ToDouble(calc[0].ToString()), 0);
+            }
             DtData.Rows[i]["CD"] = Math.Round(Convert.ToDouble(calc[1].ToString()), 0);
             DtData.Rows[i]["GK"] = Math.Round(Convert.ToDouble(calc[2].ToString()), 0);
             htmlTable.Append("<td>" + DtData.Rows[i]["CD"].ToString() + "</td>");

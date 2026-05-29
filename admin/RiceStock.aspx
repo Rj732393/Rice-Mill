@@ -39,6 +39,7 @@
 
     <!-- Bootstrap -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<<<<<<< HEAD
 
     <!-- Date Picker -->
     <link rel="stylesheet"
@@ -143,9 +144,14 @@
 
     </style>
 
+=======
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"/>
+    <%--<link href="../CSS/Menu.css" rel="stylesheet" type="text/css" />--%>
+>>>>>>> 142e84a7cc553931f4021ab129795d4c5cb79082
 </head>
 
 <body>
+<<<<<<< HEAD
 
 <form id="form1" runat="server">
 
@@ -275,6 +281,42 @@
 
         </div>
 
+=======
+    <form id="form1" runat="server">
+    <div class="header"></div>
+    <input type="checkbox" class="openSidebarMenu" id="openSidebarMenu">
+  <label for="openSidebarMenu" class="sidebarIconToggle">
+    <div class="spinner diagonal part-1"></div>
+    <div class="spinner horizontal"></div>
+    <div class="spinner diagonal part-2"></div>
+  </label>
+  <div id="sidebarMenu">
+    <uc1:WebUserControl1 ID="WebUserControl11" runat="server" /> 
+  </div>
+    <div class="container">
+  <div id='center' class="main center">
+    <div class="mainInner">
+    
+       <h2><span>Rashmi Rice Mills Private Limited</span>
+      <br />Rice Stock Report</h2>
+      <div class="row" style="text-align:right !important;">
+      <span style="font-weight:bold; color:Maroon;">Welcome Admin</span>
+      </div>
+      
+  <div class="row">
+      <div class="col-25">
+        <label for="fdate">From Date</label>
+      </div>
+      <div class="col-25">
+        <input id="fdate" name="sdate" runat="server"/>
+      </div>
+      <div class="col-25">
+        <label for="tdate">To Date</label>
+      </div>
+      <div class="col-25">
+        <input id="tdate" name="tdate" runat="server"/>
+      </div>
+>>>>>>> 142e84a7cc553931f4021ab129795d4c5cb79082
     </div>
 
 </form>
