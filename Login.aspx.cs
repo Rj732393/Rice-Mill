@@ -13,6 +13,7 @@ public partial class Login : System.Web.UI.Page
     DataTable dt;
     List<SqlParameter> param;
     DataAccessLayer dac;
+
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!Page.IsPostBack)
@@ -20,22 +21,27 @@ public partial class Login : System.Web.UI.Page
             Session["User"] = null;
         }
     }
+
     protected void login_Click(object sender, EventArgs e)
     {
         dt = new DataTable();
         string q = "";
-        param = new List<SqlParameter>();//Emp_Id
+        param = new List<SqlParameter>();
 
-        param.Add(new SqlParameter("@UserName", userName.Value.Trim()));
-        param.Add(new SqlParameter("@Password", pwd.Value.Trim()));
+        // ✅ ONLY FIX IS HERE (.Value → .Text)
+        param.Add(new SqlParameter("@UserName", userName.Text.Trim()));
+        param.Add(new SqlParameter("@Password", pwd.Text.Trim()));
+
         q = "select * from prabha.UserInfo where UserName=@UserName and UPassword=@Password";
+
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
 
         if (dt.Rows.Count > 0)
         {
-            Session["User"] = userName.Value.Trim();
-            if (userName.Value == "admin")
+            Session["User"] = userName.Text.Trim();
+
+            if (userName.Text == "admin")
             {
                 Response.Redirect("Admin/Dashboard.aspx");
             }
@@ -43,8 +49,6 @@ public partial class Login : System.Web.UI.Page
             {
                 Response.Redirect("Home.aspx");
             }
-            
-
         }
         else
         {

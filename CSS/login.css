@@ -1,104 +1,163 @@
-﻿/* Importing fonts from Google */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
-
-/* Reseting */
-* {
+﻿/* =========================
+   FULL BACKGROUND IMAGE FIX
+========================= */
+body {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Segoe UI', sans-serif;
+
+    background-image: url("../Images/paddy1.webp");
+    background-size: cover;          /* full screen cover */
+    background-repeat: no-repeat;    /* no repeat */
+    background-position: center;     /* center image */
+    background-attachment: fixed;    /* smooth full view */
+
+    min-height: 100vh;
 }
 
-body {
-    background: #ecf0f3;
+/* =========================
+   DARK OVERLAY (LIGHT)
+========================= */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+
+    background: rgba(0,0,0,0.35); /* adjust darkness */
+    z-index: 0;
 }
 
-.wrapper {
-    max-width: 350px;
-    min-height: 500px;
-    margin: 80px auto;
-    padding: 40px 30px 30px 30px;
-    background-color: #ecf0f3;
-    border-radius: 15px;
-    box-shadow: 13px 13px 20px #cbced1, -13px -13px 20px #fff;
+/* =========================
+   PAGE ALIGN (LEFT SIDE)
+========================= */
+.page {
+    height: 100vh;
+    display: flex;
+padding-top:1%;
+    justify-content: flex-start;
+    align-items: center;
+
+    padding-left: 55%;   /* 👈 10% right shift */
+    position: relative;
+    z-index: 1;
 }
 
-.logo {
-    width: 80px;
-    margin: auto;
+/* =========================
+   LOGIN CARD (GRADIENT CLEAN)
+========================= */
+.login-card {
+    width: 360px;
+    padding: 25px;
+    border-radius: 18px;
+
+    background: linear-gradient(135deg, #ffffff, #e8f5e9, #c8e6c9);
+
+    box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+
+    text-align: center;
+    position: relative;
+    z-index: 2;
 }
 
+/* =========================
+   LOGO
+========================= */
 .logo img {
-    width: 100%;
+    width: 80px;
     height: 80px;
-    object-fit: cover;
     border-radius: 50%;
-    box-shadow: 0px 0px 3px #5f5f5f,
-        0px 0px 0px 5px #ecf0f3,
-        8px 8px 15px #a7aaa7,
-        -8px -8px 15px #fff;
 }
 
-.wrapper .name {
-    font-weight: 600;
-    /*font-size: 1.4rem;*/
-    letter-spacing: 1.3px;
-    /*padding-left: 10px;*/
-    color: #555;
+/* =========================
+   TITLE
+========================= */
+.login-card h2 {
+    margin: 12px 0 5px;
+    color: #1b5e20;
+    font-size: 22px;
 }
 
-.wrapper .form-field input {
-    width: 100%;
-    display: block;
-    border: none;
-    outline: none;
-    background: none;
-    /*font-size: 1.2rem;*/
-    color: #666;
-    padding: 10px 15px 10px 10px;
-    /* border: 1px solid red; */
-}
-
-.wrapper .form-field {
-    padding-left: 10px;
+.login-card p {
+    font-size: 13px;
+    color: #333;
     margin-bottom: 20px;
-    border-radius: 20px;
-    box-shadow: inset 8px 8px 8px #cbced1, inset -8px -8px 8px #fff;
 }
 
-.wrapper .form-field .fas {
-    color: #555;
-}
-
-.wrapper .btn {
-    box-shadow: none;
+/* =========================
+   INPUT BOX
+========================= */
+.input {
+    position: relative;
+    margin: 14px 0;
     width: 100%;
-    height: 40px;
-    background-color: #272264;
-    color: #fff;
-    border-radius: 25px;
-    box-shadow: 3px 3px 3px #b1b1b1,
-        -3px -3px 3px #fff;
-    letter-spacing: 1.3px;
 }
 
-.wrapper .btn:hover {
-    background-color: #574ebc;
+/* ICON */
+.input i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #2e7d32;
 }
 
-.wrapper a {
-    text-decoration: none;
-    font-size: 0.8rem;
-    color: #03A9F4;
+/* INPUT FIX (NO OVERFLOW) */
+.input input {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 12px 12px 12px 38px;
+
+    border: 1px solid #ccc;
+    border-radius: 10px;
+
+    outline: none;
+    font-size: 14px;
 }
 
-.wrapper a:hover {
-    color: #039BE5;
+/* =========================
+   BUTTON
+========================= */
+.btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 30px;
+
+    background: linear-gradient(135deg, #2e7d32, #66bb6a);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+
+    margin-top: 10px;
+    transition: 0.3s;
 }
 
-@media(max-width: 380px) {
-    .wrapper {
-        margin: 30px 20px;
-        padding: 40px 15px 15px 15px;
+.btn:hover {
+    transform: scale(1.05);
+}
+
+/* =========================
+   MESSAGE
+========================= */
+#lblMsg {
+    display: block;
+    margin-top: 10px;
+    font-size: 13px;
+    color: red;
+}
+
+/* =========================
+   MOBILE RESPONSIVE
+========================= */
+@media (max-width: 420px) {
+    .page {
+        padding-left: 0;
+        justify-content: center;
+    }
+
+    .login-card {
+        width: 90%;
+        padding: 25px;
     }
 }

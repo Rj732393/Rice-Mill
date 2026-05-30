@@ -1,0 +1,118 @@
+﻿/* BACKGROUND */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+
+    background-image: url("../Images/paddy.webp");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+}
+
+/* PAGE */
+.page {
+    height: 100vh;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding-left: 10%;
+    position: relative;
+    z-index: 1;
+}
+
+/* CARD */
+.logout-card {
+    width: 380px;
+    padding: 40px 35px;
+    border-radius: 20px;
+
+    background: linear-gradient(
+        135deg,
+        #ffffff,
+        #e8f5e9,
+        #c8e6c9
+    );
+
+    box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+
+    text-align: center;
+}
+
+/* ICON */
+.icon {
+    width: 90px;
+    height: 90px;
+    margin: auto;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: linear-gradient(
+        135deg,
+        #2e7d32,
+        #66bb6a
+    );
+
+    color: white;
+    font-size: 35px;
+}
+
+/* TITLE */
+.logout-card h2 {
+    margin-top: 20px;
+    color: #1b5e20;
+}
+
+/* TEXT */
+.logout-card p {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+/* BUTTON */
+.btn-login {
+    display: inline-block;
+    padding: 12px 28px;
+    border-radius: 30px;
+
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+
+    background: linear-gradient(
+        135deg,
+        #2e7d32,
+        #66bb6a
+    );
+
+    transition: 0.3s;
+}
+
+.btn-login:hover {
+    transform: scale(1.05);
+}
+
+/* MOBILE */
+@media(max-width: 768px) {
+
+    .page {
+        justify-content: center;
+        padding-left: 0;
+    }
+
+    .logout-card {
+        width: 90%;
+    }
+}

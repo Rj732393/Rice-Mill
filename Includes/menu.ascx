@@ -61,13 +61,21 @@
                 </div>
             </div>
 
-            <div class="nav-user">
-                <div class="user-avatar">
-                    <i class="fa-solid fa-user"></i>
-                </div>
-                <span class="user-name">Admin User</span>
-            </div>
+<a href="Login.aspx" style="text-decoration:none;">
+    <div class="nav-user">
+        <div class="user-avatar">
+            <i class="fa-solid fa-user"></i>
         </div>
+
+        <span class="user-name" style="color:white;">
+            Logout
+        </span>
+
+        <div class="logout-btn">
+            <i class="fa-solid fa-right-from-bracket"></i>
+        </div>
+    </div>
+</a>
 
     </div>
 </nav>
