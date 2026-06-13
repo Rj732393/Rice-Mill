@@ -112,7 +112,7 @@
         </div>
     </a>
 
-    <a href="Sale.aspx" style="text-decoration:none;">
+    <a href="SaleSauda.aspx" style="text-decoration:none;">
         <div class="side-card">
             <i class="fa-solid fa-bag-shopping"></i>
             <h5>Sale Sauda</h5>

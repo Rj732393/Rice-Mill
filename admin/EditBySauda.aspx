@@ -10,39 +10,178 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"/>
     <link href="../CSS/Menu.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link href="../CSS/AdminMenu.css" rel="stylesheet" type="text/css" />
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; }
-        .page-title { color: #8B0000; font-size: 22px; font-weight: bold; margin-bottom: 6px; }
-        .welcome-bar { text-align:right; font-weight:bold; color:Maroon; margin-bottom:10px; }
-        .card { background:#fff; border:1px solid #ddd; border-radius:6px; padding:20px; margin-top:16px; box-shadow:0 1px 4px rgba(0,0,0,0.07); }
-        .card h3 { color:#8B0000; border-bottom:2px solid #f0c040; padding-bottom:8px; margin-bottom:16px; font-size:16px; }
-        .alert-msg { padding:10px 14px; border-radius:4px; margin-bottom:12px; font-weight:bold; font-size:13px; }
-        .alert-success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
-        .alert-error   { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
-        .section-bar { background:#8B0000; color:#fff; padding:7px 14px; border-radius:4px; margin:18px 0 10px 0; font-size:13px; font-weight:bold; }
-        .field-row { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:8px; }
-        .field-box { flex: 0 0 calc(33% - 12px); min-width:160px; }
-        .field-box label { font-weight:bold; font-size:12px; color:#555; display:block; margin-bottom:3px; }
-        .field-box input { width:100%; padding:5px 8px; border:1px solid #aaa; border-radius:3px; box-sizing:border-box; font-size:13px; }
-        .field-box input[readonly] { background:#f5f5f5; color:#888; border-color:#ddd; cursor:not-allowed; }
-        .rate-table { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:10px; }
-        .rate-table th { background:#8B0000; color:#fff; padding:8px 10px; text-align:center; }
-        .rate-table td { padding:7px 8px; border:1px solid #ddd; text-align:center; }
-        .rate-table tr:nth-child(even) { background:#f9f9f9; }
-        .rate-table input { width:110px; padding:4px 6px; border:1px solid #aaa; border-radius:3px; text-align:right; }
-        .linked-block { border:1px solid #c8dff5; border-radius:5px; padding:12px; margin-bottom:14px; background:#f0f7ff; }
-        .linked-title { font-weight:bold; color:#1a6496; margin-bottom:8px; font-size:13px; }
-        .item-table { width:100%; border-collapse:collapse; font-size:12px; }
-        .item-table th { background:#1a6496; color:#fff; padding:6px 8px; }
-        .item-table td { padding:6px 8px; border:1px solid #ccc; text-align:center; }
-        .item-table input { width:90px; padding:3px 5px; border:1px solid #aaa; border-radius:3px; text-align:right; }
-        .btn-search { background:#8B0000; color:#fff; border:none; padding:7px 24px; border-radius:4px; font-size:14px; cursor:pointer; }
-        .btn-save   { background:#27ae60; color:#fff; border:none; padding:8px 26px; border-radius:4px; font-size:14px; cursor:pointer; margin-right:8px; }
-        .btn-cancel { background:#c0392b; color:#fff; border:none; padding:8px 20px; border-radius:4px; font-size:14px; cursor:pointer; }
-        .tab-btns { margin-bottom:0; }
-        .tab-btns button { padding:8px 22px; border:1px solid #8B0000; background:#fff; color:#8B0000; cursor:pointer; font-size:13px; border-radius:4px 4px 0 0; margin-right:4px; }
-        .tab-btns button.active { background:#8B0000; color:#fff; font-weight:bold; }
-        .info-note { background:#fff8e1; border:1px solid #f0c040; border-radius:4px; padding:8px 12px; font-size:12px; color:#7d5700; margin-bottom:10px; }
+      body{
+    background:#f1f5f9;
+    font-family:'Poppins',sans-serif;
+    overflow-x:hidden;
+}
+
+.main-wrapper{
+    margin-left:270px;
+    margin-top:100px;
+    padding:30px;
+}
+
+.dashboard-card{
+    background:#fff;
+    border-radius:24px;
+    padding:40px;
+    box-shadow:0 12px 35px rgba(0,0,0,.08);
+}
+
+.page-title{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.page-title h1{
+    font-size:32px;
+    font-weight:700;
+    color:#1e293b;
+}
+
+.page-title p{
+    color:#64748b;
+}
+
+.section-card{
+    background:#fff;
+    border-radius:18px;
+    padding:25px;
+    margin-top:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,.05);
+}
+
+.form-control{
+    border-radius:12px !important;
+    height:48px !important;
+}
+
+.btn-search{
+    background:linear-gradient(135deg,#2563eb,#06b6d4);
+    border:none;
+    color:#fff;
+    padding:12px 25px;
+    border-radius:12px;
+    font-weight:600;
+}
+
+.btn-save{
+    background:linear-gradient(135deg,#16a34a,#22c55e);
+    border:none;
+    color:#fff;
+    padding:12px 25px;
+    border-radius:12px;
+    font-weight:600;
+}
+
+.btn-cancel{
+    background:linear-gradient(135deg,#dc2626,#ef4444);
+    border:none;
+    color:#fff;
+    padding:12px 25px;
+    border-radius:12px;
+    font-weight:600;
+}
+
+.section-bar{
+    background:linear-gradient(135deg,#2563eb,#06b6d4);
+    color:#fff;
+    padding:12px 18px;
+    border-radius:12px;
+    font-weight:600;
+    margin-bottom:15px;
+}
+
+.rate-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.rate-table th{
+    background:#2563eb;
+    color:#fff;
+    padding:12px;
+}
+
+.rate-table td{
+    padding:10px;
+    border:1px solid #e2e8f0;
+}
+
+.rate-table input{
+    width:100%;
+    padding:8px;
+    border-radius:8px;
+    border:1px solid #cbd5e1;
+}
+.container{
+    width:100%;
+    max-width:100%;
+    padding:0;
+}
+
+.field-box input,
+.field-box select{
+    width:100%;
+    height:50px;
+    border-radius:12px;
+    border:1px solid #cbd5e1;
+    padding:10px 15px;
+}
+
+.info-note{
+    background:#fff7ed;
+    border-left:5px solid #f59e0b;
+    padding:15px;
+    border-radius:12px;
+    margin-bottom:20px;
+}
+.tab-btns{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.tab-btns button{
+    background:#fff;
+    border:1px solid #dbe4f0;
+    padding:12px 25px;
+    border-radius:12px;
+    font-size:15px;
+    font-weight:600;
+    color:#334155;
+    margin:0 5px;
+    transition:0.3s;
+}
+
+.tab-btns button i{
+    margin-right:8px;
+}
+
+.tab-btns button:hover{
+    background:#f8fafc;
+}
+
+.tab-btns button.active{
+    background:linear-gradient(135deg,#2563eb,#06b6d4);
+    color:#fff;
+    border:none;
+}
+
+@media(max-width:900px){
+    .main-wrapper{
+        margin-left:0;
+        margin-top:20px;
+        padding:15px;
+    }
+
+    .dashboard-card{
+        padding:20px;
+    }
+}
     </style>
 </head>
 <body>
@@ -55,22 +194,51 @@
     <div class="spinner diagonal part-2"></div>
 </label>
 <div id="sidebarMenu">
-    <uc1:WebUserControl1 ID="WebUserControl11" runat="server" />
-</div>
-<div class="container">
-  <div id="center" class="main center">
-    <div class="mainInner">
+    <<uc1:WebUserControl1 ID="WebUserControl11" runat="server" />
 
-      <p class="page-title"><i class="fas fa-edit"></i> Edit By Sauda Number</p>
-      <p class="welcome-bar">Welcome, Admin</p>
+<div class="main-wrapper">
 
+<div class="dashboard-card">
+
+<div class="page-title">
+
+    <h1>
+
+        <i class="fas fa-edit"
+            style="color:#2563eb;"></i>
+
+        Edit By Sauda Number
+
+    </h1>
+
+    <p>
+        Welcome, Admin
+    </p>
+
+</div>.
       <!-- Type Tabs -->
       <div class="tab-btns">
-          <button type="button" id="tabPurchase" class="active"
-              onclick="switchTab('Purchase')">🛒 Purchase Sauda</button>
-          <button type="button" id="tabSale"
-              onclick="switchTab('Sale')">💰 Sale Sauda</button>
-      </div>
+    
+    <button type="button"
+        id="tabPurchase"
+        class="active"
+        onclick="switchTab('Purchase')">
+
+        <i class="fas fa-shopping-cart"></i>
+        Purchase Sauda
+
+    </button>
+
+    <button type="button"
+        id="tabSale"
+        onclick="switchTab('Sale')">
+
+        <i class="fas fa-rupee-sign"></i>
+        Sale Sauda
+
+    </button>
+
+</div>
       <input type="hidden" id="hdnSaudaType" runat="server" value="Purchase" />
 
       <!-- Search Card -->
@@ -199,7 +367,8 @@
     </div>
   </div>
 </div>
-
+</div>
+</div>
 <script type="text/javascript">
     function switchTab(type) {
         document.getElementById('hdnSaudaType').value = type;
@@ -213,7 +382,7 @@
             ph.placeholder = 'e.g. RR/SS/2024-2025/0003 ya sirf 3 ya MNo';
     }
     // On load restore tab
-    window.onload = function() {
+    window.onload = function () {
         var t = document.getElementById('hdnSaudaType').value;
         if (t) switchTab(t);
     };

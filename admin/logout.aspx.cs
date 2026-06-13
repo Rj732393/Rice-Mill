@@ -21,6 +21,6 @@ public partial class Logout : System.Web.UI.Page
 
         // Redirect Login Page
 
-        Response.Redirect("Login.aspx");
+        Response.Redirect("../Login.aspx");
     }
 }
