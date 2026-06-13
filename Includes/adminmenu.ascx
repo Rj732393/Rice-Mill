@@ -1,4 +1,4 @@
-<%@ Control Language="C#" AutoEventWireup="true"
+﻿<%@ Control Language="C#" AutoEventWireup="true"
     CodeFile="AdminMenu.ascx.cs"
     Inherits="Includes_AdminMenu" %>
 
@@ -80,9 +80,12 @@
             </a>
         </li>
 
-        <li>
-            <a href="Logout.aspx">
+        <li><a href="ManageSubscription.aspx">
+        <i class="fa fa-calendar"></i>
+         Subscription</a></li>
 
+        <li>
+            <a href="../Login.aspx" >
                 <i class="fas fa-sign-out-alt"></i>
 
                 Logout
