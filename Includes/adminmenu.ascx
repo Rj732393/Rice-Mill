@@ -80,10 +80,6 @@
             </a>
         </li>
 
-        <li><a href="ManageSubscription.aspx">
-        <i class="fa fa-calendar"></i>
-         Subscription</a></li>
-
         <li>
             <a href="../Login.aspx" >
                 <i class="fas fa-sign-out-alt"></i>
