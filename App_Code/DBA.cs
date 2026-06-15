@@ -8,10 +8,6 @@ using System.Web.Security;
 using System.Data.SqlClient;
 
 
-/// <summary>
-/// Summary description for DataAccessLayer
-/// </summary>
-
 namespace substitute
 {
     public class DataAccessLayer

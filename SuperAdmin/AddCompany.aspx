@@ -112,6 +112,12 @@
                 <asp:TextBox ID="txtState" runat="server" CssClass="form-control" placeholder="jaise: Bihar" />
             </div>
         </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>GST Number</label>
+                <asp:TextBox ID="txtGST" runat="server" CssClass="form-control" placeholder="22AAAAA0000A1Z5" />
+            </div>
+        </div>
         <div class="col-md-12">
             <div class="form-group">
                 <label>Poora Address</label>
@@ -143,16 +149,23 @@
     <div class="section-head"><i class="fas fa-calendar-alt"></i> &nbsp;Subscription Ki Dates</div>
 
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="form-group">
-                <label>Subscription Shuru *</label>
-                <asp:TextBox ID="txtStartDate" runat="server" CssClass="form-control" TextMode="Date" />
+                <label>Plan *</label>
+                <asp:DropDownList ID="ddlPlan" runat="server" CssClass="form-control"
+                    DataTextField="PlanName" DataValueField="PlanID" />
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>Subscription Shuru *</label>
+                <asp:TextBox ID="txtStartDate" runat="server" CssClass="form-control" TextMode="SingleLine" type="date" />
+            </div>
+        </div>
+        <div class="col-md-4">
             <div class="form-group">
                 <label>Subscription Khatam *</label>
-                <asp:TextBox ID="txtEndDate" runat="server" CssClass="form-control" TextMode="Date" />
+                <asp:TextBox ID="txtEndDate" runat="server" CssClass="form-control" TextMode="SingleLine" type="date" />
             </div>
         </div>
     </div>

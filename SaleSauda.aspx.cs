@@ -19,14 +19,28 @@ public partial class SaleSauda : System.Web.UI.Page
     DataRow rmain;
     List<SqlParameter> param;
     DataAccessLayer dac;
+    SaaSHelper saas = new SaaSHelper();
     string script = "";
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!Page.IsPostBack)
         {
-            if (Session["User"] == null)
+            if (Session["User"] == null || Session["CompanyID"] == null)
             {
                 Response.Redirect("Login.aspx");
+                return;
+            }
+
+            int cid = Convert.ToInt32(Session["CompanyID"]);
+            if (cid > 0)
+            {
+                string status = saas.GetSubscriptionStatus(cid);
+                if (status == "Suspended" || status == "Blocked" || status == "Expired")
+                {
+                    Session.Clear();
+                    Response.Redirect("Login.aspx?expired=1");
+                    return;
+                }
             }
 
             sdate.Attributes["type"] = "date";
@@ -351,7 +365,8 @@ public partial class SaleSauda : System.Web.UI.Page
         dt = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
-        q = "select distinct concat(PartyName, ' (Mobile No.: ',PMobile,')') as PartyName from prabha.Sale_Sauda_Master order by PartyName";
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
+        q = "select distinct concat(PartyName, ' (Mobile No.: ',PMobile,')') as PartyName from prabha.Sale_Sauda_Master where CompanyID=@CompanyID order by PartyName";
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
 
@@ -367,10 +382,11 @@ public partial class SaleSauda : System.Web.UI.Page
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
 
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
         param.Add(new SqlParameter("@Party_Name", PName));
         param.Add(new SqlParameter("@PMobile", PMobile));
 
-        q = "select distinct PartyName,PMobile,PAddress,PGSTIN,PPAN from prabha.Sale_Sauda_Master where PartyName=@Party_Name and PMobile=@PMobile";
+        q = "select distinct PartyName,PMobile,PAddress,PGSTIN,PPAN from prabha.Sale_Sauda_Master where CompanyID=@CompanyID and PartyName=@Party_Name and PMobile=@PMobile";
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
         return dt;
@@ -379,13 +395,16 @@ public partial class SaleSauda : System.Web.UI.Page
     public static List<string> GetEmployeeName(string empName)
     {
         List<string> empResult = new List<string>();
+        int companyID = HttpContext.Current.Session["CompanyID"] != null ? Convert.ToInt32(HttpContext.Current.Session["CompanyID"]) : 0;
+
         using (SqlConnection con = new SqlConnection(@"Server=ws241.win.arvixe.com;Database=sati1983_farming;User ID=prabha;Password=prabha@#*2022;Trusted_Connection=False;"))
         {
             using (SqlCommand cmd = new SqlCommand())
             {
-                cmd.CommandText = "SELECT [BrokerName] FROM [prabha].Sale_Sauda_Master where [BrokerName] like ''+@SearchEmpName+'%'";
+                cmd.CommandText = "SELECT [BrokerName] FROM [prabha].Sale_Sauda_Master where CompanyID=@CompanyID and [BrokerName] like ''+@SearchEmpName+'%'";
                 cmd.Connection = con;
                 con.Open();
+                cmd.Parameters.AddWithValue("@CompanyID", companyID);
                 cmd.Parameters.AddWithValue("@SearchEmpName", empName);
                 SqlDataReader dr = cmd.ExecuteReader();
                 while (dr.Read())
@@ -438,10 +457,11 @@ public partial class SaleSauda : System.Web.UI.Page
 
         param = new List<SqlParameter>();//Emp_Id
 
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
         param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(dtFrom).ToString("dd-MMM-yyyy")));
         param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(dtTo).ToString("dd-MMM-yyyy")));
 
-        q = "select max([No]) from prabha.Sale_Sauda_Master where DataDate>=@DataDate1 and DataDate<=@DataDate2";
+        q = "select max([No]) from prabha.Sale_Sauda_Master where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2";
         dac = new DataAccessLayer();
         object test = dac.Scalar(q, param);
         if (test == DBNull.Value)
@@ -485,6 +505,7 @@ public partial class SaleSauda : System.Web.UI.Page
             param = new List<SqlParameter>();//Emp_Id
             
             string[] Inv = dtMain.Rows[0]["No"].ToString().Split('/');
+            param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@No", Inv[3]));
             param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(dtMain.Rows[0]["DataDate"].ToString()).ToString("dd-MMM-yyyy")));
             param.Add(new SqlParameter("@MNo", dtMain.Rows[0]["MNo"].ToString()));
@@ -498,8 +519,8 @@ public partial class SaleSauda : System.Web.UI.Page
             param.Add(new SqlParameter("@EntryDate", Convert.ToDateTime(System.DateTime.Now).ToString("dd-MMM-yyyy")));
             param.Add(new SqlParameter("@IsActive", "1"));
 
-            q = "insert into prabha.Sale_Sauda_Master([No],DataDate,MNo,PartyName,PMobile,PAddress,PGSTIN,PPAN,BrokerName,OperatorName,EntryDate,IsActive) ";
-            q += " values(@No,@DataDate,@MNo,@PartyName,@PMobile,@PAddress,@PGSTIN,@PPAN,@BrokerName,@OperatorName,@EntryDate,@IsActive) select @@IDENTITY ";
+            q = "insert into prabha.Sale_Sauda_Master(CompanyID,[No],DataDate,MNo,PartyName,PMobile,PAddress,PGSTIN,PPAN,BrokerName,OperatorName,EntryDate,IsActive) ";
+            q += " values(@CompanyID,@No,@DataDate,@MNo,@PartyName,@PMobile,@PAddress,@PGSTIN,@PPAN,@BrokerName,@OperatorName,@EntryDate,@IsActive) select @@IDENTITY ";
             dac = new DataAccessLayer();
 
             msg = Convert.ToInt32(dac.Scalar(q, param));
@@ -545,11 +566,12 @@ public partial class SaleSauda : System.Web.UI.Page
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
 
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
         param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(DDate).ToString("dd-MMM-yyyy")));
         
         param.Add(new SqlParameter("@PartyName", PN));
 
-        q = "select * from prabha.Sale_Sauda_Master where DataDate=@DataDate and PartyName=@PartyName";
+        q = "select * from prabha.Sale_Sauda_Master where CompanyID=@CompanyID and DataDate=@DataDate and PartyName=@PartyName";
         dac = new DataAccessLayer();
         dtOut = dac.GetDataTable(q, param);
         if (dtOut.Rows.Count > 0)
@@ -571,9 +593,10 @@ public partial class SaleSauda : System.Web.UI.Page
         if (sPartyName.SelectedItem.Text.Trim() == "Other")
         {
 
+            param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
 
-            q = "select ID,[No],DataDate,PartyName,BrokerName from prabha.Sale_Sauda_Master where PartyName=@PartyName order by DataDate desc";
+            q = "select ID,[No],DataDate,PartyName,BrokerName from prabha.Sale_Sauda_Master where CompanyID=@CompanyID and PartyName=@PartyName order by DataDate desc";
         }
         else
         {
@@ -584,10 +607,11 @@ public partial class SaleSauda : System.Web.UI.Page
             string Pname = result[0];
             string PMobile = result[1].Substring(0, (result[1].Length - 1));
 
+            param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@PartyName", Pname));
             param.Add(new SqlParameter("@PMobile", PMobile));
 
-            q = "select ID,[No],DataDate,PartyName,BrokerName from prabha.Sale_Sauda_Master where PartyName=@PartyName and PMobile=@PMobile order by DataDate desc";
+            q = "select ID,[No],DataDate,PartyName,BrokerName from prabha.Sale_Sauda_Master where CompanyID=@CompanyID and PartyName=@PartyName and PMobile=@PMobile order by DataDate desc";
 
         }
 

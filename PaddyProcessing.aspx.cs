@@ -16,13 +16,29 @@ public partial class PaddyProcessing : System.Web.UI.Page
     DataTable dt;
     List<SqlParameter> param;
     DataAccessLayer dac;
+    SaaSHelper saas = new SaaSHelper();
+
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!Page.IsPostBack)
         {
-            if (Session["User"] == null)
+            if (Session["User"] == null || Session["CompanyID"] == null)
             {
                 Response.Redirect("Login.aspx");
+                return;
+            }
+
+            // Subscription check (in case of long-running session)
+            int cid = Convert.ToInt32(Session["CompanyID"]);
+            if (cid > 0)
+            {
+                string status = saas.GetSubscriptionStatus(cid);
+                if (status == "Suspended" || status == "Blocked" || status == "Expired")
+                {
+                    Session.Clear();
+                    Response.Redirect("Login.aspx?expired=1");
+                    return;
+                }
             }
 
             sdate.Attributes["type"] = "date";
@@ -95,12 +111,15 @@ public partial class PaddyProcessing : System.Web.UI.Page
             string q = "";
             param = new List<SqlParameter>();//Emp_Id
 
+            int companyID = Convert.ToInt32(Session["CompanyID"]);
+
+            param.Add(new SqlParameter("@CompanyID", companyID));
             param.Add(new SqlParameter("@PaddyType", sPaddyType.Value.Trim()));
             param.Add(new SqlParameter("@RiceType", sRiceType.Value.Trim()));
             param.Add(new SqlParameter("@PaddyWt", PaddyWt.Text.Trim()));
             param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
-            q = "select * from prabha.PaddyProcessing where PaddyType=@PaddyType and RiceType=@RiceType and PaddyWt=@PaddyWt and DataDate=@DataDate";
+            q = "select * from prabha.PaddyProcessing where CompanyID=@CompanyID and PaddyType=@PaddyType and RiceType=@RiceType and PaddyWt=@PaddyWt and DataDate=@DataDate";
             dac = new DataAccessLayer();
             dt = dac.GetDataTable(q, param);
 
@@ -115,6 +134,7 @@ public partial class PaddyProcessing : System.Web.UI.Page
                 param = new List<SqlParameter>();//Emp_Id
 
 
+                param.Add(new SqlParameter("@CompanyID", companyID));
                 param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy")));
                 param.Add(new SqlParameter("@PaddyType", sPaddyType.Value.Trim()));
                 param.Add(new SqlParameter("@PaddyWt", PaddyWt.Text.Trim()));
@@ -129,9 +149,9 @@ public partial class PaddyProcessing : System.Web.UI.Page
                 param.Add(new SqlParameter("@UserName", Session["User"].ToString()));
                 param.Add(new SqlParameter("@EntryDate", Convert.ToDateTime(System.DateTime.Now.ToString()).ToString("dd-MMM-yyyy")));
 
-                q = "insert into prabha.PaddyProcessing(DataDate,PaddyType,PaddyWt,RiceType,RiceWt,";
+                q = "insert into prabha.PaddyProcessing(CompanyID,DataDate,PaddyType,PaddyWt,RiceType,RiceWt,";
                 q += " BrokenWt,BranWt,NakkuWt,NakkuBhusiWt,RejectionWt,HuskWt,UserName,EntryDate)";
-                q += " values(@DataDate,@PaddyType,@PaddyWt,@RiceType,@RiceWt,";
+                q += " values(@CompanyID,@DataDate,@PaddyType,@PaddyWt,@RiceType,@RiceWt,";
                 q += " @BrokenWt,@BranWt,@NakkuWt,@NakkuBhusiWt,@RejectionWt,@HuskWt,@UserName,@EntryDate)";
                 dac = new DataAccessLayer();
 
@@ -157,9 +177,10 @@ public partial class PaddyProcessing : System.Web.UI.Page
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
 
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
         param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
-        q = "select * from prabha.PaddyProcessing where DataDate=@DataDate order by DataDate desc";
+        q = "select * from prabha.PaddyProcessing where CompanyID=@CompanyID and DataDate=@DataDate order by DataDate desc";
 
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
