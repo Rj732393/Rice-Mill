@@ -16,26 +16,29 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
     DataAccessLayer dac;
     protected void Page_Load(object sender, EventArgs e)
     {
-        if (Session["User"] == null)
+        if (Session["User"] == null || Session["UserType"] == null)
         {
             Response.Redirect("../Login.aspx");
+            return;
         }
-        else if (Session["User"].ToString() == "operator")
-        {
-            Response.Redirect("../RiceStock.aspx");
-        }
-        else if (Session["User"].ToString() == "admin")
-        {
 
-        }
-        else
+        string userType = Session["UserType"].ToString();
+        if (userType != "Admin" && userType != "SuperAdmin")
         {
             Response.Redirect("../Login.aspx");
+            return;
         }
+
         if (!Page.IsPostBack)
         {
             fdate.Attributes["type"] = "date";
             tdate.Attributes["type"] = "date";
+
+            // Company naam session se set karo
+            string companyName = Session["CompanyName"] != null
+                ? Session["CompanyName"].ToString()
+                : "Rice Mills";
+            lblCompanyName.Text = companyName;
         }
     }
     public void btnReport_ServerClick(object sender, EventArgs e)
@@ -69,7 +72,7 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
                 for (int i = 0; i < dt.Rows.Count; i++)
                 {
                     htmlTable.Append("<tr>");
-                    htmlTable.Append("<td>" + (i+1) + "</td>");
+                    htmlTable.Append("<td>" + (i + 1) + "</td>");
                     htmlTable.Append("<td>" + Convert.ToDateTime(dt.Rows[i]["Entry_Date"]).ToString("dd-MMM-yyyy") + "</td>");
                     htmlTable.Append("<td>" + dt.Rows[i]["Rice_Amount"].ToString() + "</td>");
                     htmlTable.Append("<td>" + dt.Rows[i]["Broken_Amount"].ToString() + "</td>");
@@ -88,7 +91,7 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
                     htmlTable.Append("<td>" + GT.ToString() + "</td>");
                     htmlTable.Append("<td>" + dt.Rows[i]["Paddy_Amount"].ToString() + "</td>");
                     htmlTable.Append("<td>" + dt.Rows[i]["Paddy_Weight"].ToString() + "</td>");
-                    if(Convert.ToDecimal(dt.Rows[i]["Paddy_Amount"].ToString())==0)
+                    if (Convert.ToDecimal(dt.Rows[i]["Paddy_Amount"].ToString()) == 0)
                     {
                         htmlTable.Append("<td>0.00</td>");
                     }
@@ -98,7 +101,7 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
                     }
                     htmlTable.Append("<td>" + dt.Rows[i]["Expense_Amount"].ToString() + "</td>");
 
-                    decimal PE=Convert.ToDecimal(dt.Rows[i]["Paddy_Amount"].ToString()) + Convert.ToDecimal(dt.Rows[i]["Expense_Amount"].ToString());
+                    decimal PE = Convert.ToDecimal(dt.Rows[i]["Paddy_Amount"].ToString()) + Convert.ToDecimal(dt.Rows[i]["Expense_Amount"].ToString());
 
                     htmlTable.Append("<td>" + PE.ToString() + "</td>");
 
@@ -107,7 +110,7 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
                     htmlTable.Append("<td>" + NP.ToString() + "</td>");
                     htmlTable.Append("</tr>");
                 }
-                
+
             }
             else
             {
@@ -119,6 +122,6 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
             htmlTable.Append("</table>");
             DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
         }
-        
+
     }
 }

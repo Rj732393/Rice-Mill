@@ -16,26 +16,29 @@ public partial class admin_PaddyStock : System.Web.UI.Page
     DataAccessLayer dac;
     protected void Page_Load(object sender, EventArgs e)
     {
-        if (Session["User"] == null)
+        if (Session["User"] == null || Session["UserType"] == null)
         {
             Response.Redirect("../Login.aspx");
+            return;
         }
-        else if (Session["User"].ToString() == "operator")
-        {
-            Response.Redirect("../PaddyStock.aspx");
-        }
-        else if (Session["User"].ToString() == "admin")
-        {
 
-        }
-        else
+        string userType = Session["UserType"].ToString();
+        if (userType != "Admin" && userType != "SuperAdmin")
         {
             Response.Redirect("../Login.aspx");
+            return;
         }
+
         if (!Page.IsPostBack)
         {
             fdate.Attributes["type"] = "date";
             tdate.Attributes["type"] = "date";
+
+            // Company naam session se set karo
+            string companyName = Session["CompanyName"] != null
+                ? Session["CompanyName"].ToString()
+                : "Rice Mills";
+            lblCompanyName.Text = companyName;
         }
     }
     public void btnReport_ServerClick(object sender, EventArgs e)

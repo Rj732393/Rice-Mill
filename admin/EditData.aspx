@@ -13,7 +13,7 @@
 
 <head id="Head1" runat="server">
 
-    <title>Edit Data | Rashmi Rice Mills</title>
+    <title>Edit Data | Rice Mills</title>
 
     <meta name="viewport"
         content="width=device-width, initial-scale=1" />
@@ -256,7 +256,7 @@
                 </h1>
 
                 <p>
-                    Rashmi Rice Mills Private Limited
+                    <asp:Label ID="lblCompanyName" runat="server" Text="Rice Mills"></asp:Label>
                 </p>
 
             </div>

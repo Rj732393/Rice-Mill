@@ -119,6 +119,13 @@
         </div>
     </a>
 
+     <a href="Salesauda.aspx" style="text-decoration:none;">
+        <div class="side-card">
+            <i class="fa-solid fa-bag-shopping"></i>
+            <h5>Sale Entry</h5>
+        </div>
+    </a>
+
     <a href="SalePayment.aspx" style="text-decoration:none;">
         <div class="side-card">
             <i class="fa-solid fa-credit-card"></i>

@@ -18,7 +18,14 @@ public partial class admin_EditBySauda : System.Web.UI.Page
     // ---------------------------------------------------------------
     protected void Page_Load(object sender, EventArgs e)
     {
-        if (Session["User"] == null || Session["User"].ToString() != "admin")
+        if (Session["User"] == null || Session["UserType"] == null)
+        {
+            Response.Redirect("../Login.aspx");
+            return;
+        }
+
+        string userType = Session["UserType"].ToString();
+        if (userType != "Admin" && userType != "SuperAdmin")
         {
             Response.Redirect("../Login.aspx");
             return;
@@ -27,6 +34,12 @@ public partial class admin_EditBySauda : System.Web.UI.Page
         // Current financial year auto-select karo (first load par)
         if (!IsPostBack)
         {
+            // Company naam session se set karo
+            string companyName = Session["CompanyName"] != null
+                ? Session["CompanyName"].ToString()
+                : "Rice Mills";
+            lblCompanyName.Text = companyName;
+
             int curMonth = DateTime.Now.Month;
             int curYear = DateTime.Now.Year;
             string currentFY = curMonth > 3

@@ -1,4 +1,4 @@
-<%@ Page Language="C#" AutoEventWireup="true"
+﻿<%@ Page Language="C#" AutoEventWireup="true"
     CodeFile="RiceStock.aspx.cs"
     Inherits="admin_RiceStock" %>
 
@@ -58,7 +58,7 @@
 
             <div class="page-title">
                 <h1><i class="fas fa-warehouse" style="color:#2563eb;"></i> Rice Stock Report</h1>
-                <p>Rashmi Rice Mills Private Limited</p>
+                <p><asp:Label ID="lblCompanyName" runat="server" Text="Rice Mills"></asp:Label></p>
             </div>
 
             <div class="row">

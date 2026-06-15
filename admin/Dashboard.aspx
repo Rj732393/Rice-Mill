@@ -282,8 +282,8 @@
             </h1>
 
             <p>
-                Rashmi Rice Mills Management Dashboard
-            </p>
+    <asp:Label ID="lblDashboardCompany" runat="server"></asp:Label> Management Dashboard
+</p>
 
         </div>
 
