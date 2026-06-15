@@ -2,7 +2,6 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Collections.Generic;
-using System.Web.UI.WebControls;
 using substitute;
 
 public partial class superadmin_AddCompany : System.Web.UI.Page
@@ -22,7 +21,6 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
 
         if (!IsPostBack)
         {
-            LoadPlans();
 
             // Default dates set karo
             txtStartDate.Text = DateTime.Today.ToString("yyyy-MM-dd");
@@ -39,16 +37,6 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
         }
     }
 
-    private void LoadPlans()
-    {
-        DataTable dtPlans = dac.GetDataTable(
-            "SELECT PlanID, PlanName, DurationDays, Price FROM prabha.SubscriptionPlans WHERE IsActive=1 ORDER BY DurationDays", null);
-
-        ddlPlan.DataSource = dtPlans;
-        ddlPlan.DataTextField = "PlanName";
-        ddlPlan.DataValueField = "PlanID";
-        ddlPlan.DataBind();
-    }
 
     private void LoadCompany(int cid)
     {
@@ -74,11 +62,6 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
             txtStartDate.Text = Convert.ToDateTime(r["SubscriptionStart"]).ToString("yyyy-MM-dd");
             txtEndDate.Text = Convert.ToDateTime(r["SubscriptionEnd"]).ToString("yyyy-MM-dd");
 
-            if (r["PlanID"] != DBNull.Value)
-            {
-                ListItem item = ddlPlan.Items.FindByValue(r["PlanID"].ToString());
-                if (item != null) ddlPlan.SelectedValue = r["PlanID"].ToString();
-            }
         }
     }
 
@@ -110,7 +93,6 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
         }
 
         int companyID = Convert.ToInt32(hfCompanyID.Value);
-        int planID = Convert.ToInt32(ddlPlan.SelectedValue);
 
         var param = new List<SqlParameter>();
         param.Add(new SqlParameter("@CompanyName", txtCompanyName.Text.Trim()));
@@ -123,7 +105,6 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
         param.Add(new SqlParameter("@City", txtCity.Text.Trim()));
         param.Add(new SqlParameter("@State", txtState.Text.Trim()));
         param.Add(new SqlParameter("@GSTNumber", string.IsNullOrWhiteSpace(txtGST.Text) ? (object)DBNull.Value : txtGST.Text.Trim()));
-        param.Add(new SqlParameter("@PlanID", planID));
         param.Add(new SqlParameter("@SubStart", startDate));
         param.Add(new SqlParameter("@SubEnd", endDate));
 
@@ -136,11 +117,11 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
             result = dac.update(@"
                 INSERT INTO prabha.Companies
                 (CompanyName, AdminUserName, AdminPassword, OwnerName, Phone, Email,
-                 Address, City, State, GSTNumber, PlanID, SubscriptionStart, SubscriptionEnd,
+                 Address, City, State, GSTNumber, SubscriptionStart, SubscriptionEnd,
                  Status, IsActive, CreatedDate)
                 VALUES
                 (@CompanyName, @AdminUserName, @AdminPassword, @OwnerName, @Phone, @Email,
-                 @Address, @City, @State, @GSTNumber, @PlanID, @SubStart, @SubEnd,
+                 @Address, @City, @State, @GSTNumber, @SubStart, @SubEnd,
                  N'Active', 1, GETDATE())", param);
 
             // Get the newly created CompanyID
@@ -156,37 +137,14 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
                     CompanyName=@CompanyName, AdminUserName=@AdminUserName,
                     AdminPassword=@AdminPassword, OwnerName=@OwnerName,
                     Phone=@Phone, Email=@Email, Address=@Address,
-                    City=@City, State=@State, GSTNumber=@GSTNumber, PlanID=@PlanID,
+                    City=@City, State=@State, GSTNumber=@GSTNumber,
                     SubscriptionStart=@SubStart, SubscriptionEnd=@SubEnd
                 WHERE CompanyID=@CompanyID", param);
         }
 
         if (result > 0)
         {
-            // Record subscription entry
-            decimal planPrice = 0;
-            var priceParam = new List<SqlParameter>();
-            priceParam.Add(new SqlParameter("@PlanID", planID));
-            object priceObj = dac.Scalar("SELECT Price FROM prabha.SubscriptionPlans WHERE PlanID=@PlanID", priceParam);
-            if (priceObj != null && priceObj != DBNull.Value) planPrice = Convert.ToDecimal(priceObj);
-
-            var subParam = new List<SqlParameter>();
-            subParam.Add(new SqlParameter("@CompanyID", companyID));
-            subParam.Add(new SqlParameter("@PlanID", planID));
-            subParam.Add(new SqlParameter("@StartDate", startDate));
-            subParam.Add(new SqlParameter("@EndDate", endDate));
-            subParam.Add(new SqlParameter("@Amount", planPrice));
-            subParam.Add(new SqlParameter("@CreatedBy", Session["User"].ToString()));
-            subParam.Add(new SqlParameter("@Remarks", isNew ? "Initial subscription on company creation" : "Updated via company edit"));
-
-            dac.update(@"INSERT INTO prabha.CompanySubscriptions
-                (CompanyID, PlanID, StartDate, EndDate, Status, Amount, Remarks, CreatedBy, CreatedDate)
-                VALUES (@CompanyID, @PlanID, @StartDate, @EndDate, N'Active', @Amount, @Remarks, @CreatedBy, GETDATE())", subParam);
-
-            // Audit log
-            if (isNew)
-            {
-                saas.LogAction(companyID, Session["User"].ToString(), "SuperAdmin",
+            saas.LogAction(companyID, Session["User"].ToString(), "SuperAdmin",
                     "CompanyCreated", "Company", "New company '" + txtCompanyName.Text.Trim() + "' created");
 
                 // Notification for new company

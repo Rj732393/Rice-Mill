@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -20,9 +20,10 @@ public partial class Expense : System.Web.UI.Page
     {
         if (!Page.IsPostBack)
         {
-            if (Session["User"] == null)
+            if (Session["User"] == null || Session["CompanyID"] == null)
             {
                 Response.Redirect("Login.aspx");
+                return;
             }
 
             sdate.Attributes["type"] = "date";
@@ -52,13 +53,14 @@ public partial class Expense : System.Web.UI.Page
             dt = new DataTable();
             string q = "";
             param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
             param.Add(new SqlParameter("@ExpenseType", ddlExpenseType.SelectedItem.Text.Trim()));
             param.Add(new SqlParameter("@ExpenseAmount", EAmount.Value.Trim()));
             
             param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
-            q = "select * from prabha.Expense_Info where ExpenseType=@ExpenseType and ExpenseAmount=@ExpenseAmount and DataDate=@DataDate";
+            q = "select * from prabha.Expense_Info where CompanyID=@CompanyID and ExpenseType=@ExpenseType and ExpenseAmount=@ExpenseAmount and DataDate=@DataDate";
             dac = new DataAccessLayer();
             dt = dac.GetDataTable(q, param);
 
@@ -81,9 +83,9 @@ public partial class Expense : System.Web.UI.Page
                 param.Add(new SqlParameter("@OperatorName", Session["User"].ToString()));
                 param.Add(new SqlParameter("@EntryDate", Convert.ToDateTime(System.DateTime.Now.ToString()).ToString("dd-MMM-yyyy")));
 
-                q = "insert into prabha.Expense_Info(DataDate,ExpenseType,ExpenseAmount,ExpenseRemarks,OperatorName,";
+                q = "insert into prabha.Expense_Info(CompanyID,DataDate,ExpenseType,ExpenseAmount,ExpenseRemarks,OperatorName,";
                 q += " EntryDate)";
-                q += " values(@DataDate,@ExpenseType,@ExpenseAmount,@ExpenseRemarks,@OperatorName,";
+                q += " values(@CompanyID,@DataDate,@ExpenseType,@ExpenseAmount,@ExpenseRemarks,@OperatorName,";
                 q += " @EntryDate)";
                 dac = new DataAccessLayer();
 
@@ -108,10 +110,11 @@ public partial class Expense : System.Web.UI.Page
         dt = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
         param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
-        q = "select * from prabha.Expense_Info where DataDate=@DataDate order by DataDate desc";
+        q = "select * from prabha.Expense_Info where CompanyID=@CompanyID and DataDate=@DataDate order by DataDate desc";
 
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);

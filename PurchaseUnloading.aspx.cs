@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -24,9 +24,10 @@ public partial class PurchaseUnloading : System.Web.UI.Page
     {
         if (!Page.IsPostBack)
         {
-            if (Session["User"] == null)
+            if (Session["User"] == null || Session["CompanyID"] == null)
             {
                 Response.Redirect("Login.aspx");
+                return;
             }
 
             sdate.Attributes["type"] = "date";
@@ -886,7 +887,8 @@ public partial class PurchaseUnloading : System.Web.UI.Page
         dt = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
-        q = "select concat(Party_Name, ' (Mobile No.: ',Party_Mobile,')') as PartyName from prabha.Purchase_Party_Info order by PartyName";
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
+        q = "select concat(Party_Name, ' (Mobile No.: ',Party_Mobile,')') as PartyName from prabha.Purchase_Party_Info where CompanyID=@CompanyID order by PartyName";
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
 
@@ -958,11 +960,12 @@ public partial class PurchaseUnloading : System.Web.UI.Page
         string q = "";
 
         param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
         param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(dtFrom).ToString("dd-MMM-yyyy")));
         param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(dtTo).ToString("dd-MMM-yyyy")));
 
-        q = "select max([No]) from prabha.Purchase_Master_Data where DataDate>=@DataDate1 and DataDate<=@DataDate2";
+        q = "select max([No]) from prabha.Purchase_Master_Data where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2";
         dac = new DataAccessLayer();
         object test = dac.Scalar(q, param);
         if (test == DBNull.Value)
@@ -1031,7 +1034,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
             param.Add(new SqlParameter("@OperatorName", Session["User"].ToString()));
             param.Add(new SqlParameter("@EntryDate", Convert.ToDateTime(System.DateTime.Now).ToString("dd-MMM-yyyy")));
 
-            q = "insert into prabha.Purchase_Master_Data([No],MPurNo,DataDate,TruckNo,KantaNo,UnloadedAt,TareWt,PartyName,BrokerName,";
+            q = "insert into prabha.Purchase_Master_Data(CompanyID,[No],MPurNo,DataDate,TruckNo,KantaNo,UnloadedAt,TareWt,PartyName,BrokerName,";
             q += "PBags,PTBags,JBags,JTBags,SaudaNo,SaudaDate,CD,TFreight,FreightOwn,FreightParty,Advance,Brokerage,OperatorName,EntryDate) ";
             q += " values(@No,@MPurNo,@DataDate,@TruckNo,@KantaNo,@UnloadedAt,@TareWt,@PartyName,@BrokerName,";
             q += "@PBags,@PTBags,@JBags,@JTBags,@SaudaNo,@SaudaDate,@CD,@TFreight,@FreightOwn,@FreightParty,@Advance,@Brokerage,@OperatorName,@EntryDate) select @@IDENTITY";
@@ -1088,7 +1091,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
                     param = new List<SqlParameter>();
                     param.Add(new SqlParameter("@Party_Name", Pname));
                     param.Add(new SqlParameter("@Party_Mobile", PMobile));
-                    q = "insert into prabha.Purchase_Party_Info(Party_Name,Party_Mobile) values(@Party_Name,@Party_Mobile)";
+                    q = "insert into prabha.Purchase_Party_Info(CompanyID,Party_Name,Party_Mobile) values(@CompanyID,@Party_Name,@Party_Mobile)";
                     dac = new DataAccessLayer();
                     OutMsg = dac.update(q, param);
                 }
@@ -1112,13 +1115,14 @@ public partial class PurchaseUnloading : System.Web.UI.Page
         DataTable dtOut = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
         param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(DDate).ToString("dd-MMM-yyyy")));
         param.Add(new SqlParameter("@TruckNo", TNo));
         param.Add(new SqlParameter("@PartyName", PN));
         param.Add(new SqlParameter("@KantaNo", KN));
 
-        q = "select * from prabha.Purchase_Master_Data where DataDate=@DataDate and TruckNo=@TruckNo and PartyName=@PartyName and KantaNo=@KantaNo";
+        q = "select * from prabha.Purchase_Master_Data where CompanyID=@CompanyID and DataDate=@DataDate and TruckNo=@TruckNo and PartyName=@PartyName and KantaNo=@KantaNo";
         dac = new DataAccessLayer();
         dtOut = dac.GetDataTable(q, param);
         if (dtOut.Rows.Count > 0)

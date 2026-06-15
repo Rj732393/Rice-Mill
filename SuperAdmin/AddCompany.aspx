@@ -84,7 +84,7 @@
         </div>
         <div class="col-md-6">
             <div class="form-group">
-                <label>Owner / Malik ka Naam</label>
+                <label>Owner </label>
                 <asp:TextBox ID="txtOwnerName" runat="server" CssClass="form-control" placeholder="jaise: Ramesh Kumar" />
             </div>
         </div>
@@ -146,23 +146,16 @@
     </div>
 
     <%-- Section 3: Subscription Dates --%>
-    <div class="section-head"><i class="fas fa-calendar-alt"></i> &nbsp;Subscription Ki Dates</div>
+    <div class="section-head"><i class="fas fa-calendar-alt"></i> &nbsp;Subscription Dates</div>
 
     <div class="row">
-        <div class="col-md-4">
-            <div class="form-group">
-                <label>Plan *</label>
-                <asp:DropDownList ID="ddlPlan" runat="server" CssClass="form-control"
-                    DataTextField="PlanName" DataValueField="PlanID" />
-            </div>
-        </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="form-group">
                 <label>Subscription Shuru *</label>
                 <asp:TextBox ID="txtStartDate" runat="server" CssClass="form-control" TextMode="SingleLine" type="date" />
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="form-group">
                 <label>Subscription Khatam *</label>
                 <asp:TextBox ID="txtEndDate" runat="server" CssClass="form-control" TextMode="SingleLine" type="date" />

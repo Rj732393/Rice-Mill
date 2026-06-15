@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -24,9 +24,10 @@ public partial class PurchaseReport : System.Web.UI.Page
     {
         if (!Page.IsPostBack)
         {
-            if (Session["User"] == null)
+            if (Session["User"] == null || Session["CompanyID"] == null)
             {
                 Response.Redirect("Login.aspx");
+                return;
             }
 
 
@@ -69,7 +70,8 @@ public partial class PurchaseReport : System.Web.UI.Page
         dt = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
-        q = "select distinct PartyName from prabha.Purchase_Master_Data order by PartyName";
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
+        q = "select distinct PartyName from prabha.Purchase_Master_Data where CompanyID=@CompanyID order by PartyName";
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
 
@@ -104,6 +106,7 @@ public partial class PurchaseReport : System.Web.UI.Page
         DataTable DtData = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
         
         if (sPartyName.SelectedItem.Text.Trim() == "--Select One--")
@@ -111,7 +114,7 @@ public partial class PurchaseReport : System.Web.UI.Page
             param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
             param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
-            q = "select ID,[No],MPurNo,DataDate,PartyName,BrokerName,SaudaNo,SaudaDate,TruckNo,KantaNo,Advance from prabha.Purchase_Master_Data where DataDate>=@DataDate1 and DataDate<=@DataDate2 order by [No],DataDate";
+            q = "select ID,[No],MPurNo,DataDate,PartyName,BrokerName,SaudaNo,SaudaDate,TruckNo,KantaNo,Advance from prabha.Purchase_Master_Data where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2 order by [No],DataDate";
         }
         else
         {
@@ -119,7 +122,7 @@ public partial class PurchaseReport : System.Web.UI.Page
             param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
             param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
 
-            q = "select ID,[No],MPurNo,DataDate,PartyName,BrokerName,SaudaNo,SaudaDate,TruckNo,KantaNo,Advance from prabha.Purchase_Master_Data where DataDate>=@DataDate1 and DataDate<=@DataDate2 and PartyName=@PartyName order by [No],DataDate";
+            q = "select ID,[No],MPurNo,DataDate,PartyName,BrokerName,SaudaNo,SaudaDate,TruckNo,KantaNo,Advance from prabha.Purchase_Master_Data where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2 and PartyName=@PartyName order by [No],DataDate";
         }
         dac = new DataAccessLayer();
         DtData = dac.GetDataTable(q, param);
@@ -399,6 +402,7 @@ public partial class PurchaseReport : System.Web.UI.Page
             DataTable DtDataF = new DataTable();
             string q = "";
             param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
 
             if (sPartyName.SelectedItem.Text.Trim() == "--Select One--")
@@ -406,7 +410,7 @@ public partial class PurchaseReport : System.Web.UI.Page
                 param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
                 param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
                 //ID,[No],MPurNo,DataDate,PartyName,BrokerName,SaudaNo,SaudaDate,TruckNo,KantaNo,Advance,Amount,CD,GK
-                q = "select ID,[No],MPVNo as MPurNo,DataDate,PName as PartyName,PaymentMode as BrokerName,'' as SaudaNo,convert(smalldatetime,'01/01/1990') as SaudaDate,Bank as TruckNo,[Transaction] as KantaNo,CAST('0' AS DECIMAL(10, 2)) AS Advance,convert(varchar,AmountPaid) as Amount,'' as CD,'' as GK from prabha.[Purchase_Payment_Info] where DataDate>=@DataDate1 and DataDate<=@DataDate2 order by DataDate";
+                q = "select ID,[No],MPVNo as MPurNo,DataDate,PName as PartyName,PaymentMode as BrokerName,'' as SaudaNo,convert(smalldatetime,'01/01/1990') as SaudaDate,Bank as TruckNo,[Transaction] as KantaNo,CAST('0' AS DECIMAL(10, 2)) AS Advance,convert(varchar,AmountPaid) as Amount,'' as CD,'' as GK from prabha.[Purchase_Payment_Info] where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2 order by DataDate";
             }
             else
             {
@@ -414,7 +418,7 @@ public partial class PurchaseReport : System.Web.UI.Page
                 param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
                 param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
 
-                q = "select ID,[No],MPVNo as MPurNo,DataDate,PName as PartyName,PaymentMode as BrokerName,'' as SaudaNo,convert(smalldatetime,'01/01/1990') as SaudaDate,Bank as TruckNo,[Transaction] as KantaNo,CAST('0' AS DECIMAL(10, 2)) AS Advance,convert(varchar,AmountPaid) as Amount,'' as CD,'' as GK from prabha.[Purchase_Payment_Info] where DataDate>=@DataDate1 and DataDate<=@DataDate2 and PName=@PartyName order by DataDate";
+                q = "select ID,[No],MPVNo as MPurNo,DataDate,PName as PartyName,PaymentMode as BrokerName,'' as SaudaNo,convert(smalldatetime,'01/01/1990') as SaudaDate,Bank as TruckNo,[Transaction] as KantaNo,CAST('0' AS DECIMAL(10, 2)) AS Advance,convert(varchar,AmountPaid) as Amount,'' as CD,'' as GK from prabha.[Purchase_Payment_Info] where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2 and PName=@PartyName order by DataDate";
             }
             
             dac = new DataAccessLayer();

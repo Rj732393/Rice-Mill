@@ -1,4 +1,4 @@
-﻿﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -24,9 +24,10 @@ public partial class PurchaseSauda : System.Web.UI.Page
     {
         if (!Page.IsPostBack)
         {
-            if (Session["User"] == null)
+            if (Session["User"] == null || Session["CompanyID"] == null)
             {
                 Response.Redirect("Login.aspx");
+                return;
             }
 
             sdate.Attributes["type"] = "date";
@@ -330,7 +331,8 @@ public partial class PurchaseSauda : System.Web.UI.Page
         dt = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
-        q = "select concat(Party_Name, ' (Mobile No.: ',Party_Mobile,')') as PartyName from prabha.Purchase_Party_Info order by PartyName";
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
+        q = "select concat(Party_Name, ' (Mobile No.: ',Party_Mobile,')') as PartyName from prabha.Purchase_Party_Info where CompanyID=@CompanyID order by PartyName";
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
 
@@ -402,11 +404,12 @@ public partial class PurchaseSauda : System.Web.UI.Page
         string q = "";
 
         param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
         param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(dtFrom).ToString("dd-MMM-yyyy")));
         param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(dtTo).ToString("dd-MMM-yyyy")));
 
-        q = "select max([No]) from prabha.Purchase_Sauda_Info where DataDate>=@DataDate1 and DataDate<=@DataDate2";
+        q = "select max([No]) from prabha.Purchase_Sauda_Info where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2";
         dac = new DataAccessLayer();
         object test = dac.Scalar(q, param);
         if (test == DBNull.Value)
@@ -500,7 +503,7 @@ public partial class PurchaseSauda : System.Web.UI.Page
             param.Add(new SqlParameter("@EntryDate", Convert.ToDateTime(System.DateTime.Now).ToString("dd-MMM-yyyy")));
             param.Add(new SqlParameter("@IsActive", "1"));
 
-            q = "insert into prabha.Purchase_Sauda_Info([No],DataDate,MNo,PartyName,BrokerName,";
+            q = "insert into prabha.Purchase_Sauda_Info(CompanyID,[No],DataDate,MNo,PartyName,BrokerName,";
             q += "RupaliWt,RupaliRate,MansuriWt,MansuriRate,SonamWt,SonamRate,HybridWt,HybridRate,OperatorName,EntryDate,IsActive) ";
             q += " values(@No,@DataDate,@MNo,@PartyName,@BrokerName,";
             q += "@RupaliWt,@RupaliRate,@MansuriWt,@MansuriRate,@SonamWt,@SonamRate,@HybridWt,@HybridRate,@OperatorName,@EntryDate,@IsActive) ";
@@ -525,7 +528,7 @@ public partial class PurchaseSauda : System.Web.UI.Page
                     param = new List<SqlParameter>();
                     param.Add(new SqlParameter("@Party_Name", Pname));
                     param.Add(new SqlParameter("@Party_Mobile", PMobile));
-                    q = "insert into prabha.Purchase_Party_Info(Party_Name,Party_Mobile) values(@Party_Name,@Party_Mobile)";
+                    q = "insert into prabha.Purchase_Party_Info(CompanyID,Party_Name,Party_Mobile) values(@CompanyID,@Party_Name,@Party_Mobile)";
                     dac = new DataAccessLayer();
                     int OutMsg = dac.update(q, param);
                 }
@@ -549,12 +552,13 @@ public partial class PurchaseSauda : System.Web.UI.Page
         DataTable dtOut = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
         param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(DDate).ToString("dd-MMM-yyyy")));
 
         param.Add(new SqlParameter("@PartyName", PN));
 
-        q = "select * from prabha.Purchase_Sauda_Info where DataDate=@DataDate and PartyName=@PartyName";
+        q = "select * from prabha.Purchase_Sauda_Info where CompanyID=@CompanyID and DataDate=@DataDate and PartyName=@PartyName";
         dac = new DataAccessLayer();
         dtOut = dac.GetDataTable(q, param);
         if (dtOut.Rows.Count > 0)
@@ -572,10 +576,11 @@ public partial class PurchaseSauda : System.Web.UI.Page
         dt = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
         param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
 
-        q = "select ID,[No],DataDate,PartyName,BrokerName from prabha.Purchase_Sauda_Info where PartyName=@PartyName order by DataDate desc";
+        q = "select ID,[No],DataDate,PartyName,BrokerName from prabha.Purchase_Sauda_Info where CompanyID=@CompanyID and PartyName=@PartyName order by DataDate desc";
 
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -20,9 +20,10 @@ public partial class SalePayment : System.Web.UI.Page
     {
         if (!Page.IsPostBack)
         {
-            if (Session["User"] == null)
+            if (Session["User"] == null || Session["CompanyID"] == null)
             {
                 Response.Redirect("Login.aspx");
+                return;
             }
 
             sdate.Attributes["type"] = "date";
@@ -96,7 +97,8 @@ public partial class SalePayment : System.Web.UI.Page
         dt = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
-        q = "select distinct PartyName from prabha.Sale_Master_Data order by PartyName";
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
+        q = "select distinct PartyName from prabha.Sale_Master_Data where CompanyID=@CompanyID order by PartyName";
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
 
@@ -249,11 +251,12 @@ public partial class SalePayment : System.Web.UI.Page
         string q = "";
 
         param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
         param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(dtFrom).ToString("dd-MMM-yyyy")));
         param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(dtTo).ToString("dd-MMM-yyyy")));
 
-        q = "select max([No]) from prabha.Sale_Payment_Info where DataDate>=@DataDate1 and DataDate<=@DataDate2";
+        q = "select max([No]) from prabha.Sale_Payment_Info where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2";
         dac = new DataAccessLayer();
         object test = dac.Scalar(q, param);
         if (test == DBNull.Value)
@@ -286,6 +289,7 @@ public partial class SalePayment : System.Web.UI.Page
     {
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
         //string source = ddlParty.SelectedItem.Text.Trim();
         //string[] stringSeparators = new string[] { " (Mobile No.: " };
         //var result = source.Split(stringSeparators, StringSplitOptions.None);
@@ -296,7 +300,7 @@ public partial class SalePayment : System.Web.UI.Page
 
         param.Add(new SqlParameter("@PName", ddlParty.SelectedItem.Text.Trim()));
 
-        q = "select * from prabha.Sale_Payment_Info where PName=@PName order by DataDate";
+        q = "select * from prabha.Sale_Payment_Info where CompanyID=@CompanyID and PName=@PName order by DataDate";
         dac = new DataAccessLayer();
         DataTable dtPayment = dac.GetDataTable(q, param);
         string INVNo = "";
@@ -378,12 +382,13 @@ public partial class SalePayment : System.Web.UI.Page
         DataTable dtOut = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
         param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(DDate).ToString("dd-MMM-yyyy")));
         param.Add(new SqlParameter("@PName", PN));
         param.Add(new SqlParameter("@AmountPaid", Am));
 
-        q = "select * from prabha.Sale_Payment_Info where DataDate=@DataDate and PName=@PName and AmountPaid=@AmountPaid";
+        q = "select * from prabha.Sale_Payment_Info where CompanyID=@CompanyID and DataDate=@DataDate and PName=@PName and AmountPaid=@AmountPaid";
         dac = new DataAccessLayer();
         dtOut = dac.GetDataTable(q, param);
         if (dtOut.Rows.Count > 0)
@@ -421,7 +426,7 @@ public partial class SalePayment : System.Web.UI.Page
             param.Add(new SqlParameter("@OperatorName", Session["User"].ToString()));
             param.Add(new SqlParameter("@Entry_Date", Convert.ToDateTime(System.DateTime.Now).ToString("dd-MMM-yyyy")));
 
-            q = "insert into prabha.Sale_Payment_Info([No],MRVNo,DataDate,PName,AmountPaid,PaymentMode,[Transaction],OperatorName,EntryDate) ";
+            q = "insert into prabha.Sale_Payment_Info(CompanyID,[No],MRVNo,DataDate,PName,AmountPaid,PaymentMode,[Transaction],OperatorName,EntryDate) ";
             q += " values(@No,@MPVNo,@DataDate,@PName,@AmountPaid,@PaymentMode,@Transaction,@OperatorName,@Entry_Date)";
             dac = new DataAccessLayer();
 
