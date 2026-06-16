@@ -148,7 +148,7 @@ textarea:focus{
 /* ===== BUTTON ===== */
 
 .btn-card{
-    background:#f97316;
+    background:linear-gradient(135deg,#16a34a,#15803d);
     color:white !important;
     border:none;
     border-radius:30px;
@@ -159,7 +159,7 @@ textarea:focus{
 }
 
 .btn-card:hover{
-    background:#ea580c;
+    background:linear-gradient(135deg,#16a34a,#15803d);
     color:white !important;
 }
 

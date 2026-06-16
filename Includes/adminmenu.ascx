@@ -7,15 +7,11 @@
 
     <!-- LOGO -->
     <div class="rm-logo">
-
-        <h2>Rashmi Rice</h2>
-
-        <span>
-            Management System
-        </span>
-
-    </div>
-
+    <h2>
+        <asp:Label ID="lblSidebarCompany" runat="server" Text="Rashmi Rice"></asp:Label>
+    </h2>
+    <span>Management System</span>
+</div>
     <!-- MENU -->
     <ul class="rm-menu">
 
@@ -81,7 +77,7 @@
         </li>
 
         <li>
-            <a href="../Login.aspx" >
+            <a href="logout.aspx" >
                 <i class="fas fa-sign-out-alt"></i>
 
                 Logout
@@ -110,11 +106,8 @@
         </div>
 
         <div class="rm-title">
-
-            Rice Stock Management
-
-        </div>
-
+    <asp:Label ID="lblNavbarCompany" runat="server" Text="Rice Stock Management"></asp:Label>
+</div>
     </div>
 
     <!-- RIGHT -->

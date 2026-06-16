@@ -287,7 +287,7 @@
                 </h1>
 
                 <p>
-                    Rashmi Rice Mills Private Limited
+                    <asp:Label ID="lblCompanyName" runat="server" Text="Rice Mills"></asp:Label>
                 </p>
 
             </div>

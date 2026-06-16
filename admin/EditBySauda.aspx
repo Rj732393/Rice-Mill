@@ -212,7 +212,7 @@
     </h1>
 
     <p>
-        Welcome, Admin
+        <asp:Label ID="lblCompanyName" runat="server" Text="Rice Mills"></asp:Label>
     </p>
 
 </div>.
