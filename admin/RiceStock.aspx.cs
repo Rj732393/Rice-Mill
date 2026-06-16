@@ -59,13 +59,13 @@ public partial class admin_RiceStock : System.Web.UI.Page
         {
 
             q = "SELECT MONTH(Entry_Date) AS Month, YEAR(Entry_Date) AS Year, SUM(Rice_Weight) AS Rice_Weight, AVG(Avg_Rate) AS Avg_Rate, SUM(Stock_Consume) AS Stock_Consume ";
-<<<<<<< HEAD
+
             q += " FROM   prabha.RiceStock where CompanyID=@CompanyID and Entry_Date>=@Entry_Date1 and Entry_Date<=@Entry_Date2  GROUP BY MONTH(Entry_Date), YEAR(Entry_Date)";
             
-=======
+
             q += " FROM   prabha.RiceStock where Entry_Date>=@Entry_Date1 and Entry_Date<=@Entry_Date2  GROUP BY MONTH(Entry_Date), YEAR(Entry_Date)";
 
->>>>>>> 9575b2c149fb2a2757969a5fafba68b0e14c2c28
+
         }
         else
         {
