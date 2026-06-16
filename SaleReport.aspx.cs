@@ -24,10 +24,9 @@ public partial class PurchaseUnloading : System.Web.UI.Page
     {
         if (!Page.IsPostBack)
         {
-            if (Session["User"] == null || Session["CompanyID"] == null)
+            if (Session["User"] == null)
             {
                 Response.Redirect("Login.aspx");
-                return;
             }
 
 
@@ -36,7 +35,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
             Party();
             Session["Data"] = null;
             Session["DataMain"] = null;
-            
+
         }
     }
     public void btnContinue_ServerClick(object sender, EventArgs e)
@@ -44,9 +43,9 @@ public partial class PurchaseUnloading : System.Web.UI.Page
 
         checkData();
 
-        
+
     }
-        
+
     public int chkDate()
     {
         int i = 0;
@@ -70,8 +69,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
         dt = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
-        q = "select distinct PartyName from prabha.Sale_Master_Data where CompanyID=@CompanyID order by PartyName";
+        q = "select distinct PartyName from prabha.Sale_Master_Data order by PartyName";
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
 
@@ -79,9 +77,10 @@ public partial class PurchaseUnloading : System.Web.UI.Page
         sPartyName.DataTextField = "PartyName";
         sPartyName.DataValueField = "PartyName";
         sPartyName.DataBind();
-        sPartyName.Items.Insert(0,"--Select One--");
+        sPartyName.Items.Insert(0, "--Select One--");
     }
-    public void CallPrint(string strid) {
+    public void CallPrint(string strid)
+    {
         StringBuilder sb = new StringBuilder();
         sb.Append("<script type = 'text/javascript'>");
         sb.Append("var prtContent = document.getElementById('" + strid + "');");
@@ -94,27 +93,26 @@ public partial class PurchaseUnloading : System.Web.UI.Page
         //sb.Append("return false;");
         sb.Append("WinPrint.close();");
         sb.Append("}, 250);");
-        
+
         sb.Append("</script>");
         ClientScript.RegisterStartupScript(this.GetType(), "Print", sb.ToString());
-        
-        
-        }
-    
+
+
+    }
+
     public void checkData()
     {
         DataTable DtData = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
-        
+
         if (sPartyName.SelectedItem.Text.Trim() == "--Select One--")
         {
             param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
             param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-            
-            q = "select ID,[No],ManualInvoice,DataDate,PartyName,BOrderNo,BOrderDate,DespNo,DespDate,DespVNo,Destination from prabha.Sale_Master_Data where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2 order by [No],DataDate";
+
+            q = "select ID,[No],ManualInvoice,DataDate,PartyName,BOrderNo,BOrderDate,DespNo,DespDate,DespVNo,Destination from prabha.Sale_Master_Data where DataDate>=@DataDate1 and DataDate<=@DataDate2 order by [No],DataDate";
         }
         else
         {
@@ -122,7 +120,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
             param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
             param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
 
-            q = "select ID,[No],ManualInvoice,DataDate,PartyName,BOrderNo,BOrderDate,DespNo,DespDate,DespVNo,Destination from prabha.Sale_Master_Data where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2 and PartyName=@PartyName order by [No],DataDate";
+            q = "select ID,[No],ManualInvoice,DataDate,PartyName,BOrderNo,BOrderDate,DespNo,DespDate,DespVNo,Destination from prabha.Sale_Master_Data where DataDate>=@DataDate1 and DataDate<=@DataDate2 and PartyName=@PartyName order by [No],DataDate";
         }
         dac = new DataAccessLayer();
         DtData = dac.GetDataTable(q, param);
@@ -175,7 +173,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
         double GT = 0;
         if (Session["Data"] == null)
         {
-            
+
         }
         else
         {
@@ -183,11 +181,11 @@ public partial class PurchaseUnloading : System.Web.UI.Page
             dt = (DataTable)Session["Data"];
 
 
-            
+
             //string CInvNo = "";
             //CInvNo = GenInvoiceNo(dtMain.Rows[0]["No"].ToString(), dtMain.Rows[0]["DataDate"].ToString());
 
-            
+
             double am = 0;
             double wt = 0;
 
@@ -196,10 +194,10 @@ public partial class PurchaseUnloading : System.Web.UI.Page
             double SGST = 0;
             for (int i = 0; i < dt.Rows.Count; i++)
             {
-               
-                
+
+
                 wt = wt + (Convert.ToDouble(dt.Rows[i]["Quantity"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()));
-               
+
                 am = am + (Convert.ToDouble(dt.Rows[i]["Quantity"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()));
 
                 if (dt.Rows[i]["RiceType"].ToString() == "Steam Bran")
@@ -225,25 +223,25 @@ public partial class PurchaseUnloading : System.Web.UI.Page
                     }
                 }
             }
-            
-            CD= Math.Round((am * Convert.ToDouble(dtMain.Rows[0]["CD"].ToString()) / 100), 0);
+
+            CD = Math.Round((am * Convert.ToDouble(dtMain.Rows[0]["CD"].ToString()) / 100), 0);
 
             double amwgst = 0;
             amwgst = am - Math.Round((am * Convert.ToDouble(dtMain.Rows[0]["CD"].ToString()) / 100), 0);
-            
+
             GT = Math.Round(amwgst + IGST + CGST + SGST + Convert.ToDouble(dtMain.Rows[0]["Freight"].ToString()), 0);
 
-            
+
         }
         return CD + "-" + GT;
     }
-    public string GenInvoiceNo(string a,string b)
+    public string GenInvoiceNo(string a, string b)
     {
         int mon = Convert.ToDateTime(b).Month;
         int yr = Convert.ToDateTime(b).Year;
         int yr1 = 0;
         int yr2 = 0;
-        
+
         if (mon <= 3)
         {
             yr1 = yr - 1;
@@ -256,25 +254,25 @@ public partial class PurchaseUnloading : System.Web.UI.Page
         }
 
         string invoiceNo = "";
-        
-            if (a.Length == 1)
-            {
-                invoiceNo = "RR/INV/" + yr1 + "-" + yr2 + "/000" + a;
-            }
-            else if (a.Length == 2)
-            {
-                invoiceNo = "RR/INV/" + yr1 + "-" + yr2 + "/00" + a;
-            }
-            else if (a.Length == 3)
-            {
-                invoiceNo = "RR/INV/" + yr1 + "-" + yr2 + "/0" + a;
-            }
-            else
-            {
-                invoiceNo = "RR/INV/" + yr1 + "-" + yr2 + "/" + a;
-            }
 
-       
+        if (a.Length == 1)
+        {
+            invoiceNo = "RR/INV/" + yr1 + "-" + yr2 + "/000" + a;
+        }
+        else if (a.Length == 2)
+        {
+            invoiceNo = "RR/INV/" + yr1 + "-" + yr2 + "/00" + a;
+        }
+        else if (a.Length == 3)
+        {
+            invoiceNo = "RR/INV/" + yr1 + "-" + yr2 + "/0" + a;
+        }
+        else
+        {
+            invoiceNo = "RR/INV/" + yr1 + "-" + yr2 + "/" + a;
+        }
+
+
         return invoiceNo;
     }
     public void Export_ServerClick(object sender, EventArgs e)
@@ -291,7 +289,6 @@ public partial class PurchaseUnloading : System.Web.UI.Page
             DataTable DtDataF = new DataTable();
             string q = "";
             param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
 
             if (sPartyName.SelectedItem.Text.Trim() == "--Select One--")
@@ -299,7 +296,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
                 param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
                 param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
                 //ID,[No],ManualInvoice,DataDate,PartyName,BOrderNo,BOrderDate,DespNo,DespDate,Destination,CD,Amount
-                q = "select ID,[No],MRVNo as ManualInvoice,DataDate,PName as PartyName,PaymentMode as BOrderNo,convert(smalldatetime,'01/01/1990') as BOrderDate,[Transaction] as DespNo,convert(smalldatetime,'01/01/1990') as DespDate,'' as DespVNo,'' as CD,convert(varchar,AmountPaid) as Amount from prabha.[Sale_Payment_Info] where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2 order by DataDate";
+                q = "select ID,[No],MRVNo as ManualInvoice,DataDate,PName as PartyName,PaymentMode as BOrderNo,convert(smalldatetime,'01/01/1990') as BOrderDate,[Transaction] as DespNo,convert(smalldatetime,'01/01/1990') as DespDate,'' as DespVNo,'' as CD,convert(varchar,AmountPaid) as Amount from prabha.[Sale_Payment_Info] where DataDate>=@DataDate1 and DataDate<=@DataDate2 order by DataDate";
             }
             else
             {
@@ -307,7 +304,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
                 param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
                 param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
 
-                q = "select ID,[No],MRVNo as ManualInvoice,DataDate,PName as PartyName,PaymentMode as BOrderNo,convert(smalldatetime,'01/01/1990') as BOrderDate,[Transaction] as DespNo,convert(smalldatetime,'01/01/1990') as DespDate,'' as DespVNo,'' as CD,convert(varchar,AmountPaid) as Amount from prabha.[Sale_Payment_Info] where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2 and PName=@PartyName order by DataDate";
+                q = "select ID,[No],MRVNo as ManualInvoice,DataDate,PName as PartyName,PaymentMode as BOrderNo,convert(smalldatetime,'01/01/1990') as BOrderDate,[Transaction] as DespNo,convert(smalldatetime,'01/01/1990') as DespDate,'' as DespVNo,'' as CD,convert(varchar,AmountPaid) as Amount from prabha.[Sale_Payment_Info] where DataDate>=@DataDate1 and DataDate<=@DataDate2 and PName=@PartyName order by DataDate";
             }
 
             dac = new DataAccessLayer();
@@ -338,7 +335,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
         //sets font
         HttpContext.Current.Response.Write("<font style='font-size:10.0pt; font-family:Calibri;'>");
         HttpContext.Current.Response.Write("<BR><BR><BR>");
-       
+
         HttpContext.Current.Response.Write("<Table border='1' bgColor='#ffffff' " +
           "borderColor='#000000' cellSpacing='0' cellPadding='0' " +
           "style='font-size:10.0pt; font-family:Calibri; background:white;'>");
@@ -362,7 +359,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
         HttpContext.Current.Response.Write("<Td><B>Destination</B></Td>");
         HttpContext.Current.Response.Write("<Td><B>Vehicle No.</B></Td>");
         HttpContext.Current.Response.Write("<Td><B>CD</B></Td>");
-        
+
         HttpContext.Current.Response.Write("<Td><B>Bill Amount</B></Td>");
         HttpContext.Current.Response.Write("<Td><B>Paid Amount</B></Td>");
 
@@ -432,7 +429,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
                 HttpContext.Current.Response.Write("<Td>");
                 HttpContext.Current.Response.Write(row["BOrderNo"].ToString() + ", " + Convert.ToDateTime(row["BOrderDate"].ToString()).ToString("dd/MM/yyyy"));
                 HttpContext.Current.Response.Write("</Td>");
-                
+
             }
 
             if (Convert.ToDateTime(row["BOrderDate"].ToString()).ToString("dd-MMM-yyyy") == "01-Jan-1990")
@@ -460,7 +457,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
                 HttpContext.Current.Response.Write(Math.Round(Convert.ToDouble(row["CD"].ToString()), 2).ToString());
 
                 HttpContext.Current.Response.Write("</Td>");
-                
+
             }
             if (Convert.ToDateTime(row["BOrderDate"].ToString()).ToString("dd-MMM-yyyy") == "01-Jan-1990")
             {
@@ -527,4 +524,4 @@ public partial class PurchaseUnloading : System.Web.UI.Page
 
         return invoiceNo;
     }
-}  
+}

@@ -24,10 +24,9 @@ public partial class PurchaseReport : System.Web.UI.Page
     {
         if (!Page.IsPostBack)
         {
-            if (Session["User"] == null || Session["CompanyID"] == null)
+            if (Session["User"] == null)
             {
                 Response.Redirect("Login.aspx");
-                return;
             }
 
 
@@ -36,7 +35,7 @@ public partial class PurchaseReport : System.Web.UI.Page
             Party();
             Session["Data"] = null;
             Session["DataMain"] = null;
-            
+
         }
     }
     public void btnContinue_ServerClick(object sender, EventArgs e)
@@ -44,9 +43,9 @@ public partial class PurchaseReport : System.Web.UI.Page
 
         checkData();
 
-        
+
     }
-        
+
     public int chkDate()
     {
         int i = 0;
@@ -70,8 +69,7 @@ public partial class PurchaseReport : System.Web.UI.Page
         dt = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
-        q = "select distinct PartyName from prabha.Purchase_Master_Data where CompanyID=@CompanyID order by PartyName";
+        q = "select distinct PartyName from prabha.Purchase_Master_Data order by PartyName";
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
 
@@ -79,9 +77,10 @@ public partial class PurchaseReport : System.Web.UI.Page
         sPartyName.DataTextField = "PartyName";
         sPartyName.DataValueField = "PartyName";
         sPartyName.DataBind();
-        sPartyName.Items.Insert(0,"--Select One--");
+        sPartyName.Items.Insert(0, "--Select One--");
     }
-    public void CallPrint(string strid) {
+    public void CallPrint(string strid)
+    {
         StringBuilder sb = new StringBuilder();
         sb.Append("<script type = 'text/javascript'>");
         sb.Append("var prtContent = document.getElementById('" + strid + "');");
@@ -94,27 +93,26 @@ public partial class PurchaseReport : System.Web.UI.Page
         //sb.Append("return false;");
         sb.Append("WinPrint.close();");
         sb.Append("}, 250);");
-        
+
         sb.Append("</script>");
         ClientScript.RegisterStartupScript(this.GetType(), "Print", sb.ToString());
-        
-        
-        }
-    
+
+
+    }
+
     public void checkData()
     {
         DataTable DtData = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
-        
+
         if (sPartyName.SelectedItem.Text.Trim() == "--Select One--")
         {
             param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
             param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
-            q = "select ID,[No],MPurNo,DataDate,PartyName,BrokerName,SaudaNo,SaudaDate,TruckNo,KantaNo,Advance from prabha.Purchase_Master_Data where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2 order by [No],DataDate";
+            q = "select ID,[No],MPurNo,DataDate,PartyName,BrokerName,SaudaNo,SaudaDate,TruckNo,KantaNo,Advance from prabha.Purchase_Master_Data where DataDate>=@DataDate1 and DataDate<=@DataDate2 order by [No],DataDate";
         }
         else
         {
@@ -122,11 +120,11 @@ public partial class PurchaseReport : System.Web.UI.Page
             param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
             param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
 
-            q = "select ID,[No],MPurNo,DataDate,PartyName,BrokerName,SaudaNo,SaudaDate,TruckNo,KantaNo,Advance from prabha.Purchase_Master_Data where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2 and PartyName=@PartyName order by [No],DataDate";
+            q = "select ID,[No],MPurNo,DataDate,PartyName,BrokerName,SaudaNo,SaudaDate,TruckNo,KantaNo,Advance from prabha.Purchase_Master_Data where DataDate>=@DataDate1 and DataDate<=@DataDate2 and PartyName=@PartyName order by [No],DataDate";
         }
         dac = new DataAccessLayer();
         DtData = dac.GetDataTable(q, param);
-        DtData.Columns.Add("Amount",typeof(string));
+        DtData.Columns.Add("Amount", typeof(string));
         DtData.Columns.Add("CD", typeof(string));
         DtData.Columns.Add("GK", typeof(string));
         StringBuilder htmlTable = new StringBuilder();
@@ -214,72 +212,72 @@ public partial class PurchaseReport : System.Web.UI.Page
             double tQuantity = 0;
             double tAmount = 0;
             double LClaim = 0;
-            
 
-            
+
+
             for (int i = 0; i < dt.Rows.Count; i++)
             {
-                
+
                 am = Math.Round(Convert.ToDouble(dt.Rows[i]["FreshQuantity"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
 
                 if (Convert.ToDouble(dt.Rows[i]["KhakhriPer"].ToString()) <= 2)
                 {
-                    
+
                     KhAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["KhakhriBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
                 }
                 else
                 {
                     KhRate = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["KhakhriPer"].ToString()) - 2) / 100), 2);
-                    
+
                     KhAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["KhakhriBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * KhRate, 2);
                 }
 
                 if (Convert.ToDouble(dt.Rows[i]["MittiPer"].ToString()) <= 0)
                 {
-                    
+
                     MAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["MittiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
                 }
                 else
                 {
                     MRate = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["MittiPer"].ToString()) - 0) / 100), 2);
-                    
+
                     MAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["MittiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * MRate, 2);
                 }
 
                 if (Convert.ToDouble(dt.Rows[i]["DaagiPer"].ToString()) <= 0)
                 {
-                    
+
                     DAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["DaagiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
                 }
                 else
                 {
                     DRate = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["DaagiPer"].ToString()) - 0) / 100), 2);
-                    
+
                     DAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["DaagiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * DRate, 2);
                 }
 
 
                 if (Convert.ToDouble(dt.Rows[i]["MixPer"].ToString()) <= 0)
                 {
-                    
+
                     DMixAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["MixBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
                 }
                 else
                 {
                     DMixRate = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["MixPer"].ToString()) - 0) / 100), 2);
-                    
+
                     DMixAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["MixBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * DMixRate, 2);
                 }
 
                 if (Convert.ToDouble(dt.Rows[i]["OtherPer"].ToString()) <= 0)
                 {
-                    
+
                     OAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["OtherBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
                 }
                 else
                 {
                     ORate = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["OtherPer"].ToString()) - 0) / 100), 2);
-                    
+
                     OAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["OtherBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * ORate, 2);
                 }
 
@@ -306,7 +304,7 @@ public partial class PurchaseReport : System.Web.UI.Page
                     LClaim += Math.Round((am + KhAmount + MAmount + DAmount + DMixAmount + OAmount) * (Convert.ToDouble(dt.Rows[i]["Moisture"].ToString()) - lt) / 100, 2);
 
                 }
-                
+
                 if (i == (dt.Rows.Count - 1))
                 {
                     LCD = Math.Round(tAmount * Convert.ToDouble(dtMain.Rows[0]["CD"].ToString()) / 100);
@@ -338,23 +336,23 @@ public partial class PurchaseReport : System.Web.UI.Page
 
                     FAmount = PAmount - OAdvance - Brok;
 
-                    
+
 
                 }
-                
+
 
             }
-            
+
         }
         return FAmount + "-" + LCD + "-" + LGK;
     }
-    public string GenInvoiceNo(string a,string b)
+    public string GenInvoiceNo(string a, string b)
     {
         int mon = Convert.ToDateTime(b).Month;
         int yr = Convert.ToDateTime(b).Year;
         int yr1 = 0;
         int yr2 = 0;
-        
+
         if (mon <= 3)
         {
             yr1 = yr - 1;
@@ -367,25 +365,25 @@ public partial class PurchaseReport : System.Web.UI.Page
         }
 
         string invoiceNo = "";
-        
-            if (a.Length == 1)
-            {
-                invoiceNo = "RR/PUR/" + yr1 + "-" + yr2 + "/000" + a;
-            }
-            else if (a.Length == 2)
-            {
-                invoiceNo = "RR/PUR/" + yr1 + "-" + yr2 + "/00" + a;
-            }
-            else if (a.Length == 3)
-            {
-                invoiceNo = "RR/PUR/" + yr1 + "-" + yr2 + "/0" + a;
-            }
-            else
-            {
-                invoiceNo = "RR/PUR/" + yr1 + "-" + yr2 + "/" + a;
-            }
 
-       
+        if (a.Length == 1)
+        {
+            invoiceNo = "RR/PUR/" + yr1 + "-" + yr2 + "/000" + a;
+        }
+        else if (a.Length == 2)
+        {
+            invoiceNo = "RR/PUR/" + yr1 + "-" + yr2 + "/00" + a;
+        }
+        else if (a.Length == 3)
+        {
+            invoiceNo = "RR/PUR/" + yr1 + "-" + yr2 + "/0" + a;
+        }
+        else
+        {
+            invoiceNo = "RR/PUR/" + yr1 + "-" + yr2 + "/" + a;
+        }
+
+
         return invoiceNo;
     }
     public void Export_ServerClick(object sender, EventArgs e)
@@ -397,12 +395,11 @@ public partial class PurchaseReport : System.Web.UI.Page
         }
         else
         {
-            DataTable EData = (DataTable) Session["Export"];
+            DataTable EData = (DataTable)Session["Export"];
 
             DataTable DtDataF = new DataTable();
             string q = "";
             param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
 
             if (sPartyName.SelectedItem.Text.Trim() == "--Select One--")
@@ -410,7 +407,7 @@ public partial class PurchaseReport : System.Web.UI.Page
                 param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
                 param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
                 //ID,[No],MPurNo,DataDate,PartyName,BrokerName,SaudaNo,SaudaDate,TruckNo,KantaNo,Advance,Amount,CD,GK
-                q = "select ID,[No],MPVNo as MPurNo,DataDate,PName as PartyName,PaymentMode as BrokerName,'' as SaudaNo,convert(smalldatetime,'01/01/1990') as SaudaDate,Bank as TruckNo,[Transaction] as KantaNo,CAST('0' AS DECIMAL(10, 2)) AS Advance,convert(varchar,AmountPaid) as Amount,'' as CD,'' as GK from prabha.[Purchase_Payment_Info] where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2 order by DataDate";
+                q = "select ID,[No],MPVNo as MPurNo,DataDate,PName as PartyName,PaymentMode as BrokerName,'' as SaudaNo,convert(smalldatetime,'01/01/1990') as SaudaDate,Bank as TruckNo,[Transaction] as KantaNo,CAST('0' AS DECIMAL(10, 2)) AS Advance,convert(varchar,AmountPaid) as Amount,'' as CD,'' as GK from prabha.[Purchase_Payment_Info] where DataDate>=@DataDate1 and DataDate<=@DataDate2 order by DataDate";
             }
             else
             {
@@ -418,9 +415,9 @@ public partial class PurchaseReport : System.Web.UI.Page
                 param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
                 param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
 
-                q = "select ID,[No],MPVNo as MPurNo,DataDate,PName as PartyName,PaymentMode as BrokerName,'' as SaudaNo,convert(smalldatetime,'01/01/1990') as SaudaDate,Bank as TruckNo,[Transaction] as KantaNo,CAST('0' AS DECIMAL(10, 2)) AS Advance,convert(varchar,AmountPaid) as Amount,'' as CD,'' as GK from prabha.[Purchase_Payment_Info] where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2 and PName=@PartyName order by DataDate";
+                q = "select ID,[No],MPVNo as MPurNo,DataDate,PName as PartyName,PaymentMode as BrokerName,'' as SaudaNo,convert(smalldatetime,'01/01/1990') as SaudaDate,Bank as TruckNo,[Transaction] as KantaNo,CAST('0' AS DECIMAL(10, 2)) AS Advance,convert(varchar,AmountPaid) as Amount,'' as CD,'' as GK from prabha.[Purchase_Payment_Info] where DataDate>=@DataDate1 and DataDate<=@DataDate2 and PName=@PartyName order by DataDate";
             }
-            
+
             dac = new DataAccessLayer();
             DtDataF = dac.GetDataTable(q, param);
 
@@ -454,26 +451,26 @@ public partial class PurchaseReport : System.Web.UI.Page
           "borderColor='#000000' cellSpacing='0' cellPadding='0' " +
           "style='font-size:10.0pt; font-family:Calibri; background:white;'> <TR>");
         //am getting my grid's column headers
-         //write in new column
-            HttpContext.Current.Response.Write("<Td>");
-            //Get column headers  and make it as bold in excel columns
-            HttpContext.Current.Response.Write("<B>");
-            HttpContext.Current.Response.Write("Sl. No.");
-            HttpContext.Current.Response.Write("</B>");
-            HttpContext.Current.Response.Write("</Td>");
+        //write in new column
+        HttpContext.Current.Response.Write("<Td>");
+        //Get column headers  and make it as bold in excel columns
+        HttpContext.Current.Response.Write("<B>");
+        HttpContext.Current.Response.Write("Sl. No.");
+        HttpContext.Current.Response.Write("</B>");
+        HttpContext.Current.Response.Write("</Td>");
 
-            HttpContext.Current.Response.Write("<Td><B>Purchase/Payment No.</B></Td>");
-            HttpContext.Current.Response.Write("<Td><B>Manual No.</B></Td>");
-            HttpContext.Current.Response.Write("<Td><B>Invoice/Payment Date</B></Td>");
-            HttpContext.Current.Response.Write("<Td><B>Party Name</B></Td>");
-            HttpContext.Current.Response.Write("<Td><B>Sauda No. & Date</B></Td>");
-            HttpContext.Current.Response.Write("<Td><B>Vehicle No.</B></Td>");
-            HttpContext.Current.Response.Write("<Td><B>Kanta No.</B></Td>");
-            HttpContext.Current.Response.Write("<Td><B>Freight Adv.</B></Td>");
-            HttpContext.Current.Response.Write("<Td><B>CD</B></Td>");
-            HttpContext.Current.Response.Write("<Td><B>GK</B></Td>");
-            HttpContext.Current.Response.Write("<Td><B>Bill Amount</B></Td>");
-            HttpContext.Current.Response.Write("<Td><B>Paid Amount</B></Td>");
+        HttpContext.Current.Response.Write("<Td><B>Purchase/Payment No.</B></Td>");
+        HttpContext.Current.Response.Write("<Td><B>Manual No.</B></Td>");
+        HttpContext.Current.Response.Write("<Td><B>Invoice/Payment Date</B></Td>");
+        HttpContext.Current.Response.Write("<Td><B>Party Name</B></Td>");
+        HttpContext.Current.Response.Write("<Td><B>Sauda No. & Date</B></Td>");
+        HttpContext.Current.Response.Write("<Td><B>Vehicle No.</B></Td>");
+        HttpContext.Current.Response.Write("<Td><B>Kanta No.</B></Td>");
+        HttpContext.Current.Response.Write("<Td><B>Freight Adv.</B></Td>");
+        HttpContext.Current.Response.Write("<Td><B>CD</B></Td>");
+        HttpContext.Current.Response.Write("<Td><B>GK</B></Td>");
+        HttpContext.Current.Response.Write("<Td><B>Bill Amount</B></Td>");
+        HttpContext.Current.Response.Write("<Td><B>Paid Amount</B></Td>");
 
         HttpContext.Current.Response.Write("</TR>");
         int i = 0;
@@ -511,7 +508,7 @@ public partial class PurchaseReport : System.Web.UI.Page
             HttpContext.Current.Response.Write("<Td>");
             HttpContext.Current.Response.Write(row["PartyName"].ToString());
             HttpContext.Current.Response.Write("</Td>");
-            
+
             if (row["SaudaNo"].ToString() == "")
             {
                 HttpContext.Current.Response.Write("<Td colspan='3'>");
@@ -541,15 +538,15 @@ public partial class PurchaseReport : System.Web.UI.Page
             {
                 HttpContext.Current.Response.Write("<Td>");
                 HttpContext.Current.Response.Write(Math.Round(Convert.ToDouble(row["Advance"].ToString()), 0));
-                
+
                 HttpContext.Current.Response.Write("</Td>");
                 HttpContext.Current.Response.Write("<Td>");
                 HttpContext.Current.Response.Write(Math.Round(Convert.ToDouble(row["CD"].ToString()), 2).ToString());
-                
+
                 HttpContext.Current.Response.Write("</Td>");
                 HttpContext.Current.Response.Write("<Td>");
                 HttpContext.Current.Response.Write(Math.Round(Convert.ToDouble(row["GK"].ToString()), 2).ToString());
-                
+
                 HttpContext.Current.Response.Write("</Td>");
             }
             if (row["SaudaNo"].ToString() == "")
@@ -617,4 +614,4 @@ public partial class PurchaseReport : System.Web.UI.Page
 
         return invoiceNo;
     }
-}  
+}

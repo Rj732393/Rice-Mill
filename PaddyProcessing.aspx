@@ -198,7 +198,7 @@ select:focus{
 
     function toggleSidebar() {
 
-        
+
 
         $(".main-content").toggleClass("full");
 

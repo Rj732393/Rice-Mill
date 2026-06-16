@@ -20,10 +20,9 @@ public partial class Expense : System.Web.UI.Page
     {
         if (!Page.IsPostBack)
         {
-            if (Session["User"] == null || Session["CompanyID"] == null)
+            if (Session["User"] == null)
             {
                 Response.Redirect("Login.aspx");
-                return;
             }
 
             sdate.Attributes["type"] = "date";
@@ -31,21 +30,21 @@ public partial class Expense : System.Web.UI.Page
             EAmount.Attributes["type"] = "number";
             EAmount.Attributes["step"] = ".01";
 
-           
+
         }
     }
-    
+
     public void btnSave_ServerClick(object sender, EventArgs e)
     {
         string script = "";
 
         if (EAmount.Value.Trim() == "" || ERemarks.Value.Trim() == "")
         {
-            
-            
+
+
             script = "alert('Please fill all data!!');";
             ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
-            
+
 
         }
         else
@@ -53,14 +52,13 @@ public partial class Expense : System.Web.UI.Page
             dt = new DataTable();
             string q = "";
             param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
             param.Add(new SqlParameter("@ExpenseType", ddlExpenseType.SelectedItem.Text.Trim()));
             param.Add(new SqlParameter("@ExpenseAmount", EAmount.Value.Trim()));
-            
+
             param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
-            q = "select * from prabha.Expense_Info where CompanyID=@CompanyID and ExpenseType=@ExpenseType and ExpenseAmount=@ExpenseAmount and DataDate=@DataDate";
+            q = "select * from prabha.Expense_Info where ExpenseType=@ExpenseType and ExpenseAmount=@ExpenseAmount and DataDate=@DataDate";
             dac = new DataAccessLayer();
             dt = dac.GetDataTable(q, param);
 
@@ -79,13 +77,13 @@ public partial class Expense : System.Web.UI.Page
                 param.Add(new SqlParameter("@ExpenseType", ddlExpenseType.SelectedItem.Text.Trim()));
                 param.Add(new SqlParameter("@ExpenseAmount", EAmount.Value.Trim()));
                 param.Add(new SqlParameter("@ExpenseRemarks", ERemarks.Value.Trim()));
-                
+
                 param.Add(new SqlParameter("@OperatorName", Session["User"].ToString()));
                 param.Add(new SqlParameter("@EntryDate", Convert.ToDateTime(System.DateTime.Now.ToString()).ToString("dd-MMM-yyyy")));
 
-                q = "insert into prabha.Expense_Info(CompanyID,DataDate,ExpenseType,ExpenseAmount,ExpenseRemarks,OperatorName,";
+                q = "insert into prabha.Expense_Info(DataDate,ExpenseType,ExpenseAmount,ExpenseRemarks,OperatorName,";
                 q += " EntryDate)";
-                q += " values(@CompanyID,@DataDate,@ExpenseType,@ExpenseAmount,@ExpenseRemarks,@OperatorName,";
+                q += " values(@DataDate,@ExpenseType,@ExpenseAmount,@ExpenseRemarks,@OperatorName,";
                 q += " @EntryDate)";
                 dac = new DataAccessLayer();
 
@@ -110,28 +108,27 @@ public partial class Expense : System.Web.UI.Page
         dt = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
         param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
-        q = "select * from prabha.Expense_Info where CompanyID=@CompanyID and DataDate=@DataDate order by DataDate desc";
+        q = "select * from prabha.Expense_Info where DataDate=@DataDate order by DataDate desc";
 
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
 
         StringBuilder htmlTable = new StringBuilder();
-        
+
         htmlTable.Append("<table class='table table-bordered' id='dataTable' cellspacing='0'>");
         htmlTable.Append("<thead><tr><th>Sl. No.</th><th>Date</th><th>Expense Type</th><th>Amount (In Rs.)</th><th>Remarks (If Any)</th></tr></thead><tbody>");
         for (int i = 0; i < dt.Rows.Count; i++)
         {
             htmlTable.Append("<tr>");
             htmlTable.Append("<td>" + (i + 1) + "</td>");
-            htmlTable.Append("<td>" +Convert.ToDateTime(dt.Rows[i]["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
+            htmlTable.Append("<td>" + Convert.ToDateTime(dt.Rows[i]["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
             htmlTable.Append("<td>" + dt.Rows[i]["ExpenseType"].ToString() + "</td>");
             htmlTable.Append("<td>" + dt.Rows[i]["ExpenseAmount"].ToString() + "</td>");
             htmlTable.Append("<td>" + dt.Rows[i]["ExpenseRemarks"].ToString() + "</td>");
-            
+
             htmlTable.Append("</tr>");
         }
         htmlTable.Append("</tbody></table>");
