@@ -64,17 +64,25 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group-custom">
-                        <label><i class="fas fa-calendar-alt"></i> From Date</label>
-                        <input type="text" id="fdate" name="sdate" runat="server"
-                            class="form-control-custom" placeholder="dd/mm/yyyy" />
-                    </div>
+    <label><i class="fas fa-calendar-alt"></i> From Date</label>
+
+    <input type="text" id="fdate" name="sdate" runat="server"
+        class="form-control-custom" placeholder="dd/mm/yyyy" />
+
+    <asp:Label ID="lblFromDateError" runat="server"
+        ForeColor="Red"></asp:Label>
+</div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group-custom">
-                        <label><i class="fas fa-calendar-check"></i> To Date</label>
-                        <input type="text" id="tdate" name="tdate" runat="server"
-                            class="form-control-custom" placeholder="dd/mm/yyyy" />
-                    </div>
+    <label><i class="fas fa-calendar-check"></i> To Date</label>
+
+    <input type="text" id="tdate" name="tdate" runat="server"
+        class="form-control-custom" placeholder="dd/mm/yyyy" />
+
+    <asp:Label ID="lblToDateError" runat="server"
+        ForeColor="Red"></asp:Label>
+</div>
                 </div>
             </div>
 
