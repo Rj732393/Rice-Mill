@@ -31,8 +31,7 @@ public partial class admin_PaddyStock : System.Web.UI.Page
 
         if (!Page.IsPostBack)
         {
-            fdate.Attributes["type"] = "date";
-            tdate.Attributes["type"] = "date";
+         
 
             // Company naam session se set karo
             string companyName = Session["CompanyName"] != null
@@ -41,15 +40,41 @@ public partial class admin_PaddyStock : System.Web.UI.Page
             lblCompanyName.Text = companyName;
         }
     }
+<<<<<<< HEAD
     public void btnReport_ServerClick(object sender, EventArgs e)
     {
         dt = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
         param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
+=======
+   public void btnReport_ServerClick(object sender, EventArgs e)
+{
+    lblFromDateError.Text = "";
+    lblToDateError.Text = "";
+>>>>>>> 650d09a42ed342afcc2fc1650ba0387ab93384da
 
-        param.Add(new SqlParameter("@Entry_Date1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-        param.Add(new SqlParameter("@Entry_Date2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
+    if (string.IsNullOrWhiteSpace(fdate.Value))
+    {
+        lblFromDateError.Text = "Please Select From Date";
+        return;
+    }
+
+    if (string.IsNullOrWhiteSpace(tdate.Value))
+    {
+        lblToDateError.Text = "Please Select To Date";
+        return;
+    }
+
+    dt = new DataTable();
+    string q = "";
+    param = new List<SqlParameter>();
+
+    param.Add(new SqlParameter("@Entry_Date1",
+        Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
+
+    param.Add(new SqlParameter("@Entry_Date2",
+        Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
         if (srType.Value.Trim() == "Daily")
         {

@@ -316,7 +316,9 @@
                             runat="server"
                             class="form-control-custom"
                             placeholder="dd/mm/yyyy" />
-
+                            <asp:Label ID="lblFromDateError"
+    runat="server"
+    ForeColor="Red"></asp:Label>
                     </div>
 
                 </div>
@@ -341,7 +343,9 @@
                             runat="server"
                             class="form-control-custom"
                             placeholder="dd/mm/yyyy" />
-
+                            <asp:Label ID="lblToDateError"
+    runat="server"
+    ForeColor="Red"></asp:Label>
                     </div>
 
                 </div>

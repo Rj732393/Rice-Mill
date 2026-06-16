@@ -31,8 +31,6 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
 
         if (!Page.IsPostBack)
         {
-            fdate.Attributes["type"] = "date";
-            tdate.Attributes["type"] = "date";
 
             // Company naam session se set karo
             string companyName = Session["CompanyName"] != null
@@ -42,16 +40,43 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
         }
     }
     public void btnReport_ServerClick(object sender, EventArgs e)
+{
+    lblFromDateError.Text = "";
+    lblToDateError.Text = "";
+
+    if (string.IsNullOrWhiteSpace(fdate.Value))
     {
+<<<<<<< HEAD
         dt = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
         param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
+=======
+        lblFromDateError.Text = "Please Select From Date";
+        return;
+    }
+>>>>>>> 650d09a42ed342afcc2fc1650ba0387ab93384da
 
-        param.Add(new SqlParameter("@Entry_Date1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-        param.Add(new SqlParameter("@Entry_Date2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
+    if (string.IsNullOrWhiteSpace(tdate.Value))
+    {
+        lblToDateError.Text = "Please Select To Date";
+        return;
+    }
 
+<<<<<<< HEAD
         q = "select * from prabha.SalePurchaseExpense where CompanyID=@CompanyID and Entry_Date>=@Entry_Date1 and Entry_Date<=@Entry_Date2";
+=======
+    dt = new DataTable();
+    string q = "";
+    param = new List<SqlParameter>();
+
+    param.Add(new SqlParameter("@Entry_Date1",
+        Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
+
+    param.Add(new SqlParameter("@Entry_Date2",
+        Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
+        q = "select * from prabha.SalePurchaseExpense where Entry_Date>=@Entry_Date1 and Entry_Date<=@Entry_Date2";
+>>>>>>> 650d09a42ed342afcc2fc1650ba0387ab93384da
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
 

@@ -41,8 +41,8 @@
                      class="brand-logo" alt="Logo"
                      onerror="this.style.display='none'" />
                 <a class="navbar-brand" href="Home.aspx">
-                    Rashmi Rice Mill Management System
-                </a>
+    <asp:Label ID="lblCompany" runat="server"></asp:Label>
+</a>
             </div>
         </div>
 
