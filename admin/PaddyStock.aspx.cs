@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -43,13 +43,14 @@ public partial class admin_PaddyStock : System.Web.UI.Page
         dt = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
         param.Add(new SqlParameter("@Entry_Date1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
         param.Add(new SqlParameter("@Entry_Date2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
         if (srType.Value.Trim() == "Daily")
         {
-            q = "select * from prabha.PaddyStock where Entry_Date>=@Entry_Date1 and Entry_Date<=@Entry_Date2";
+            q = "select * from prabha.PaddyStock where CompanyID=@CompanyID and Entry_Date>=@Entry_Date1 and Entry_Date<=@Entry_Date2";
         }
         else if (srType.Value.Trim() == "Monthly")
         {
@@ -107,20 +108,22 @@ public partial class admin_PaddyStock : System.Web.UI.Page
 
                         q = "";
                         param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
                         string mont = calMonth(Convert.ToInt32(dt.Rows[i]["Month"].ToString()));
                         param.Add(new SqlParameter("@Entry_Date", Convert.ToDateTime("01-" + mont + "-" + dt.Rows[i]["Year"].ToString()).AddDays(-1).ToString("dd-MMM-yyyy")));
 
-                        q = "select (ISNULL(Paddy_Weight,0)-ISNULL(Stock_Consume,0)) from prabha.PaddyStock where Entry_Date=@Entry_Date";
+                        q = "select (ISNULL(Paddy_Weight,0)-ISNULL(Stock_Consume,0)) from prabha.PaddyStock where CompanyID=@CompanyID and Entry_Date=@Entry_Date";
                         dac = new DataAccessLayer();
                         pSBalance = Convert.ToDecimal(dac.Scalar(q, param));
 
                         q = "";
                         param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
                         param.Add(new SqlParameter("@Month", dt.Rows[i]["Month"].ToString()));
                         param.Add(new SqlParameter("@Year", dt.Rows[i]["Year"].ToString()));
 
-                        q = "select (ISNULL(Paddy_Weight,0)-ISNULL(Stock_Consume,0)) from prabha.PaddyStock where Entry_Date=(select max(Entry_Date) from prabha.PaddyStock where Month(Entry_Date)=@Month and Year(Entry_Date)=@Year)";
+                        q = "select (ISNULL(Paddy_Weight,0)-ISNULL(Stock_Consume,0)) from prabha.PaddyStock where CompanyID=@CompanyID and Entry_Date=(select max(Entry_Date) from prabha.PaddyStock where CompanyID=@CompanyID and Month(Entry_Date)=@Month and Year(Entry_Date)=@Year)";
                         dac = new DataAccessLayer();
                         LSBalance = Convert.ToDecimal(dac.Scalar(q, param));
 

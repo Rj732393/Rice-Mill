@@ -21,7 +21,6 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
 
         if (!IsPostBack)
         {
-
             // Default dates set karo
             txtStartDate.Text = DateTime.Today.ToString("yyyy-MM-dd");
             txtEndDate.Text = DateTime.Today.AddYears(1).ToString("yyyy-MM-dd");
@@ -37,14 +36,16 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
         }
     }
 
-
     private void LoadCompany(int cid)
     {
         var param = new List<SqlParameter>();
         param.Add(new SqlParameter("@CompanyID", cid));
 
-        DataTable dt = dac.GetDataTable(
-            "SELECT * FROM prabha.Companies WHERE CompanyID=@CompanyID", param);
+        string query = "SELECT * FROM prabha.Companies WHERE CompanyID=@CompanyID";
+        System.Diagnostics.Debug.WriteLine("QUERY: " + query);
+        System.Diagnostics.Debug.WriteLine("CONN: " + System.Configuration.ConfigurationManager.ConnectionStrings["dbcon"].ConnectionString);
+
+        DataTable dt = dac.GetDataTable(query, param);
 
         if (dt.Rows.Count > 0)
         {
@@ -61,7 +62,6 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
             txtPassword.Text = r["AdminPassword"].ToString();
             txtStartDate.Text = Convert.ToDateTime(r["SubscriptionStart"]).ToString("yyyy-MM-dd");
             txtEndDate.Text = Convert.ToDateTime(r["SubscriptionEnd"]).ToString("yyyy-MM-dd");
-
         }
     }
 
@@ -113,20 +113,22 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
 
         if (isNew)
         {
-            // Naya record
-            result = dac.update(@"
-                INSERT INTO prabha.Companies
-                (CompanyName, AdminUserName, AdminPassword, OwnerName, Phone, Email,
-                 Address, City, State, GSTNumber, SubscriptionStart, SubscriptionEnd,
-                 Status, IsActive, CreatedDate)
-                VALUES
-                (@CompanyName, @AdminUserName, @AdminPassword, @OwnerName, @Phone, @Email,
-                 @Address, @City, @State, @GSTNumber, @SubStart, @SubEnd,
-                 N'Active', 1, GETDATE())", param);
+            // ID seedha INSERT se lo
+            object newIdObj = dac.Scalar(@"
+        INSERT INTO prabha.Companies
+        (CompanyName, AdminUserName, AdminPassword, OwnerName, Phone, Email,
+         Address, City, State, GSTNumber, SubscriptionStart, SubscriptionEnd,
+         Status, IsActive, CreatedDate)
+        OUTPUT INSERTED.CompanyID
+        VALUES
+        (@CompanyName, @AdminUserName, @AdminPassword, @OwnerName, @Phone, @Email,
+         @Address, @City, @State, @GSTNumber, @SubStart, @SubEnd,
+         N'Active', 1, GETDATE())", param);
 
-            // Get the newly created CompanyID
-            object newIdObj = dac.Scalar("SELECT @@IDENTITY", null);
-            companyID = Convert.ToInt32(newIdObj);
+            result = 1; // OUTPUT matlab success
+            companyID = (newIdObj != null && newIdObj != DBNull.Value)
+                        ? Convert.ToInt32(newIdObj)
+                        : 0;
         }
         else
         {
@@ -144,7 +146,9 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
 
         if (result > 0)
         {
-            saas.LogAction(companyID, Session["User"].ToString(), "SuperAdmin",
+            if (isNew)
+            {
+                saas.LogAction(companyID, Session["User"].ToString(), "SuperAdmin",
                     "CompanyCreated", "Company", "New company '" + txtCompanyName.Text.Trim() + "' created");
 
                 // Notification for new company

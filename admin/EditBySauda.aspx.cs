@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Web;
 using System.Web.UI;
@@ -114,6 +114,7 @@ public partial class admin_EditBySauda : System.Web.UI.Page
             // --- Sale Sauda search ---
             // Try exact numeric No with optional FY filter
             param = new List<SqlParameter>();
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@no", saudaNo));
             string fyWhere = hasFY
                 ? @" AND (
@@ -127,12 +128,13 @@ public partial class admin_EditBySauda : System.Web.UI.Page
                 param.Add(new SqlParameter("@fyEnd", fyEnd));
             }
             dtSauda = dac.GetDataTable(
-                "SELECT * FROM prabha.Sale_Sauda_Master WHERE (CAST(No AS NVARCHAR)=@no OR MNo=@no)" + fyWhere, param);
+                "SELECT * FROM prabha.Sale_Sauda_Master WHERE CompanyID=@CompanyID AND (CAST(No AS NVARCHAR)=@no OR MNo=@no)" + fyWhere, param);
 
             // Try LIKE on MNo
             if (dtSauda == null || dtSauda.Rows.Count == 0)
             {
                 param = new List<SqlParameter>();
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
                 param.Add(new SqlParameter("@no", "%" + saudaNo + "%"));
                 if (hasFY)
                 {
@@ -140,7 +142,7 @@ public partial class admin_EditBySauda : System.Web.UI.Page
                     param.Add(new SqlParameter("@fyEnd", fyEnd));
                 }
                 dtSauda = dac.GetDataTable(
-                    "SELECT * FROM prabha.Sale_Sauda_Master WHERE MNo LIKE @no" + fyWhere, param);
+                    "SELECT * FROM prabha.Sale_Sauda_Master WHERE CompanyID=@CompanyID AND MNo LIKE @no" + fyWhere, param);
             }
 
             if (dtSauda == null || dtSauda.Rows.Count == 0)
@@ -178,6 +180,7 @@ public partial class admin_EditBySauda : System.Web.UI.Page
         {
             // --- Purchase Sauda search ---
             param = new List<SqlParameter>();
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@no", saudaNo));
             string fyWhere = hasFY
                 ? @" AND (
@@ -191,11 +194,12 @@ public partial class admin_EditBySauda : System.Web.UI.Page
                 param.Add(new SqlParameter("@fyEnd", fyEnd));
             }
             dtSauda = dac.GetDataTable(
-                "SELECT * FROM prabha.Purchase_Sauda_Info WHERE (CAST(No AS NVARCHAR)=@no OR MNo=@no)" + fyWhere, param);
+                "SELECT * FROM prabha.Purchase_Sauda_Info WHERE CompanyID=@CompanyID AND (CAST(No AS NVARCHAR)=@no OR MNo=@no)" + fyWhere, param);
 
             if (dtSauda == null || dtSauda.Rows.Count == 0)
             {
                 param = new List<SqlParameter>();
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
                 param.Add(new SqlParameter("@no", "%" + saudaNo + "%"));
                 if (hasFY)
                 {
@@ -203,7 +207,7 @@ public partial class admin_EditBySauda : System.Web.UI.Page
                     param.Add(new SqlParameter("@fyEnd", fyEnd));
                 }
                 dtSauda = dac.GetDataTable(
-                    "SELECT * FROM prabha.Purchase_Sauda_Info WHERE MNo LIKE @no" + fyWhere, param);
+                    "SELECT * FROM prabha.Purchase_Sauda_Info WHERE CompanyID=@CompanyID AND MNo LIKE @no" + fyWhere, param);
             }
 
             if (dtSauda == null || dtSauda.Rows.Count == 0)
@@ -292,42 +296,47 @@ public partial class admin_EditBySauda : System.Web.UI.Page
     {
         dac = new DataAccessLayer();
         param = new List<SqlParameter>();
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
         DataTable dtMaster = null;
 
         // Try 1: SaudaNo = formatted number (RR/PS/2026-2027/0010)
         if (!string.IsNullOrEmpty(saudaFormattedNo))
         {
             param = new List<SqlParameter>();
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@sno", saudaFormattedNo));
             dtMaster = dac.GetDataTable(
-                "SELECT * FROM prabha.Purchase_Master_Data WHERE SaudaNo=@sno ORDER BY ID", param);
+                "SELECT * FROM prabha.Purchase_Master_Data WHERE CompanyID=@CompanyID AND SaudaNo=@sno ORDER BY ID", param);
         }
 
         // Try 2: SaudaNo = MNo (numeric/manual number like 7377)
         if ((dtMaster == null || dtMaster.Rows.Count == 0) && !string.IsNullOrEmpty(mno))
         {
             param = new List<SqlParameter>();
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@mno", mno));
             dtMaster = dac.GetDataTable(
-                "SELECT * FROM prabha.Purchase_Master_Data WHERE SaudaNo=@mno ORDER BY ID", param);
+                "SELECT * FROM prabha.Purchase_Master_Data WHERE CompanyID=@CompanyID AND SaudaNo=@mno ORDER BY ID", param);
         }
 
         // Try 3: SaudaNo LIKE %mno% (partial match)
         if ((dtMaster == null || dtMaster.Rows.Count == 0) && !string.IsNullOrEmpty(mno))
         {
             param = new List<SqlParameter>();
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@mno", "%" + mno + "%"));
             dtMaster = dac.GetDataTable(
-                "SELECT * FROM prabha.Purchase_Master_Data WHERE SaudaNo LIKE @mno ORDER BY ID", param);
+                "SELECT * FROM prabha.Purchase_Master_Data WHERE CompanyID=@CompanyID AND SaudaNo LIKE @mno ORDER BY ID", param);
         }
 
         // Try 4: SaudaID column se match (agar koi aisa column ho)
         if ((dtMaster == null || dtMaster.Rows.Count == 0) && !string.IsNullOrEmpty(saudaIDFallback))
         {
             param = new List<SqlParameter>();
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@sid", saudaIDFallback));
             dtMaster = dac.GetDataTable(
-                "SELECT * FROM prabha.Purchase_Master_Data WHERE SaudaID=@sid ORDER BY ID", param);
+                "SELECT * FROM prabha.Purchase_Master_Data WHERE CompanyID=@CompanyID AND SaudaID=@sid ORDER BY ID", param);
         }
 
         StringBuilder html = new StringBuilder();
@@ -462,13 +471,14 @@ public partial class admin_EditBySauda : System.Web.UI.Page
         // Sale_Master_Data mein SaudaID ya SaudaNo se link hota hai
         dac = new DataAccessLayer();
         param = new List<SqlParameter>();
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
         param.Add(new SqlParameter("@SaudaID", Convert.ToDecimal(masterSaudaID)));
         DataTable dtMaster = null;
 
         try
         {
             dtMaster = dac.GetDataTable(
-                "SELECT * FROM prabha.Sale_Master_Data WHERE SaudaID=@SaudaID ORDER BY ID", param);
+                "SELECT * FROM prabha.Sale_Master_Data WHERE CompanyID=@CompanyID AND SaudaID=@SaudaID ORDER BY ID", param);
         }
         catch { dtMaster = null; }
 

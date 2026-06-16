@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -43,11 +43,12 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
         dt = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
         param.Add(new SqlParameter("@Entry_Date1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
         param.Add(new SqlParameter("@Entry_Date2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
-        q = "select * from prabha.SalePurchaseExpense where Entry_Date>=@Entry_Date1 and Entry_Date<=@Entry_Date2";
+        q = "select * from prabha.SalePurchaseExpense where CompanyID=@CompanyID and Entry_Date>=@Entry_Date1 and Entry_Date<=@Entry_Date2";
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
 
