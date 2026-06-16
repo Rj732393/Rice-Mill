@@ -1,12 +1,11 @@
 ﻿using System;
-<<<<<<< Updated upstream
-=======
+
+
 using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
 using System.Web.UI;
 using System.Web.UI.WebControls;
->>>>>>> Stashed changes
 
 public partial class Includes_AdminMenu : System.Web.UI.UserControl
 {
@@ -15,25 +14,38 @@ public partial class Includes_AdminMenu : System.Web.UI.UserControl
 
     protected void Page_Load(object sender, EventArgs e)
     {
-<<<<<<< Updated upstream
-        // Session se Company ka naam lo
-        string companyName = "Rashmi Rice"; // default
+        // Session check
+        if (Session["User"] == null)
+        {
+            Response.Redirect("~/Login.aspx");
+            return;
+        }
 
+        // Company naam session se
+        string companyName = "Rashmi Rice";
         if (Session["CompanyName"] != null &&
             !string.IsNullOrWhiteSpace(Session["CompanyName"].ToString()))
         {
             companyName = Session["CompanyName"].ToString();
         }
 
-        // Sidebar logo aur navbar title set karo
+        // ✅ NAYA: Username session se
+        string userName = Session["User"] != null
+            ? Session["User"].ToString()
+            : "Admin";
+
+        // Sidebar + Navbar labels
         lblSidebarCompany.Text = companyName;
         lblNavbarCompany.Text = companyName + " Management";
-=======
+
+        // ✅ NAYA: Dropdown mein naam set karo
+        lblAdminName.Text = userName;
+        lblDropdownName.Text = userName;
+
         if (!IsPostBack)
         {
             BindOperators();
         }
->>>>>>> Stashed changes
     }
 
     private void BindOperators()
