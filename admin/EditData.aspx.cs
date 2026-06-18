@@ -22,14 +22,7 @@ public partial class admin_EditData : System.Web.UI.Page
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        if (Session["User"] == null || Session["UserType"] == null)
-        {
-            Response.Redirect("../Login.aspx");
-            return;
-        }
-
-        string userType = Session["UserType"].ToString();
-        if (userType != "Admin" && userType != "SuperAdmin")
+        if (Session["User"] == null || Session["User"].ToString() != "admin")
         {
             Response.Redirect("../Login.aspx");
             return;
@@ -39,12 +32,6 @@ public partial class admin_EditData : System.Web.UI.Page
         {
             Session["EditTable"] = null;
             Session["EditID"] = null;
-
-            // Company naam session se set karo
-            string companyName = Session["CompanyName"] != null
-                ? Session["CompanyName"].ToString()
-                : "Rice Mills";
-            lblCompanyName.Text = companyName;
             return;
         }
 

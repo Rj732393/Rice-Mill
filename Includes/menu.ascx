@@ -41,7 +41,7 @@
                      class="brand-logo" alt="Logo"
                      onerror="this.style.display='none'" />
                 <a class="navbar-brand" href="Home.aspx">
-    <asp:Label ID="lblCompany" runat="server"></asp:Label>
+    <%= Session["CompanyName"] != null ? Session["CompanyName"].ToString() + " Management System" : "Rice Mill Management System" %>
 </a>
             </div>
         </div>
@@ -61,22 +61,76 @@
                 </div>
             </div>
 
-<a href="Login.aspx" style="text-decoration:none;">
-    <div class="nav-user">
+<!-- User Dropdown -->
+<div class="nav-user-wrap" style="position:relative;">
+
+    <!-- User Button -->
+    <div class="nav-user" onclick="toggleUserMenu()" 
+         style="cursor:pointer;">
         <div class="user-avatar">
             <i class="fa-solid fa-user"></i>
         </div>
-
         <span class="user-name" style="color:white;">
-            Logout
+            <%= Session["User"] != null ? Session["User"].ToString() : "User" %>
         </span>
-
-        <div class="logout-btn">
-            <i class="fa-solid fa-right-from-bracket"></i>
-        </div>
+        <i class="fa fa-chevron-down" 
+           style="color:white; font-size:11px; margin-left:5px;"></i>
     </div>
-</a>
 
+    <!-- Dropdown Menu -->
+    <div id="userDropdown" style="
+        display:none;
+        position:absolute;
+        right:0;
+        top:48px;
+        background:white;
+        border-radius:12px;
+        box-shadow:0 8px 25px rgba(0,0,0,0.15);
+        min-width:160px;
+        z-index:9999;
+        overflow:hidden;">
+
+        <!-- Username Info -->
+        <div style="padding:12px 16px; 
+                    border-bottom:1px solid #f1f5f9;
+                    font-size:13px; 
+                    color:#64748b;">
+            <i class="fa-solid fa-user" style="margin-right:6px;"></i>
+            <%= Session["User"] != null ? Session["User"].ToString() : "User" %>
+        </div>
+
+        <!-- Logout -->
+        <a href="Login.aspx" style="
+            display:flex;
+            align-items:center;
+            gap:8px;
+            padding:12px 16px;
+            text-decoration:none;
+            color:#ef4444;
+            font-size:14px;
+            font-weight:600;
+            transition:0.2s;">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Logout
+        </a>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+    function toggleUserMenu() {
+        var menu = document.getElementById("userDropdown");
+        menu.style.display = (menu.style.display === "none") ? "block" : "none";
+    }
+
+    // Bahar click karne pe band ho jaye
+    document.addEventListener("click", function (e) {
+        var wrap = document.querySelector(".nav-user-wrap");
+        if (wrap && !wrap.contains(e.target)) {
+            document.getElementById("userDropdown").style.display = "none";
+        }
+    });
+</script>
     </div>
 </nav>
 
@@ -112,19 +166,14 @@
         </div>
     </a>
 
-    <a href="SaleSauda.aspx" style="text-decoration:none;">
+    <a href="Sale.aspx" style="text-decoration:none;">
         <div class="side-card">
             <i class="fa-solid fa-bag-shopping"></i>
             <h5>Sale Sauda</h5>
         </div>
     </a>
 
-     <a href="Salesauda.aspx" style="text-decoration:none;">
-        <div class="side-card">
-            <i class="fa-solid fa-bag-shopping"></i>
-            <h5>Sale Entry</h5>
-        </div>
-    </a>
+     
 
     <a href="SalePayment.aspx" style="text-decoration:none;">
         <div class="side-card">
