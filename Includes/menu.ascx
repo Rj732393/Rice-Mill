@@ -41,8 +41,8 @@
                      class="brand-logo" alt="Logo"
                      onerror="this.style.display='none'" />
                 <a class="navbar-brand" href="Home.aspx">
-                    Rashmi Rice Mill Management System
-                </a>
+    <%= Session["CompanyName"] != null ? Session["CompanyName"].ToString() + " Management System" : "Rice Mill Management System" %>
+</a>
             </div>
         </div>
 

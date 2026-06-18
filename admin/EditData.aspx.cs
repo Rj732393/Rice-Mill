@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Web;
 using System.Web.UI;
@@ -22,14 +22,7 @@ public partial class admin_EditData : System.Web.UI.Page
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        if (Session["User"] == null || Session["UserType"] == null)
-        {
-            Response.Redirect("../Login.aspx");
-            return;
-        }
-
-        string userType = Session["UserType"].ToString();
-        if (userType != "Admin" && userType != "SuperAdmin")
+        if (Session["User"] == null || Session["User"].ToString() != "admin")
         {
             Response.Redirect("../Login.aspx");
             return;
@@ -39,12 +32,6 @@ public partial class admin_EditData : System.Web.UI.Page
         {
             Session["EditTable"] = null;
             Session["EditID"] = null;
-
-            // Company naam session se set karo
-            string companyName = Session["CompanyName"] != null
-                ? Session["CompanyName"].ToString()
-                : "Rice Mills";
-            lblCompanyName.Text = companyName;
             return;
         }
 
@@ -155,7 +142,8 @@ public partial class admin_EditData : System.Web.UI.Page
             dac = new DataAccessLayer();
             param = new List<SqlParameter>();
             param.Add(new SqlParameter("@pkval", pkVal));
-            dt = dac.GetDataTable("SELECT * FROM " + tableName + " WHERE " + pkCol + "=@pkval", param);
+            param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
+            dt = dac.GetDataTable("SELECT * FROM " + tableName + " WHERE CompanyID=@CompanyID AND " + pkCol + "=@pkval", param);
 
             if (dt.Rows.Count == 0) { ShowMessage("Record not found.", false); return; }
 
@@ -223,7 +211,8 @@ public partial class admin_EditData : System.Web.UI.Page
             dac = new DataAccessLayer();
             param = new List<SqlParameter>();
             param.Add(new SqlParameter("@pkval", pkVal));
-            dt = dac.GetDataTable("SELECT * FROM " + tableName + " WHERE " + pkCol + "=@pkval", param);
+            param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
+            dt = dac.GetDataTable("SELECT * FROM " + tableName + " WHERE CompanyID=@CompanyID AND " + pkCol + "=@pkval", param);
             if (dt.Rows.Count == 0) { ShowMessage("Record not found.", false); return; }
 
             DataRow oldRow = dt.Rows[0];
@@ -272,7 +261,8 @@ public partial class admin_EditData : System.Web.UI.Page
 
             param.Add(new SqlParameter("@pkval", pkVal));
             dac = new DataAccessLayer();
-            dac.update("UPDATE " + tableName + " SET " + setClauses + " WHERE [" + pkCol + "]=@pkval", param);
+            param.Add(new SqlParameter("@CompanyID2", Convert.ToInt32(Session["CompanyID"])));
+            dac.update("UPDATE " + tableName + " SET " + setClauses + " WHERE CompanyID=@CompanyID2 AND [" + pkCol + "]=@pkval", param);
 
             int cascadeCount = RunCascadeUpdates(tableName, oldValues, newValues);
 
@@ -398,7 +388,8 @@ public partial class admin_EditData : System.Web.UI.Page
             var p = new List<SqlParameter>();
             p.Add(new SqlParameter("@newVal", newVal));
             p.Add(new SqlParameter("@oldVal", oldVal));
-            dac.update("UPDATE " + table + " SET [" + column + "]=@newVal WHERE [" + column + "]=@oldVal", p);
+            p.Add(new SqlParameter("@CascadeCID", Convert.ToInt32(HttpContext.Current.Session["CompanyID"])));
+            dac.update("UPDATE " + table + " SET [" + column + "]=@newVal WHERE CompanyID=@CascadeCID AND [" + column + "]=@oldVal", p);
         }
         catch { }
     }
@@ -410,7 +401,8 @@ public partial class admin_EditData : System.Web.UI.Page
             var p = new List<SqlParameter>();
             p.Add(new SqlParameter("@newVal", Convert.ToDecimal(newVal)));
             p.Add(new SqlParameter("@oldVal", Convert.ToDecimal(oldVal)));
-            dac.update("UPDATE " + table + " SET [" + column + "]=@newVal WHERE [" + column + "]=@oldVal", p);
+            p.Add(new SqlParameter("@CascadeCID", Convert.ToInt32(HttpContext.Current.Session["CompanyID"])));
+            dac.update("UPDATE " + table + " SET [" + column + "]=@newVal WHERE CompanyID=@CascadeCID AND [" + column + "]=@oldVal", p);
         }
         catch { }
     }
