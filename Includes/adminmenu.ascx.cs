@@ -1,6 +1,4 @@
-﻿using System;
-
-
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
@@ -29,7 +27,7 @@ public partial class Includes_AdminMenu : System.Web.UI.UserControl
             companyName = Session["CompanyName"].ToString();
         }
 
-        // ✅ NAYA: Username session se
+        // Username session se
         string userName = Session["User"] != null
             ? Session["User"].ToString()
             : "Admin";
@@ -38,9 +36,13 @@ public partial class Includes_AdminMenu : System.Web.UI.UserControl
         lblSidebarCompany.Text = companyName;
         lblNavbarCompany.Text = companyName + " Management";
 
-        // ✅ NAYA: Dropdown mein naam set karo
+        // Dropdown mein naam set karo
         lblAdminName.Text = userName;
         lblDropdownName.Text = userName;
+
+        // "Users" link sirf Admin role ko dikhe (sidebar me)
+        phUserMgmt.Visible = (Session["UserType"] != null &&
+            Session["UserType"].ToString() == "Admin");
 
         if (!IsPostBack)
         {

@@ -56,6 +56,15 @@
             </a>
         </li>
 
+        <asp:PlaceHolder ID="phUserMgmt" runat="server">
+        <li>
+            <a href="OperatorsList.aspx">
+                <i class="fas fa-users-cog"></i>
+                Users
+            </a>
+        </li>
+        </asp:PlaceHolder>
+
         <li>
             <a href="logout.aspx">
                 <i class="fas fa-sign-out-alt"></i>
@@ -86,7 +95,7 @@
     </div>
 
     <!-- RIGHT: Admin Dropdown -->
-    <div class="rm-admin" onclick="toggleAdminMenu()" 
+    <div class="rm-admin" onclick="toggleAdminMenu(event)" 
          style="position:relative; cursor:pointer;">
 
         <i class="fas fa-user-shield"></i>
@@ -373,7 +382,8 @@
         main.classList.toggle("fullMain");
     }
 
-    function toggleAdminMenu() {
+    function toggleAdminMenu(e) {
+        if (e) e.stopPropagation();
         var dropdown = document.getElementById("adminDropdown");
         dropdown.style.display =
             (dropdown.style.display === "block") ? "none" : "block";
