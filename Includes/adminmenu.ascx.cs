@@ -1,14 +1,14 @@
 using System;
 using System.Data;
 using System.Data.SqlClient;
-using System.Configuration;
+using System.Collections.Generic;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using substitute;
 
 public partial class Includes_AdminMenu : System.Web.UI.UserControl
 {
-    SqlConnection con = new SqlConnection(
-        ConfigurationManager.ConnectionStrings["dbcon"].ConnectionString);
+    DataAccessLayer dac = new DataAccessLayer();
 
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -55,24 +55,23 @@ public partial class Includes_AdminMenu : System.Web.UI.UserControl
         try
         {
             int companyID = Session["CompanyID"] != null ? Convert.ToInt32(Session["CompanyID"]) : 0;
-            // sirf Operator dikhna chaiye, Admin nahi
-            SqlCommand cmd = new SqlCommand(
-                "SELECT ID, UserName, UPassword, UserType, CreatedDate, IsActive " +
-                "FROM prabha.UserInfo " +
-                "WHERE UserType = 'Operator' AND CompanyID = @cid " +
-                "ORDER BY CreatedDate DESC", con);
-            cmd.Parameters.AddWithValue("@cid", companyID);
-            DataTable dt = new DataTable();
-            SqlDataAdapter da = new SqlDataAdapter(cmd);
-            con.Open();
-            da.Fill(dt);
-            con.Close();
+
+            var param = new List<SqlParameter>();
+            param.Add(new SqlParameter("@CompanyID", companyID));
+
+            DataTable dt = dac.GetDataTable(
+                @"SELECT ID, UserName, UPassword, UserType, CreatedDate, IsActive
+                  FROM prabha.UserInfo
+                  WHERE UserType = 'Operator' AND CompanyID = @CompanyID
+                  ORDER BY CreatedDate DESC",
+                param);
+
             gvOperators.DataSource = dt;
             gvOperators.DataBind();
         }
         catch (Exception)
         {
-            if (con.State == ConnectionState.Open) con.Close();
+            // ignore - list rehne do empty
         }
     }
 
@@ -80,43 +79,48 @@ public partial class Includes_AdminMenu : System.Web.UI.UserControl
     {
         try
         {
-            con.Open();
             int companyID = Session["CompanyID"] != null ? Convert.ToInt32(Session["CompanyID"]) : 0;
-            // Pehle check karo username already exist karta hai ya nahi
-            SqlCommand checkCmd = new SqlCommand(
-                "SELECT COUNT(*) FROM prabha.UserInfo WHERE UserName = @u AND CompanyID = @cid", con);
-            checkCmd.Parameters.AddWithValue("@u", txtUser.Text.Trim());
-            checkCmd.Parameters.AddWithValue("@cid", companyID);
-            int count = (int)checkCmd.ExecuteScalar();
-            if (count > 0)
+            string uname = txtUser.Text.Trim();
+            string pass = txtPass.Text;
+
+            // Duplicate username check - GLOBALLY unique (Login query CompanyID ke bina match karti hai)
+            var chkParam = new List<SqlParameter>();
+            chkParam.Add(new SqlParameter("@UserName", uname));
+
+            object existingCount = dac.Scalar(
+                "SELECT COUNT(*) FROM prabha.UserInfo WHERE UserName=@UserName",
+                chkParam);
+
+            if (Convert.ToInt32(existingCount) > 0)
             {
-                con.Close();
                 lblMsg.ForeColor = System.Drawing.Color.Red;
-                lblMsg.Text = "⚠ Operator '" + txtUser.Text.Trim() + "' already exists!";
+                lblMsg.Text = "⚠ Operator '" + uname + "' already exists (kisi bhi company me)!";
                 lblMsg.Style["display"] = "block";
                 ScriptManager.RegisterStartupScript(this, this.GetType(), "openModal",
                     "document.getElementById('addOperatorModal').style.display='flex';", true);
                 return;
             }
-            // Nahi hai toh insert karo
-            SqlCommand cmd = new SqlCommand(
-                "INSERT INTO prabha.UserInfo (UserName,UPassword,CreatedDate,UserType,IsActive,CompanyID) " +
-                "VALUES (@u,@p,GETDATE(),'Operator',1,@cid)", con);
-            cmd.Parameters.AddWithValue("@u", txtUser.Text.Trim());
-            cmd.Parameters.AddWithValue("@p", txtPass.Text);
-            cmd.Parameters.AddWithValue("@cid", companyID);
-            cmd.ExecuteNonQuery();
-            con.Close();
+
+            var param = new List<SqlParameter>();
+            param.Add(new SqlParameter("@UserName", uname));
+            param.Add(new SqlParameter("@UPassword", pass));
+            param.Add(new SqlParameter("@CompanyID", companyID));
+            param.Add(new SqlParameter("@RoleID", 5)); // 5 = Operator
+
+            dac.update(
+                @"INSERT INTO prabha.UserInfo (UserName,UPassword,CreatedDate,UserType,IsActive,CompanyID,RoleID)
+                  VALUES (@UserName,@UPassword,GETDATE(),'Operator',1,@CompanyID,@RoleID)",
+                param);
+
             txtUser.Text = "";
             txtPass.Text = "";
             lblMsg.Text = "";
-            BindOperators(); // list refresh - naya operator bhi dikhega
+            BindOperators();
             ScriptManager.RegisterStartupScript(this, this.GetType(), "closeModal",
                 "closeAddOperatorModal();", true);
         }
         catch (Exception ex)
         {
-            if (con.State == ConnectionState.Open) con.Close();
             lblMsg.ForeColor = System.Drawing.Color.Red;
             lblMsg.Style["display"] = "block";
             lblMsg.Text = "Error: " + ex.Message;
@@ -134,20 +138,21 @@ public partial class Includes_AdminMenu : System.Web.UI.UserControl
         {
             try
             {
-                con.Open();
-                SqlCommand cmd = new SqlCommand(
-                    "SELECT ID, UserName FROM prabha.UserInfo " +
-                    "WHERE ID = @id AND CompanyID = @cid AND UserType = 'Operator'", con);
-                cmd.Parameters.AddWithValue("@id", id);
-                cmd.Parameters.AddWithValue("@cid", companyID);
-                SqlDataReader rdr = cmd.ExecuteReader();
-                if (rdr.Read())
+                var param = new List<SqlParameter>();
+                param.Add(new SqlParameter("@ID", id));
+                param.Add(new SqlParameter("@CompanyID", companyID));
+
+                DataTable dt = dac.GetDataTable(
+                    @"SELECT ID, UserName FROM prabha.UserInfo 
+                      WHERE ID = @ID AND CompanyID = @CompanyID AND UserType = 'Operator'",
+                    param);
+
+                if (dt.Rows.Count > 0)
                 {
-                    hdnEditID.Value = rdr["ID"].ToString();
-                    txtEditUser.Text = rdr["UserName"].ToString();
+                    hdnEditID.Value = dt.Rows[0]["ID"].ToString();
+                    txtEditUser.Text = dt.Rows[0]["UserName"].ToString();
                 }
-                rdr.Close();
-                con.Close();
+
                 txtEditPass.Text = "";
                 lblEditMsg.Text = "";
                 lblEditMsg.Style["display"] = "none";
@@ -157,48 +162,50 @@ public partial class Includes_AdminMenu : System.Web.UI.UserControl
             }
             catch (Exception)
             {
-                if (con.State == ConnectionState.Open) con.Close();
+                // ignore
             }
         }
         else if (e.CommandName == "SuspendOp")
         {
             try
             {
-                con.Open();
-                SqlCommand cmd = new SqlCommand(
+                var param = new List<SqlParameter>();
+                param.Add(new SqlParameter("@ID", id));
+                param.Add(new SqlParameter("@CompanyID", companyID));
+
+                dac.update(
                     "UPDATE prabha.UserInfo SET IsActive = CASE WHEN IsActive=1 THEN 0 ELSE 1 END " +
-                    "WHERE ID = @id AND CompanyID = @cid AND UserType = 'Operator'", con);
-                cmd.Parameters.AddWithValue("@id", id);
-                cmd.Parameters.AddWithValue("@cid", companyID);
-                cmd.ExecuteNonQuery();
-                con.Close();
+                    "WHERE ID = @ID AND CompanyID = @CompanyID AND UserType = 'Operator'",
+                    param);
+
                 BindOperators();
                 ScriptManager.RegisterStartupScript(this, this.GetType(), "openViewModal",
                     "document.getElementById('viewOperatorsModal').style.display='flex';", true);
             }
             catch (Exception)
             {
-                if (con.State == ConnectionState.Open) con.Close();
+                // ignore
             }
         }
         else if (e.CommandName == "DeleteOp")
         {
             try
             {
-                con.Open();
-                SqlCommand cmd = new SqlCommand(
-                    "DELETE FROM prabha.UserInfo WHERE ID = @id AND CompanyID = @cid AND UserType = 'Operator'", con);
-                cmd.Parameters.AddWithValue("@id", id);
-                cmd.Parameters.AddWithValue("@cid", companyID);
-                cmd.ExecuteNonQuery();
-                con.Close();
+                var param = new List<SqlParameter>();
+                param.Add(new SqlParameter("@ID", id));
+                param.Add(new SqlParameter("@CompanyID", companyID));
+
+                dac.update(
+                    "DELETE FROM prabha.UserInfo WHERE ID = @ID AND CompanyID = @CompanyID AND UserType = 'Operator'",
+                    param);
+
                 BindOperators();
                 ScriptManager.RegisterStartupScript(this, this.GetType(), "openViewModal",
                     "document.getElementById('viewOperatorsModal').style.display='flex';", true);
             }
             catch (Exception)
             {
-                if (con.State == ConnectionState.Open) con.Close();
+                // ignore
             }
         }
     }
@@ -209,19 +216,19 @@ public partial class Includes_AdminMenu : System.Web.UI.UserControl
         {
             int id = Convert.ToInt32(hdnEditID.Value);
             int companyID = Session["CompanyID"] != null ? Convert.ToInt32(Session["CompanyID"]) : 0;
+            string newUserName = txtEditUser.Text.Trim();
 
-            con.Open();
+            // Duplicate check (globally unique, excluding current row)
+            var chkParam = new List<SqlParameter>();
+            chkParam.Add(new SqlParameter("@UserName", newUserName));
+            chkParam.Add(new SqlParameter("@ID", id));
 
-            // duplicate username check (excluding current row)
-            SqlCommand checkCmd = new SqlCommand(
-                "SELECT COUNT(*) FROM prabha.UserInfo WHERE UserName = @u AND CompanyID = @cid AND ID <> @id", con);
-            checkCmd.Parameters.AddWithValue("@u", txtEditUser.Text.Trim());
-            checkCmd.Parameters.AddWithValue("@cid", companyID);
-            checkCmd.Parameters.AddWithValue("@id", id);
-            int count = (int)checkCmd.ExecuteScalar();
-            if (count > 0)
+            object existingCount = dac.Scalar(
+                "SELECT COUNT(*) FROM prabha.UserInfo WHERE UserName = @UserName AND ID <> @ID",
+                chkParam);
+
+            if (Convert.ToInt32(existingCount) > 0)
             {
-                con.Close();
                 lblEditMsg.ForeColor = System.Drawing.Color.Red;
                 lblEditMsg.Text = "⚠ Username already in use!";
                 lblEditMsg.Style["display"] = "block";
@@ -233,32 +240,34 @@ public partial class Includes_AdminMenu : System.Web.UI.UserControl
 
             if (string.IsNullOrEmpty(txtEditPass.Text.Trim()))
             {
-                SqlCommand cmd = new SqlCommand(
-                    "UPDATE prabha.UserInfo SET UserName = @u WHERE ID = @id AND CompanyID = @cid AND UserType = 'Operator'", con);
-                cmd.Parameters.AddWithValue("@u", txtEditUser.Text.Trim());
-                cmd.Parameters.AddWithValue("@id", id);
-                cmd.Parameters.AddWithValue("@cid", companyID);
-                cmd.ExecuteNonQuery();
+                var param = new List<SqlParameter>();
+                param.Add(new SqlParameter("@UserName", newUserName));
+                param.Add(new SqlParameter("@ID", id));
+                param.Add(new SqlParameter("@CompanyID", companyID));
+
+                dac.update(
+                    "UPDATE prabha.UserInfo SET UserName = @UserName WHERE ID = @ID AND CompanyID = @CompanyID AND UserType = 'Operator'",
+                    param);
             }
             else
             {
-                SqlCommand cmd = new SqlCommand(
-                    "UPDATE prabha.UserInfo SET UserName = @u, UPassword = @p WHERE ID = @id AND CompanyID = @cid AND UserType = 'Operator'", con);
-                cmd.Parameters.AddWithValue("@u", txtEditUser.Text.Trim());
-                cmd.Parameters.AddWithValue("@p", txtEditPass.Text);
-                cmd.Parameters.AddWithValue("@id", id);
-                cmd.Parameters.AddWithValue("@cid", companyID);
-                cmd.ExecuteNonQuery();
+                var param = new List<SqlParameter>();
+                param.Add(new SqlParameter("@UserName", newUserName));
+                param.Add(new SqlParameter("@UPassword", txtEditPass.Text));
+                param.Add(new SqlParameter("@ID", id));
+                param.Add(new SqlParameter("@CompanyID", companyID));
+
+                dac.update(
+                    "UPDATE prabha.UserInfo SET UserName = @UserName, UPassword = @UPassword WHERE ID = @ID AND CompanyID = @CompanyID AND UserType = 'Operator'",
+                    param);
             }
 
-            con.Close();
             BindOperators();
             ScriptManager.RegisterStartupScript(this, this.GetType(), "closeEditModal",
                 "closeEditOperatorModal(); document.getElementById('viewOperatorsModal').style.display='flex';", true);
         }
         catch (Exception ex)
         {
-            if (con.State == ConnectionState.Open) con.Close();
             lblEditMsg.ForeColor = System.Drawing.Color.Red;
             lblEditMsg.Style["display"] = "block";
             lblEditMsg.Text = "Error: " + ex.Message;

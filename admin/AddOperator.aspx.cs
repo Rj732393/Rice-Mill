@@ -1,11 +1,12 @@
-﻿using System;
+using System;
+using System.Data;
 using System.Data.SqlClient;
-using System.Configuration;
+using System.Collections.Generic;
+using substitute;
 
 public partial class admin_AddOperator : System.Web.UI.Page
 {
-    SqlConnection con = new SqlConnection(
-        ConfigurationManager.ConnectionStrings["dbcon"].ConnectionString);
+    DataAccessLayer dac = new DataAccessLayer();
 
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -32,37 +33,37 @@ public partial class admin_AddOperator : System.Web.UI.Page
 
         int companyID = Session["CompanyID"] != null ? Convert.ToInt32(Session["CompanyID"]) : 0;
 
-        con.Open();
+        // Duplicate username check - GLOBALLY unique (Login query CompanyID ke bina match karti hai,
+        // isliye alag companies me bhi same username clash karega)
+        var chkParam = new List<SqlParameter>();
+        chkParam.Add(new SqlParameter("@UserName", uname));
 
-        // Duplicate username check (same company ke andar)
-        SqlCommand chkCmd = new SqlCommand(
-            "SELECT COUNT(*) FROM prabha.UserInfo WHERE UserName=@u AND CompanyID=@cid", con);
-        chkCmd.Parameters.AddWithValue("@u", uname);
-        chkCmd.Parameters.AddWithValue("@cid", companyID);
+        object existingCount = dac.Scalar(
+            "SELECT COUNT(*) FROM prabha.UserInfo WHERE UserName=@UserName",
+            chkParam);
 
-        int existingCount = (int)chkCmd.ExecuteScalar();
-
-        if (existingCount > 0)
+        if (Convert.ToInt32(existingCount) > 0)
         {
-            con.Close();
             lblMsg.ForeColor = System.Drawing.Color.Red;
-            lblMsg.Text = "Ye username already maujood hai. Doosra username try karo.";
+            lblMsg.Text = "Ye username already kisi aur company me bhi maujood hai. Doosra username try karo.";
             return;
         }
 
-        SqlCommand cmd = new SqlCommand(
-            "INSERT INTO prabha.UserInfo (UserName,UPassword,CreatedDate,UserType,IsActive,CompanyID) " +
-            "VALUES (@u,@p,GETDATE(),'Operator',1,@cid)", con);
-        cmd.Parameters.AddWithValue("@u", uname);
-        cmd.Parameters.AddWithValue("@p", pass);
-        cmd.Parameters.AddWithValue("@cid", companyID);
-        cmd.ExecuteNonQuery();
+        var param = new List<SqlParameter>();
+        param.Add(new SqlParameter("@UserName", uname));
+        param.Add(new SqlParameter("@UPassword", pass));
+        param.Add(new SqlParameter("@CompanyID", companyID));
+        // RoleID 5 = Operator (1=SuperAdmin, 2=CompanyAdmin, 3=Manager, 4=Accountant, 5=Operator)
+        param.Add(new SqlParameter("@RoleID", 5));
 
-        con.Close();
+        dac.update(
+            @"INSERT INTO prabha.UserInfo (UserName, UPassword, CreatedDate, UserType, IsActive, CompanyID, RoleID)
+              VALUES (@UserName, @UPassword, GETDATE(), 'Operator', 1, @CompanyID, @RoleID)",
+            param);
 
         txtUser.Text = "";
         txtPass.Text = "";
         lblMsg.ForeColor = System.Drawing.Color.Green;
-        lblMsg.Text = "Operator added successfully!";
+        lblMsg.Text = "Operator add ho gaya!";
     }
 }

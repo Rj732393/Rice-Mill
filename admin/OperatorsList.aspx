@@ -1,164 +1,107 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true"
-    CodeFile="OperatorsList.aspx.cs"
-    Inherits="admin_OperatorsList" %>
+﻿using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Configuration;
 
-<%@ Register Src="../Includes/AdminMenu.ascx"
-    TagName="WebUserControl1"
-    TagPrefix="uc1" %>
+public partial class admin_OperatorsList : System.Web.UI.Page
+{
+    SqlConnection con = new SqlConnection(
+        ConfigurationManager.ConnectionStrings["dbcon"].ConnectionString);
 
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-
-<head runat="server">
-
-    <title>Operators List</title>
-
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <link rel="stylesheet"
-        href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
-
-    <link rel="stylesheet"
-        href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" />
-
-    <link href="../CSS/AdminMenu.css" rel="stylesheet" />
-
-    <style>
-
-        body{ background:#f1f5f9; }
-
-        .main-wrapper{
-            margin-left:270px;
-            margin-top:95px;
-            padding:30px;
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (Session["User"] == null ||
+            Session["UserType"] == null ||
+            Session["UserType"].ToString() != "Admin")
+        {
+            Response.Redirect("../Login.aspx");
+            return;
         }
 
-        .card-box{
-            background:#fff;
-            padding:25px;
-            border-radius:20px;
+        if (!IsPostBack)
+        {
+            BindOperators();
         }
+    }
 
-        .card-box h3{
-            margin-bottom:18px;
-            color:#1e293b;
+    private void BindOperators()
+    {
+        int companyID = Session["CompanyID"] != null ? Convert.ToInt32(Session["CompanyID"]) : 0;
+
+        con.Open();
+
+        SqlCommand cmd = new SqlCommand(
+            "SELECT ID, UserName, CreatedDate, IsActive " +
+            "FROM prabha.UserInfo " +
+            "WHERE CompanyID=@cid AND UserType='Operator' " +
+            "ORDER BY CreatedDate DESC", con);
+        cmd.Parameters.AddWithValue("@cid", companyID);
+
+        SqlDataAdapter da = new SqlDataAdapter(cmd);
+        DataTable dt = new DataTable();
+        da.Fill(dt);
+
+        con.Close();
+
+        gvOperators.DataSource = dt;
+        gvOperators.DataBind();
+    }
+
+    protected void gvOperators_RowCommand(object sender, GridViewCommandEventArgs e)
+    {
+        int userID = Convert.ToInt32(e.CommandArgument);
+        int companyID = Session["CompanyID"] != null ? Convert.ToInt32(Session["CompanyID"]) : 0;
+
+        if (e.CommandName == "ToggleActive")
+        {
+            con.Open();
+
+            SqlCommand cmd = new SqlCommand(
+                "UPDATE prabha.UserInfo SET IsActive = CASE WHEN IsActive=1 THEN 0 ELSE 1 END " +
+                "WHERE ID=@id AND CompanyID=@cid", con);
+            cmd.Parameters.AddWithValue("@id", userID);
+            cmd.Parameters.AddWithValue("@cid", companyID);
+            cmd.ExecuteNonQuery();
+
+            con.Close();
+
+            lblMsg.ForeColor = System.Drawing.Color.Green;
+            lblMsg.Text = "Status update ho gaya.";
+
+            BindOperators();
         }
+        else if (e.CommandName == "ResetPassword")
+        {
+            // Find the row's new-password textbox
+            GridViewRow row = (GridViewRow)((System.Web.UI.WebControls.Button)e.CommandSource).NamingContainer;
+            TextBox txtNewPass = (TextBox)row.FindControl("txtNewPass");
 
-        .table thead th{
-            background:#1e293b;
-            color:#fff;
-            border:none;
+            string newPass = txtNewPass.Text.Trim();
+
+            if (string.IsNullOrEmpty(newPass))
+            {
+                lblMsg.ForeColor = System.Drawing.Color.Red;
+                lblMsg.Text = "Naya password khali nahi ho sakta.";
+                BindOperators();
+                return;
+            }
+
+            con.Open();
+
+            SqlCommand cmd = new SqlCommand(
+                "UPDATE prabha.UserInfo SET UPassword=@p " +
+                "WHERE ID=@id AND CompanyID=@cid", con);
+            cmd.Parameters.AddWithValue("@p", newPass);
+            cmd.Parameters.AddWithValue("@id", userID);
+            cmd.Parameters.AddWithValue("@cid", companyID);
+            cmd.ExecuteNonQuery();
+
+            con.Close();
+
+            lblMsg.ForeColor = System.Drawing.Color.Green;
+            lblMsg.Text = "Password reset ho gaya.";
+
+            BindOperators();
         }
-
-        .badge-active{
-            background:#16a34a;
-            color:#fff;
-            padding:5px 10px;
-            border-radius:10px;
-            font-size:12px;
-        }
-
-        .badge-inactive{
-            background:#dc2626;
-            color:#fff;
-            padding:5px 10px;
-            border-radius:10px;
-            font-size:12px;
-        }
-
-        .reset-box{
-            display:inline-block;
-        }
-
-        .reset-box .form-control{
-            display:inline-block;
-            width:140px;
-            height:32px;
-            padding:4px 8px;
-            font-size:13px;
-        }
-
-    </style>
-
-</head>
-
-<body>
-
-<form id="form1" runat="server">
-
-<uc1:WebUserControl1 ID="WebUserControl11" runat="server" />
-
-<div class="main-wrapper">
-
-    <div class="card-box">
-
-        <h3>Operators List</h3>
-
-        <asp:Label ID="lblMsg" runat="server" Font-Bold="true" /><br /><br />
-
-        <div class="table-responsive">
-
-            <asp:GridView ID="gvOperators" runat="server"
-                CssClass="table table-striped table-bordered"
-                AutoGenerateColumns="false"
-                DataKeyNames="ID"
-                OnRowCommand="gvOperators_RowCommand"
-                EmptyDataText="Koi operator nahi mila.">
-
-                <Columns>
-
-                    <asp:BoundField DataField="UserName" HeaderText="Username" />
-
-                    <asp:BoundField DataField="CreatedDate" HeaderText="Created Date"
-                        DataFormatString="{0:dd-MM-yyyy}" />
-
-                    <asp:TemplateField HeaderText="Status">
-                        <ItemTemplate>
-                            <asp:Label runat="server"
-                                CssClass='<%# (bool)Eval("IsActive") ? "badge-active" : "badge-inactive" %>'
-                                Text='<%# (bool)Eval("IsActive") ? "Active" : "Inactive" %>' />
-                        </ItemTemplate>
-                    </asp:TemplateField>
-
-                    <asp:TemplateField HeaderText="Reset Password">
-                        <ItemTemplate>
-                            <div class="reset-box">
-                                <asp:TextBox ID="txtNewPass" runat="server"
-                                    CssClass="form-control"
-                                    placeholder="New password" />
-
-                                <asp:Button ID="btnReset" runat="server"
-                                    Text="Reset"
-                                    CssClass="btn btn-warning btn-sm"
-                                    CommandName="ResetPassword"
-                                    CommandArgument='<%# Eval("ID") %>' />
-                            </div>
-                        </ItemTemplate>
-                    </asp:TemplateField>
-
-                    <asp:TemplateField HeaderText="Action">
-                        <ItemTemplate>
-                            <asp:Button runat="server"
-                                Text='<%# (bool)Eval("IsActive") ? "Deactivate" : "Activate" %>'
-                                CssClass='<%# (bool)Eval("IsActive") ? "btn btn-danger btn-sm" : "btn btn-success btn-sm" %>'
-                                CommandName="ToggleActive"
-                                CommandArgument='<%# Eval("ID") %>' />
-                        </ItemTemplate>
-                    </asp:TemplateField>
-
-                </Columns>
-
-            </asp:GridView>
-
-        </div>
-
-        <a href="AddOperator.aspx" class="btn btn-primary">+ Add New Operator</a>
-
-    </div>
-
-</div>
-
-</form>
-
-</body>
-</html>
+    }
+}

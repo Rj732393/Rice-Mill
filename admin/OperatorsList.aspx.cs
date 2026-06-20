@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Data.SqlClient;
-using System.Configuration;
+using System.Collections.Generic;
 using System.Web.UI.WebControls;
+using substitute;
 
 public partial class admin_OperatorsList : System.Web.UI.Page
 {
-    SqlConnection con = new SqlConnection(
-        ConfigurationManager.ConnectionStrings["dbcon"].ConnectionString);
+    DataAccessLayer dac = new DataAccessLayer();
 
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -29,20 +29,15 @@ public partial class admin_OperatorsList : System.Web.UI.Page
     {
         int companyID = Session["CompanyID"] != null ? Convert.ToInt32(Session["CompanyID"]) : 0;
 
-        con.Open();
+        var param = new List<SqlParameter>();
+        param.Add(new SqlParameter("@CompanyID", companyID));
 
-        SqlCommand cmd = new SqlCommand(
-            "SELECT ID, UserName, CreatedDate, IsActive " +
-            "FROM prabha.UserInfo " +
-            "WHERE CompanyID=@cid AND UserType='Operator' " +
-            "ORDER BY CreatedDate DESC", con);
-        cmd.Parameters.AddWithValue("@cid", companyID);
-
-        SqlDataAdapter da = new SqlDataAdapter(cmd);
-        DataTable dt = new DataTable();
-        da.Fill(dt);
-
-        con.Close();
+        DataTable dt = dac.GetDataTable(
+            @"SELECT ID, UserName, CreatedDate, IsActive
+              FROM prabha.UserInfo
+              WHERE CompanyID=@CompanyID AND UserType='Operator'
+              ORDER BY CreatedDate DESC",
+            param);
 
         gvOperators.DataSource = dt;
         gvOperators.DataBind();
@@ -50,21 +45,18 @@ public partial class admin_OperatorsList : System.Web.UI.Page
 
     protected void gvOperators_RowCommand(object sender, GridViewCommandEventArgs e)
     {
-        int userID = Convert.ToInt32(e.CommandArgument);
+        int id = Convert.ToInt32(e.CommandArgument);
         int companyID = Session["CompanyID"] != null ? Convert.ToInt32(Session["CompanyID"]) : 0;
 
         if (e.CommandName == "ToggleActive")
         {
-            con.Open();
+            var param = new List<SqlParameter>();
+            param.Add(new SqlParameter("@ID", id));
+            param.Add(new SqlParameter("@CompanyID", companyID));
 
-            SqlCommand cmd = new SqlCommand(
-                "UPDATE prabha.UserInfo SET IsActive = ~IsActive " +
-                "WHERE ID=@id AND CompanyID=@cid", con);
-            cmd.Parameters.AddWithValue("@id", userID);
-            cmd.Parameters.AddWithValue("@cid", companyID);
-            cmd.ExecuteNonQuery();
-
-            con.Close();
+            dac.update(
+                "UPDATE prabha.UserInfo SET IsActive = CASE WHEN IsActive=1 THEN 0 ELSE 1 END WHERE ID=@ID AND CompanyID=@CompanyID",
+                param);
 
             lblMsg.ForeColor = System.Drawing.Color.Green;
             lblMsg.Text = "Status update ho gaya.";
@@ -73,7 +65,6 @@ public partial class admin_OperatorsList : System.Web.UI.Page
         }
         else if (e.CommandName == "ResetPassword")
         {
-            // Find the row's new-password textbox
             GridViewRow row = (GridViewRow)((System.Web.UI.WebControls.Button)e.CommandSource).NamingContainer;
             TextBox txtNewPass = (TextBox)row.FindControl("txtNewPass");
 
@@ -87,17 +78,14 @@ public partial class admin_OperatorsList : System.Web.UI.Page
                 return;
             }
 
-            con.Open();
+            var param = new List<SqlParameter>();
+            param.Add(new SqlParameter("@UPassword", newPass));
+            param.Add(new SqlParameter("@ID", id));
+            param.Add(new SqlParameter("@CompanyID", companyID));
 
-            SqlCommand cmd = new SqlCommand(
-                "UPDATE prabha.UserInfo SET UPassword=@p " +
-                "WHERE ID=@id AND CompanyID=@cid", con);
-            cmd.Parameters.AddWithValue("@p", newPass);
-            cmd.Parameters.AddWithValue("@id", userID);
-            cmd.Parameters.AddWithValue("@cid", companyID);
-            cmd.ExecuteNonQuery();
-
-            con.Close();
+            dac.update(
+                "UPDATE prabha.UserInfo SET UPassword=@UPassword WHERE ID=@ID AND CompanyID=@CompanyID",
+                param);
 
             lblMsg.ForeColor = System.Drawing.Color.Green;
             lblMsg.Text = "Password reset ho gaya.";
