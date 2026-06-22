@@ -17,9 +17,10 @@ public partial class PaddyStock : System.Web.UI.Page
     {
         if (!Page.IsPostBack)
         {
-            if (Session["User"] == null)
+            if (Session["User"] == null || Session["CompanyID"] == null)
             {
                 Response.Redirect("Login.aspx");
+                return;
             }
 
             sdate.Attributes["type"] = "date";
@@ -82,13 +83,14 @@ public partial class PaddyStock : System.Web.UI.Page
                 string q = "";
                 param = new List<SqlParameter>();//Emp_Id
 
+                param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
                 param.Add(new SqlParameter("@Paddy_Weight", (Convert.ToDecimal(pweight.Value.Trim()) + Convert.ToDecimal(lblOSB.Text.Trim()))));
                 param.Add(new SqlParameter("@Avg_Rate", avgrate.Value.Trim()));
                 param.Add(new SqlParameter("@Stock_Consume", sconsume.Value.Trim()));
                 param.Add(new SqlParameter("@User_Name", Session["User"].ToString()));
                 param.Add(new SqlParameter("@Entry_Date", Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
-                q = "insert into prabha.PaddyStock(Paddy_Weight,Avg_Rate,Stock_Consume,User_Name,Entry_Date) values(@Paddy_Weight,@Avg_Rate,@Stock_Consume,@User_Name,@Entry_Date)";
+                q = "insert into prabha.PaddyStock(CompanyID,Paddy_Weight,Avg_Rate,Stock_Consume,User_Name,Entry_Date) values(@CompanyID,@Paddy_Weight,@Avg_Rate,@Stock_Consume,@User_Name,@Entry_Date)";
                 dac = new DataAccessLayer();
 
                 int c = dac.update(q, param);
@@ -126,9 +128,10 @@ public partial class PaddyStock : System.Web.UI.Page
             string q = "";
             param = new List<SqlParameter>();//Emp_Id
 
+            param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@Entry_Date", Convert.ToDateTime(sdate.Value.Trim()).AddDays(-1).ToString("dd-MMM-yyyy")));
 
-            q = "select * from prabha.PaddyStock where Entry_Date=@Entry_Date";
+            q = "select * from prabha.PaddyStock where CompanyID=@CompanyID and Entry_Date=@Entry_Date";
             dac = new DataAccessLayer();
             dtData = dac.GetDataTable(q, param);
 
@@ -146,7 +149,7 @@ public partial class PaddyStock : System.Web.UI.Page
             DataTable dt1 = checkData();
             if (dt1.Rows.Count > 0)
             {
-                pweight.Value = (Convert.ToDecimal(dt1.Rows[0]["Paddy_Weight"].ToString())-Convert.ToDecimal(lblOSB.Text.Trim())).ToString();
+                pweight.Value = (Convert.ToDecimal(dt1.Rows[0]["Paddy_Weight"].ToString()) - Convert.ToDecimal(lblOSB.Text.Trim())).ToString();
                 avgrate.Value = dt1.Rows[0]["Avg_Rate"].ToString();
                 sconsume.Value = dt1.Rows[0]["Stock_Consume"].ToString();
                 calc();
@@ -233,9 +236,10 @@ public partial class PaddyStock : System.Web.UI.Page
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
 
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
         param.Add(new SqlParameter("@Entry_Date", Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
-        q = "select * from prabha.PaddyStock where Entry_Date=@Entry_Date";
+        q = "select * from prabha.PaddyStock where CompanyID=@CompanyID and Entry_Date=@Entry_Date";
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
         return dt;

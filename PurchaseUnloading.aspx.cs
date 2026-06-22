@@ -36,11 +36,11 @@ public partial class PurchaseUnloading : System.Web.UI.Page
             katano.Attributes["type"] = "text";
             pMN.Attributes["type"] = "number";
             pMN.Attributes["step"] = "1";
-            
+
             truckno.Attributes["type"] = "text";
-                        
+
             PBags.Attributes["type"] = "number";
-            
+
             PTBags.Attributes["type"] = "number";
             PTBags.Value = "0";
             JBags.Attributes["type"] = "number";
@@ -63,7 +63,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
             KhakhriPer.Value = "0";
             KhakhriBag.Attributes["type"] = "number";
             KhakhriBag.Value = "0";
-            
+
             MittiPer.Attributes["type"] = "number";
             MittiPer.Attributes["step"] = ".01";
             MittiPer.Value = "0";
@@ -147,14 +147,14 @@ public partial class PurchaseUnloading : System.Web.UI.Page
                     sPartyName.Items.Add(dt.Rows[0]["PartyName"].ToString());
                     txtEmpName.Text = dt.Rows[0]["BrokerName"].ToString();
                     txtEmpName.Enabled = false;
-                    SaudaNo.Value = GenInvoiceNo(dt.Rows[0]["No"].ToString(),dt.Rows[0]["DataDate"].ToString());
+                    SaudaNo.Value = GenInvoiceNo(dt.Rows[0]["No"].ToString(), dt.Rows[0]["DataDate"].ToString());
                     SaudaNo.Disabled = true;
                     SaudaDate.Value = Convert.ToDateTime(dt.Rows[0]["DataDate"].ToString()).ToString("dd-MMM-yyyy");
                     SaudaDate.Disabled = true;
 
                     if (Convert.ToDouble(dt.Rows[0]["RupaliWt"].ToString()) > 0)
                     {
-                        string Value="Rupali-"+dt.Rows[0]["RupaliWt"].ToString()+"-"+dt.Rows[0]["RupaliRate"].ToString();
+                        string Value = "Rupali-" + dt.Rows[0]["RupaliWt"].ToString() + "-" + dt.Rows[0]["RupaliRate"].ToString();
                         sPaddyType.Items.Add(new ListItem("Rupali", Value));
                     }
                     if (Convert.ToDouble(dt.Rows[0]["MansuriWt"].ToString()) > 0)
@@ -277,7 +277,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
             SQ = 0;
         }
         RBalance = OrderQ - SQ;
-        lblRBalance.Text = "Balance: "+ RBalance.ToString()+" KG";
+        lblRBalance.Text = "Balance: " + RBalance.ToString() + " KG";
     }
     public void Submit1_ServerClick(object sender, EventArgs e)
     {
@@ -307,7 +307,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
     }
     public void btnContinue_ServerClick(object sender, EventArgs e)
     {
-        int chk=PartyValidation();
+        int chk = PartyValidation();
         if (chk == 1)
         {
             dtMain = new DataTable();
@@ -415,7 +415,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
                 for (int i = dtData.Rows.Count - 1; i >= 0; i--)
                 {
                     DataRow dr = dtData.Rows[i];
-                    if (dr["PaddyType"] == sPaddyType.SelectedItem.Text.Trim() & dr["PaddyType"]==moisture.Value.Trim())
+                    if (dr["PaddyType"] == sPaddyType.SelectedItem.Text.Trim() & dr["PaddyType"] == moisture.Value.Trim())
                         dr.Delete();
                 }
                 dtData.AcceptChanges();
@@ -442,7 +442,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
                 Session["Data"] = dtData;
             }
 
-        
+
             dataDisplay();
         }
         else
@@ -453,7 +453,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
         }
 
     }
-    
+
     public int chkDate()
     {
         int i = 0;
@@ -492,7 +492,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
 
             htmlTable.Append("<tr><td colspan='8' align='center'><span style='display:table-cell; vertical-align:top;'><img src='http://prabhasoftware.com/Rashmi Rice Logo (1).png' height='100px'/></span><span style='display:table-cell; vertical-align:top;'><span style='font-size:16pt; font-weight:bold;'> Rashmi Rice Mills Pvt. Ltd. </span></br><span style='font-size:8pt;'>Daniyawan Chandi Road, Hasanpur, Patna- 801304 </br>Mob.: 9304052349, 9334280057</br>Email: srirajbhog@gmail.com</br>CIN: U15312BR2014PTC022237</br>PAN No.: AAGCR9497P</br>GSTIN: 10AAGCR9497P1ZK</span></span></td></tr>");
             htmlTable.Append("<tr><td colspan='8' align='center'><span style='font-size:10pt; font-weight:bold;'> PURCHASE VOUCHER CUM UNLOADING REPORT </span></td></tr>");
-            
+
             /*dtMain.Columns.Add("No", typeof(string));
                 dtMain.Columns.Add("DataDate", typeof(string));
                 dtMain.Columns.Add("TruckNo", typeof(string));
@@ -585,8 +585,8 @@ public partial class PurchaseUnloading : System.Web.UI.Page
                 htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".5 Daagi");
                 htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".6 Mix Rice");
                 htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".7 Other (" + dt.Rows[i]["OtherName"].ToString() + ")</td>");
-                
-                
+
+
 
                 htmlTable.Append("<td align='right' style='vertical-align:top;'></br>" + dt.Rows[i]["FreshQuantity"].ToString() + "</br>");
                 htmlTable.Append("</br>" + dt.Rows[i]["KhakhriBags"].ToString());
@@ -695,15 +695,15 @@ public partial class PurchaseUnloading : System.Web.UI.Page
                 {
                     lt = 17;
                 }
-                
+
                 if (Convert.ToDouble(dt.Rows[i]["Moisture"].ToString()) <= lt)
                 {
                     LClaim += 0;
                 }
                 else
                 {
-                   LClaim += Math.Round((am + KhAmount + MAmount + DAmount + DMixAmount + OAmount) * (Convert.ToDouble(dt.Rows[i]["Moisture"].ToString()) - lt) / 100, 2);
-                   
+                    LClaim += Math.Round((am + KhAmount + MAmount + DAmount + DMixAmount + OAmount) * (Convert.ToDouble(dt.Rows[i]["Moisture"].ToString()) - lt) / 100, 2);
+
                 }
                 if (i == 0 & dt.Rows.Count > 1)
                 {
@@ -713,11 +713,11 @@ public partial class PurchaseUnloading : System.Web.UI.Page
                 {
                     htmlTable.Append("<td colspan='2' style='vertical-align:bottom; border-top:none; border-bottom:none;' align='left'></td>");
                 }
-                
-                if (i == (dt.Rows.Count-1))
+
+                if (i == (dt.Rows.Count - 1))
                 {
                     double LCD = Math.Round(tAmount * Convert.ToDouble(CD.Value.Trim()) / 100);
-                    
+
                     double LGK = Math.Round(tQuantity / 1000 * 25, 2);
                     if (LGK <= 100)
                     {
@@ -731,7 +731,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
                     double LAdvance = Convert.ToDouble(dtMain.Rows[0]["Advance"].ToString());
 
                     double OAdvance = 0;
-                    if (LAdvance ==0)
+                    if (LAdvance == 0)
                     {
                         OAdvance = LGK;
                     }
@@ -759,14 +759,14 @@ public partial class PurchaseUnloading : System.Web.UI.Page
                     htmlTable.Append("</br>Less: GK (@25/Ton) Rs. " + LGK.ToString());
                     htmlTable.Append("</br>Less: Claim-(Moist./Others) Rs. " + LClaim.ToString());
                     htmlTable.Append("</br>Less: Freight(Own) Rs.  " + Frt.ToString());
-                    htmlTable.Append("</br></br><b>Purchase Amount: Rs.  " + PAmount.ToString()+"</b>");
+                    htmlTable.Append("</br></br><b>Purchase Amount: Rs.  " + PAmount.ToString() + "</b>");
                     htmlTable.Append("</br></br>Less: Advance Rs. " + LAdvance.ToString());
                     htmlTable.Append("</br>Less: Brokerage (of party) Rs. " + Brok.ToString());
                     //htmlTable.Append("</br>Add: Previous Bal. (Party) Rs. " + pb.ToString());
                     //htmlTable.Append("</br>Add: GK (Recd in Mill) Rs. " + AGK.ToString());
 
                     htmlTable.Append("</td>");
-                    
+
                 }
                 htmlTable.Append("</tr>");
 
@@ -787,17 +787,18 @@ public partial class PurchaseUnloading : System.Web.UI.Page
             //htmlTable.Append("<td align='left'></td>");
             //htmlTable.Append("<td align='left'></td>");
             htmlTable.Append("<td align='right'><b>" + Math.Round(FAmount, 0).ToString() + "</b></td></tr>");
-            
+
             htmlTable.Append("<tr><td colspan='6' align='center'><span style='font-size:8pt; font-weight:bold;'>RUPEES " + ConvertNumbertoWords(Convert.ToInt64(Math.Round(FAmount, 0))) + " ONLY</span></td></tr>");//convert amount in words
 
             htmlTable.Append("<tr><td colspan='4' align='left'><span style='font-size:7pt;'><b>Note:</b></br>All claim disputes will be resolved within 2 working days from the date of issue of this Purchase Order and receipt of a copy of this Order to you.</br>दावे से सम्बंधित सभी विवादों का समाधान इस खरीद आदेश के जारी होने और इस आदेश की प्रति आपको प्राप्त होने की तारीख से 2 कार्य दिवसों के भीतर किया जाएगा।</span></td>");
             htmlTable.Append("<td colspan='4' align='center'><b>For Rashmi Rice Mills Pvt. Ltd.</br></br>Authorised Signatory</b></td>");
             htmlTable.Append("</table>");
-            
+
         }
         DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
     }
-    public void CallPrint(string strid) {
+    public void CallPrint(string strid)
+    {
         StringBuilder sb = new StringBuilder();
         sb.Append("<script type = 'text/javascript'>");
         sb.Append("var prtContent = document.getElementById('" + strid + "');");
@@ -810,12 +811,12 @@ public partial class PurchaseUnloading : System.Web.UI.Page
         //sb.Append("return false;");
         sb.Append("WinPrint.close();");
         sb.Append("}, 250);");
-        
+
         sb.Append("</script>");
         ClientScript.RegisterStartupScript(this.GetType(), "Print", sb.ToString());
-        
-        
-        }
+
+
+    }
     public string ConvertNumbertoWords(long number)
     {
         if (number == 0) return "ZERO";
@@ -919,7 +920,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
                 return empResult;
             }
         }
-        
+
     }
     protected void sPartyName_SelectedIndexChanged(object sender, EventArgs e)
     {
@@ -996,7 +997,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
     }
     public void insertPurchaseData()
     {
-        
+
         dtMain = (DataTable)Session["DataMain"];
         dt = (DataTable)Session["Data"];
 
@@ -1009,6 +1010,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
             param = new List<SqlParameter>();//Emp_Id
 
             string[] Inv = dtMain.Rows[0]["No"].ToString().Split('/');
+            param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@No", Inv[3]));
             param.Add(new SqlParameter("@MPurNo", dtMain.Rows[0]["MPurNo"].ToString()));
             param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(dtMain.Rows[0]["DataDate"].ToString()).ToString("dd-MMM-yyyy")));
@@ -1036,7 +1038,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
 
             q = "insert into prabha.Purchase_Master_Data(CompanyID,[No],MPurNo,DataDate,TruckNo,KantaNo,UnloadedAt,TareWt,PartyName,BrokerName,";
             q += "PBags,PTBags,JBags,JTBags,SaudaNo,SaudaDate,CD,TFreight,FreightOwn,FreightParty,Advance,Brokerage,OperatorName,EntryDate) ";
-            q += " values(@No,@MPurNo,@DataDate,@TruckNo,@KantaNo,@UnloadedAt,@TareWt,@PartyName,@BrokerName,";
+            q += " values(@CompanyID,@No,@MPurNo,@DataDate,@TruckNo,@KantaNo,@UnloadedAt,@TareWt,@PartyName,@BrokerName,";
             q += "@PBags,@PTBags,@JBags,@JTBags,@SaudaNo,@SaudaDate,@CD,@TFreight,@FreightOwn,@FreightParty,@Advance,@Brokerage,@OperatorName,@EntryDate) select @@IDENTITY";
             dac = new DataAccessLayer();
 
@@ -1089,6 +1091,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
 
                     q = "";
                     param = new List<SqlParameter>();
+                    param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
                     param.Add(new SqlParameter("@Party_Name", Pname));
                     param.Add(new SqlParameter("@Party_Mobile", PMobile));
                     q = "insert into prabha.Purchase_Party_Info(CompanyID,Party_Name,Party_Mobile) values(@CompanyID,@Party_Name,@Party_Mobile)";
@@ -1109,7 +1112,7 @@ public partial class PurchaseUnloading : System.Web.UI.Page
         }
 
     }
-    public int chkData(string DDate,string TNo,string PN,string KN)
+    public int chkData(string DDate, string TNo, string PN, string KN)
     {
         int tst = 0;
         DataTable dtOut = new DataTable();
@@ -1140,4 +1143,4 @@ public partial class PurchaseUnloading : System.Web.UI.Page
         calBalance();
         dataDisplay();
     }
-}  
+}
