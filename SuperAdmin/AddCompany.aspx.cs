@@ -11,6 +11,7 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
 
     protected void Page_Load(object sender, EventArgs e)
     {
+        
         // Sirf SuperAdmin aa sake
         if (Session["User"] == null || Session["UserType"] == null ||
             Session["UserType"].ToString() != "SuperAdmin")

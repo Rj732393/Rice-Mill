@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -16,56 +16,34 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
     DataAccessLayer dac;
     protected void Page_Load(object sender, EventArgs e)
     {
-        if (Session["User"] == null || Session["UserType"] == null)
+        
+        if (Session["User"] == null || Session["CompanyID"] == null)
         {
             Response.Redirect("../Login.aspx");
             return;
         }
-
-        string userType = Session["UserType"].ToString();
-        if (userType != "Admin" && userType != "SuperAdmin")
+        else if (Session["UserType"] != null && Session["UserType"].ToString() != "Admin")
         {
             Response.Redirect("../Login.aspx");
             return;
         }
-
         if (!Page.IsPostBack)
         {
-
-            // Company naam session se set karo
-            string companyName = Session["CompanyName"] != null
-                ? Session["CompanyName"].ToString()
-                : "Rice Mills";
-            lblCompanyName.Text = companyName;
+            fdate.Attributes["type"] = "date";
+            tdate.Attributes["type"] = "date";
         }
     }
     public void btnReport_ServerClick(object sender, EventArgs e)
-{
-    lblFromDateError.Text = "";
-    lblToDateError.Text = "";
-
-    if (string.IsNullOrWhiteSpace(fdate.Value))
     {
-        lblFromDateError.Text = "Please Select From Date";
-        return;
-    }
+        dt = new DataTable();
+        string q = "";
+        param = new List<SqlParameter>();//Emp_Id
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
-    if (string.IsNullOrWhiteSpace(tdate.Value))
-    {
-        lblToDateError.Text = "Please Select To Date";
-        return;
-    }
+        param.Add(new SqlParameter("@Entry_Date1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
+        param.Add(new SqlParameter("@Entry_Date2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
-    dt = new DataTable();
-    string q = "";
-    param = new List<SqlParameter>();
-
-    param.Add(new SqlParameter("@Entry_Date1",
-        Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-
-    param.Add(new SqlParameter("@Entry_Date2",
-        Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-        q = "select * from prabha.SalePurchaseExpense where Entry_Date>=@Entry_Date1 and Entry_Date<=@Entry_Date2";
+        q = "select * from prabha.SalePurchaseExpense where CompanyID=@CompanyID and Entry_Date>=@Entry_Date1 and Entry_Date<=@Entry_Date2";
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
 
@@ -87,7 +65,7 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
                 for (int i = 0; i < dt.Rows.Count; i++)
                 {
                     htmlTable.Append("<tr>");
-                    htmlTable.Append("<td>" + (i + 1) + "</td>");
+                    htmlTable.Append("<td>" + (i+1) + "</td>");
                     htmlTable.Append("<td>" + Convert.ToDateTime(dt.Rows[i]["Entry_Date"]).ToString("dd-MMM-yyyy") + "</td>");
                     htmlTable.Append("<td>" + dt.Rows[i]["Rice_Amount"].ToString() + "</td>");
                     htmlTable.Append("<td>" + dt.Rows[i]["Broken_Amount"].ToString() + "</td>");
@@ -106,7 +84,7 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
                     htmlTable.Append("<td>" + GT.ToString() + "</td>");
                     htmlTable.Append("<td>" + dt.Rows[i]["Paddy_Amount"].ToString() + "</td>");
                     htmlTable.Append("<td>" + dt.Rows[i]["Paddy_Weight"].ToString() + "</td>");
-                    if (Convert.ToDecimal(dt.Rows[i]["Paddy_Amount"].ToString()) == 0)
+                    if(Convert.ToDecimal(dt.Rows[i]["Paddy_Amount"].ToString())==0)
                     {
                         htmlTable.Append("<td>0.00</td>");
                     }
@@ -116,7 +94,7 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
                     }
                     htmlTable.Append("<td>" + dt.Rows[i]["Expense_Amount"].ToString() + "</td>");
 
-                    decimal PE = Convert.ToDecimal(dt.Rows[i]["Paddy_Amount"].ToString()) + Convert.ToDecimal(dt.Rows[i]["Expense_Amount"].ToString());
+                    decimal PE=Convert.ToDecimal(dt.Rows[i]["Paddy_Amount"].ToString()) + Convert.ToDecimal(dt.Rows[i]["Expense_Amount"].ToString());
 
                     htmlTable.Append("<td>" + PE.ToString() + "</td>");
 
@@ -125,7 +103,7 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
                     htmlTable.Append("<td>" + NP.ToString() + "</td>");
                     htmlTable.Append("</tr>");
                 }
-
+                
             }
             else
             {
@@ -137,6 +115,6 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
             htmlTable.Append("</table>");
             DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
         }
-
+        
     }
 }

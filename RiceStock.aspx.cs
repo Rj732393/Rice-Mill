@@ -17,9 +17,10 @@ public partial class RiceStock : System.Web.UI.Page
     {
         if (!Page.IsPostBack)
         {
-            if (Session["User"] == null)
+            if (Session["User"] == null || Session["CompanyID"] == null)
             {
                 Response.Redirect("Login.aspx");
+                return;
             }
 
             sdate.Attributes["type"] = "date";
@@ -49,7 +50,7 @@ public partial class RiceStock : System.Web.UI.Page
             Panel1.Visible = false;
 
             lblOSB.Text = "0";
-            
+
         }
     }
     public void SCalculate_ServerClick(object sender, EventArgs e)
@@ -58,7 +59,7 @@ public partial class RiceStock : System.Web.UI.Page
     }
     public void btnSave_ServerClick(object sender, EventArgs e)
     {
-        
+
         string script = "";
         if (ramount.Value.Trim() == "" || camount.Value.Trim() == "" || sbalance.Value.Trim() == "" || sbamount.Value.Trim() == "")
         {
@@ -70,7 +71,7 @@ public partial class RiceStock : System.Web.UI.Page
         else
         {
             DataTable dt1 = checkData();
-            
+
 
             if (dt1.Rows.Count > 0)
             {
@@ -82,16 +83,17 @@ public partial class RiceStock : System.Web.UI.Page
                 string q = "";
                 param = new List<SqlParameter>();//Emp_Id
 
-                param.Add(new SqlParameter("@Rice_Weight", (Convert.ToDecimal(rweight.Value.Trim())+Convert.ToDecimal(lblOSB.Text.Trim()))));
+                param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
+                param.Add(new SqlParameter("@Rice_Weight", (Convert.ToDecimal(rweight.Value.Trim()) + Convert.ToDecimal(lblOSB.Text.Trim()))));
                 param.Add(new SqlParameter("@Avg_Rate", avgrate.Value.Trim()));
                 param.Add(new SqlParameter("@Stock_Consume", sconsume.Value.Trim()));
                 param.Add(new SqlParameter("@User_Name", Session["User"].ToString()));
                 param.Add(new SqlParameter("@Entry_Date", Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
-                q = "insert into prabha.RiceStock(Rice_Weight,Avg_Rate,Stock_Consume,User_Name,Entry_Date) values(@Rice_Weight,@Avg_Rate,@Stock_Consume,@User_Name,@Entry_Date)";
+                q = "insert into prabha.RiceStock(CompanyID,Rice_Weight,Avg_Rate,Stock_Consume,User_Name,Entry_Date) values(@CompanyID,@Rice_Weight,@Avg_Rate,@Stock_Consume,@User_Name,@Entry_Date)";
                 dac = new DataAccessLayer();
 
-                int c=dac.update(q,param);
+                int c = dac.update(q, param);
 
                 if (c > 0)
                 {
@@ -126,9 +128,10 @@ public partial class RiceStock : System.Web.UI.Page
             string q = "";
             param = new List<SqlParameter>();//Emp_Id
 
+            param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@Entry_Date", Convert.ToDateTime(sdate.Value.Trim()).AddDays(-1).ToString("dd-MMM-yyyy")));
 
-            q = "select * from prabha.RiceStock where Entry_Date=@Entry_Date";
+            q = "select * from prabha.RiceStock where CompanyID=@CompanyID and Entry_Date=@Entry_Date";
             dac = new DataAccessLayer();
             dtData = dac.GetDataTable(q, param);
 
@@ -146,7 +149,7 @@ public partial class RiceStock : System.Web.UI.Page
             DataTable dt1 = checkData();
             if (dt1.Rows.Count > 0)
             {
-                rweight.Value = (Convert.ToDecimal(dt1.Rows[0]["Rice_Weight"].ToString())-Convert.ToDecimal(lblOSB.Text.Trim())).ToString();
+                rweight.Value = (Convert.ToDecimal(dt1.Rows[0]["Rice_Weight"].ToString()) - Convert.ToDecimal(lblOSB.Text.Trim())).ToString();
                 avgrate.Value = dt1.Rows[0]["Avg_Rate"].ToString();
                 sconsume.Value = dt1.Rows[0]["Stock_Consume"].ToString();
                 calc();
@@ -191,8 +194,8 @@ public partial class RiceStock : System.Web.UI.Page
         }
         finally
         {
-            
-            
+
+
         }
         return i;
     }
@@ -224,7 +227,7 @@ public partial class RiceStock : System.Web.UI.Page
         sb = Math.Round(Convert.ToDecimal(rweight.Value.Trim()) + Convert.ToDecimal(lblOSB.Text.Trim()) - Convert.ToDecimal(sconsume.Value.Trim()), 3);
         sbalance.Value = sb.ToString();
 
-        sba = Math.Round(sb * Convert.ToDecimal(avgrate.Value.Trim()),2);
+        sba = Math.Round(sb * Convert.ToDecimal(avgrate.Value.Trim()), 2);
         sbamount.Value = sba.ToString();
     }
     public DataTable checkData()
@@ -233,9 +236,10 @@ public partial class RiceStock : System.Web.UI.Page
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
 
+        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
         param.Add(new SqlParameter("@Entry_Date", Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
-        q = "select * from prabha.RiceStock where Entry_Date=@Entry_Date";
+        q = "select * from prabha.RiceStock where CompanyID=@CompanyID and Entry_Date=@Entry_Date";
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
         return dt;

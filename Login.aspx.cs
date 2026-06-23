@@ -49,7 +49,7 @@ public partial class Login : System.Web.UI.Page
             Session["User"] = uname;
             Session["UserType"] = "SuperAdmin";
             Session["CompanyID"] = 0;
-            Session["CompanyName"] = "Rice Management Software";
+            Session["CompanyName"] = "Prabha Software Technologies";
             Session["RoleID"] = 1;
 
             saas.LogAction(null, uname, "SuperAdmin", "Login", "Auth", "SuperAdmin logged in");
