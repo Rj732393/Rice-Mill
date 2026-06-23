@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,14 +20,11 @@ public partial class Payment : System.Web.UI.Page
     string script;
     protected void Page_Load(object sender, EventArgs e)
     {
-
         if (!Page.IsPostBack)
-        {   
-
-            if (Session["User"] == null || Session["CompanyID"] == null)
+        {
+            if (Session["User"] == null)
             {
                 Response.Redirect("Login.aspx");
-                return;
             }
 
             sdate.Attributes["type"] = "date";
@@ -47,13 +45,6 @@ public partial class Payment : System.Web.UI.Page
     }
     public void btnContinue_ServerClick(object sender, EventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(sdate.Value))
-        {
-            script = "alert('Kripya Payment Date select karein!!');";
-            ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
-            return;
-        }
-
         if (bankvalidate() == 0)
         {
             Session["Data"] = null;
@@ -245,8 +236,7 @@ public partial class Payment : System.Web.UI.Page
         DataTable dtP = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
-        q = "select concat(Party_Name, ' (Mobile No.: ',Party_Mobile,')') as PartyName,Bank_Name,Account_No,Account_Name,IFSC_Code from prabha.Purchase_Party_Info where CompanyID=@CompanyID order by PartyName";
+        q = "select concat(Party_Name, ' (Mobile No.: ',Party_Mobile,')') as PartyName,Bank_Name,Account_No,Account_Name,IFSC_Code from prabha.Purchase_Party_Info order by PartyName";
         dac = new DataAccessLayer();
         dtP = dac.GetDataTable(q, param);
 
@@ -260,7 +250,6 @@ public partial class Payment : System.Web.UI.Page
         DataTable dtPBank = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
         string source = ddlParty.SelectedItem.Text.Trim();
         string[] stringSeparators = new string[] { " (Mobile No.: " };
@@ -272,7 +261,7 @@ public partial class Payment : System.Web.UI.Page
 
         param.Add(new SqlParameter("@Party_Name", Pname));
         param.Add(new SqlParameter("@Party_Mobile", PMobile));
-        q = "select Bank_Name,Account_No,Account_Name,IFSC_Code from prabha.Purchase_Party_Info where CompanyID=@CompanyID and Party_Name=@Party_Name and Party_Mobile=@Party_Mobile";
+        q = "select Bank_Name,Account_No,Account_Name,IFSC_Code from prabha.Purchase_Party_Info where Party_Name=@Party_Name and Party_Mobile=@Party_Mobile";
         dac = new DataAccessLayer();
         dtPBank = dac.GetDataTable(q, param);
 
@@ -347,12 +336,11 @@ public partial class Payment : System.Web.UI.Page
         string q = "";
 
         param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
         param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(dtFrom).ToString("dd-MMM-yyyy")));
         param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(dtTo).ToString("dd-MMM-yyyy")));
 
-        q = "select max([No]) from prabha.Purchase_Payment_Info where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2";
+        q = "select max([No]) from prabha.Purchase_Payment_Info where DataDate>=@DataDate1 and DataDate<=@DataDate2";
         dac = new DataAccessLayer();
         object test = dac.Scalar(q, param);
         if (test == DBNull.Value)
@@ -410,7 +398,6 @@ public partial class Payment : System.Web.UI.Page
             param = new List<SqlParameter>();//Emp_Id
 
             string[] Inv = dt.Rows[0]["No"].ToString().Split('/');
-            param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@No", Inv[3]));
             param.Add(new SqlParameter("@MPVNo", dt.Rows[0]["MPVNo"].ToString()));
             param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(dt.Rows[0]["DataDate"].ToString()).ToString("dd-MMM-yyyy")));
@@ -422,8 +409,8 @@ public partial class Payment : System.Web.UI.Page
             param.Add(new SqlParameter("@OperatorName", Session["User"].ToString()));
             param.Add(new SqlParameter("@Entry_Date", Convert.ToDateTime(System.DateTime.Now).ToString("dd-MMM-yyyy")));
 
-            q = "insert into prabha.Purchase_Payment_Info(CompanyID,[No],MPVNo,DataDate,PName,AmountPaid,PaymentMode,[Transaction],Bank,OperatorName,EntryDate) ";
-            q += " values(@CompanyID,@No,@MPVNo,@DataDate,@PName,@AmountPaid,@PaymentMode,@Transaction,@Bank,@OperatorName,@Entry_Date)";
+            q = "insert into prabha.Purchase_Payment_Info([No],MPVNo,DataDate,PName,AmountPaid,PaymentMode,[Transaction],Bank,OperatorName,EntryDate) ";
+            q += " values(@No,@MPVNo,@DataDate,@PName,@AmountPaid,@PaymentMode,@Transaction,@Bank,@OperatorName,@Entry_Date)";
             dac = new DataAccessLayer();
 
             msg = Convert.ToInt32(dac.update(q, param));
@@ -476,13 +463,12 @@ public partial class Payment : System.Web.UI.Page
         DataTable dtOut = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
         param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(DDate).ToString("dd-MMM-yyyy")));
         param.Add(new SqlParameter("@PName", PN));
         param.Add(new SqlParameter("@AmountPaid", Am));
 
-        q = "select * from prabha.Purchase_Payment_Info where CompanyID=@CompanyID and DataDate=@DataDate and PName=@PName and AmountPaid=@AmountPaid";
+        q = "select * from prabha.Purchase_Payment_Info where DataDate=@DataDate and PName=@PName and AmountPaid=@AmountPaid";
         dac = new DataAccessLayer();
         dtOut = dac.GetDataTable(q, param);
         if (dtOut.Rows.Count > 0)
@@ -499,7 +485,6 @@ public partial class Payment : System.Web.UI.Page
     {
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
         //string source = ddlParty.SelectedItem.Text.Trim();
         //string[] stringSeparators = new string[] { " (Mobile No.: " };
         //var result = source.Split(stringSeparators, StringSplitOptions.None);
@@ -510,7 +495,7 @@ public partial class Payment : System.Web.UI.Page
 
         param.Add(new SqlParameter("@PName", ddlParty.SelectedItem.Text.Trim()));
 
-        q = "select * from prabha.Purchase_Payment_Info where CompanyID=@CompanyID and PName=@PName order by DataDate";
+        q = "select * from prabha.Purchase_Payment_Info where PName=@PName order by DataDate";
         dac = new DataAccessLayer();
         DataTable dtPayment = dac.GetDataTable(q, param);
         string INVNo = "";

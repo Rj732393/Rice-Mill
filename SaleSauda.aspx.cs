@@ -19,43 +19,29 @@ public partial class SaleSauda : System.Web.UI.Page
     DataRow rmain;
     List<SqlParameter> param;
     DataAccessLayer dac;
-    SaaSHelper saas = new SaaSHelper();
     string script = "";
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!Page.IsPostBack)
         {
-            if (Session["User"] == null || Session["CompanyID"] == null)
+            if (Session["User"] == null)
             {
                 Response.Redirect("Login.aspx");
-                return;
-            }
-
-            int cid = Convert.ToInt32(Session["CompanyID"]);
-            if (cid > 0)
-            {
-                string status = saas.GetSubscriptionStatus(cid);
-                if (status == "Suspended" || status == "Blocked" || status == "Expired")
-                {
-                    Session.Clear();
-                    Response.Redirect("Login.aspx?expired=1");
-                    return;
-                }
             }
 
             sdate.Attributes["type"] = "date";
             //sdate.Value = System.DateTime.Now.Day.ToString() + "-" + System.DateTime.Now.Month.ToString() + "-" + System.DateTime.Now.Year.ToString();
 
-            
+
             pMN.Attributes["type"] = "number";
             pMN.Attributes["step"] = "1";
 
             QIKG.Attributes["type"] = "number";
             QIKG.Attributes["step"] = ".001";
-            
+
             avgrate.Attributes["type"] = "number";
             avgrate.Attributes["step"] = ".01";
-            
+
             Party();
 
             if (sPartyName.SelectedItem.Text.Trim() == "Other")
@@ -100,7 +86,7 @@ public partial class SaleSauda : System.Web.UI.Page
     }
     public void btnContinue_ServerClick(object sender, EventArgs e)
     {
-        int chk=PartyValidation();
+        int chk = PartyValidation();
         if (chk == 1)
         {
             dtMain = new DataTable();
@@ -113,7 +99,7 @@ public partial class SaleSauda : System.Web.UI.Page
             dtMain.Columns.Add("PGSTIN", typeof(string));
             dtMain.Columns.Add("PPAN", typeof(string));
             dtMain.Columns.Add("BrokerName", typeof(string));
-            
+
             rmain = dtMain.NewRow();
             rmain[0] = GenInvoiceNo();
             rmain[1] = Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy");
@@ -143,7 +129,7 @@ public partial class SaleSauda : System.Web.UI.Page
                 rmain[7] = dtPartyDetails.Rows[0]["PPAN"].ToString();
             }
             rmain[8] = txtEmpName.Text.Trim();
-            
+
             dtMain.Rows.Add(rmain);
             Session["DataMain"] = null;
             Session["DataMain"] = dtMain;
@@ -154,7 +140,7 @@ public partial class SaleSauda : System.Web.UI.Page
                 dtData.Columns.Add("ItemType", typeof(string));
                 dtData.Columns.Add("QIKG", typeof(string));
                 dtData.Columns.Add("AvgRate", typeof(string));
-                
+
                 dtRow = dtData.NewRow();
                 dtRow[0] = sPaddyType.Value.Trim();
                 dtRow[1] = QIKG.Value.Trim();
@@ -179,13 +165,13 @@ public partial class SaleSauda : System.Web.UI.Page
                 dtRow[0] = sPaddyType.Value.Trim();
                 dtRow[1] = QIKG.Value.Trim();
                 dtRow[2] = avgrate.Value.Trim();
-                
+
                 dtData.Rows.Add(dtRow);
                 Session["Data"] = null;
                 Session["Data"] = dtData;
             }
 
-        
+
             dataDisplay();
         }
         else
@@ -196,7 +182,7 @@ public partial class SaleSauda : System.Web.UI.Page
         }
 
     }
-    
+
     public int chkDate()
     {
         int i = 0;
@@ -259,7 +245,7 @@ public partial class SaleSauda : System.Web.UI.Page
             htmlTable.Append("<tr><td align='center' width='60%'><b>Description of Goods</b> </td>");
             htmlTable.Append("<td align='center' width='20%'><b>Qty. In KG</b></td>");
             htmlTable.Append("<td align='center' width='20%'><b>Rate /KG</b></td></tr>");
-            
+
             for (int i = 0; i < dt.Rows.Count; i++)
             {
                 htmlTable.Append("<tr><td align='left'>" + dt.Rows[i]["ItemType"].ToString() + "</td>");
@@ -267,15 +253,16 @@ public partial class SaleSauda : System.Web.UI.Page
                 htmlTable.Append("<td align='right'>" + Math.Round(Convert.ToDouble(dt.Rows[i]["AvgRate"].ToString()), 2).ToString() + "</td>");
                 htmlTable.Append("</tr>");
             }
-            
+
             htmlTable.Append("<tr><td align='left'><span style='font-size:7pt;'><b>Note:</b></br>All claim disputes will be resolved within 2 working days from the date of issue of this Purchase Order and receipt of a copy of this Order to you.</br>दावे से सम्बंधित सभी विवादों का समाधान इस खरीद आदेश के जारी होने और इस आदेश की प्रति आपको प्राप्त होने की तारीख से 2 कार्य दिवसों के भीतर किया जाएगा।</span></td>");
             htmlTable.Append("<td colspan='2' align='center'><b>For Rashmi Rice Mills Pvt. Ltd.</br></br></br>Authorised Signatory</b></td>");
             htmlTable.Append("</table>");
-            
+
         }
         DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
     }
-    public void CallPrint(string strid) {
+    public void CallPrint(string strid)
+    {
         StringBuilder sb = new StringBuilder();
         sb.Append("<script type = 'text/javascript'>");
         sb.Append("var prtContent = document.getElementById('" + strid + "');");
@@ -288,12 +275,12 @@ public partial class SaleSauda : System.Web.UI.Page
         //sb.Append("return false;");
         sb.Append("WinPrint.close();");
         sb.Append("}, 250);");
-        
+
         sb.Append("</script>");
         ClientScript.RegisterStartupScript(this.GetType(), "Print", sb.ToString());
-        
-        
-        }
+
+
+    }
     public string ConvertNumbertoWords(long number)
     {
         if (number == 0) return "ZERO";
@@ -365,8 +352,7 @@ public partial class SaleSauda : System.Web.UI.Page
         dt = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
-        q = "select distinct concat(PartyName, ' (Mobile No.: ',PMobile,')') as PartyName from prabha.Sale_Sauda_Master where CompanyID=@CompanyID order by PartyName";
+        q = "select distinct concat(PartyName, ' (Mobile No.: ',PMobile,')') as PartyName from prabha.Sale_Sauda_Master order by PartyName";
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
 
@@ -376,17 +362,16 @@ public partial class SaleSauda : System.Web.UI.Page
         sPartyName.DataBind();
         sPartyName.Items.Add("Other");
     }
-    public DataTable checkData(string PName,string PMobile)
+    public DataTable checkData(string PName, string PMobile)
     {
         dt = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
 
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
         param.Add(new SqlParameter("@Party_Name", PName));
         param.Add(new SqlParameter("@PMobile", PMobile));
 
-        q = "select distinct PartyName,PMobile,PAddress,PGSTIN,PPAN from prabha.Sale_Sauda_Master where CompanyID=@CompanyID and PartyName=@Party_Name and PMobile=@PMobile";
+        q = "select distinct PartyName,PMobile,PAddress,PGSTIN,PPAN from prabha.Sale_Sauda_Master where PartyName=@Party_Name and PMobile=@PMobile";
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
         return dt;
@@ -395,16 +380,13 @@ public partial class SaleSauda : System.Web.UI.Page
     public static List<string> GetEmployeeName(string empName)
     {
         List<string> empResult = new List<string>();
-        int companyID = HttpContext.Current.Session["CompanyID"] != null ? Convert.ToInt32(HttpContext.Current.Session["CompanyID"]) : 0;
-
         using (SqlConnection con = new SqlConnection(@"Server=ws241.win.arvixe.com;Database=sati1983_farming;User ID=prabha;Password=prabha@#*2022;Trusted_Connection=False;"))
         {
             using (SqlCommand cmd = new SqlCommand())
             {
-                cmd.CommandText = "SELECT [BrokerName] FROM [prabha].Sale_Sauda_Master where CompanyID=@CompanyID and [BrokerName] like ''+@SearchEmpName+'%'";
+                cmd.CommandText = "SELECT [BrokerName] FROM [prabha].Sale_Sauda_Master where [BrokerName] like ''+@SearchEmpName+'%'";
                 cmd.Connection = con;
                 con.Open();
-                cmd.Parameters.AddWithValue("@CompanyID", companyID);
                 cmd.Parameters.AddWithValue("@SearchEmpName", empName);
                 SqlDataReader dr = cmd.ExecuteReader();
                 while (dr.Read())
@@ -415,7 +397,7 @@ public partial class SaleSauda : System.Web.UI.Page
                 return empResult;
             }
         }
-        
+
     }
     protected void sPartyName_SelectedIndexChanged(object sender, EventArgs e)
     {
@@ -457,11 +439,10 @@ public partial class SaleSauda : System.Web.UI.Page
 
         param = new List<SqlParameter>();//Emp_Id
 
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
         param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(dtFrom).ToString("dd-MMM-yyyy")));
         param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(dtTo).ToString("dd-MMM-yyyy")));
 
-        q = "select max([No]) from prabha.Sale_Sauda_Master where CompanyID=@CompanyID and DataDate>=@DataDate1 and DataDate<=@DataDate2";
+        q = "select max([No]) from prabha.Sale_Sauda_Master where DataDate>=@DataDate1 and DataDate<=@DataDate2";
         dac = new DataAccessLayer();
         object test = dac.Scalar(q, param);
         if (test == DBNull.Value)
@@ -492,7 +473,7 @@ public partial class SaleSauda : System.Web.UI.Page
     }
     public void insertPurchaseData()
     {
-        
+
         dtMain = (DataTable)Session["DataMain"];
         dt = (DataTable)Session["Data"];
 
@@ -503,9 +484,8 @@ public partial class SaleSauda : System.Web.UI.Page
             int msg = 0;
             string q = "";
             param = new List<SqlParameter>();//Emp_Id
-            
+
             string[] Inv = dtMain.Rows[0]["No"].ToString().Split('/');
-            param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@No", Inv[3]));
             param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(dtMain.Rows[0]["DataDate"].ToString()).ToString("dd-MMM-yyyy")));
             param.Add(new SqlParameter("@MNo", dtMain.Rows[0]["MNo"].ToString()));
@@ -519,8 +499,8 @@ public partial class SaleSauda : System.Web.UI.Page
             param.Add(new SqlParameter("@EntryDate", Convert.ToDateTime(System.DateTime.Now).ToString("dd-MMM-yyyy")));
             param.Add(new SqlParameter("@IsActive", "1"));
 
-            q = "insert into prabha.Sale_Sauda_Master(CompanyID,[No],DataDate,MNo,PartyName,PMobile,PAddress,PGSTIN,PPAN,BrokerName,OperatorName,EntryDate,IsActive) ";
-            q += " values(@CompanyID,@No,@DataDate,@MNo,@PartyName,@PMobile,@PAddress,@PGSTIN,@PPAN,@BrokerName,@OperatorName,@EntryDate,@IsActive) select @@IDENTITY ";
+            q = "insert into prabha.Sale_Sauda_Master([No],DataDate,MNo,PartyName,PMobile,PAddress,PGSTIN,PPAN,BrokerName,OperatorName,EntryDate,IsActive) ";
+            q += " values(@No,@DataDate,@MNo,@PartyName,@PMobile,@PAddress,@PGSTIN,@PPAN,@BrokerName,@OperatorName,@EntryDate,@IsActive) select @@IDENTITY ";
             dac = new DataAccessLayer();
 
             msg = Convert.ToInt32(dac.Scalar(q, param));
@@ -537,7 +517,7 @@ public partial class SaleSauda : System.Web.UI.Page
                     param.Add(new SqlParameter("@ItemType", dt.Rows[i]["ItemType"].ToString()));
                     param.Add(new SqlParameter("@QIKG", dt.Rows[i]["QIKG"].ToString()));
                     param.Add(new SqlParameter("@AvgRate", dt.Rows[i]["AvgRate"].ToString()));
-                    
+
                     q = "insert into prabha.Sale_Sauda_Item_Info(MasterID,ItemType,QIKG,AvgRate) ";
                     q += " values(@MasterID,@ItemType,@QIKG,@AvgRate) ";
                     dac = new DataAccessLayer();
@@ -550,7 +530,7 @@ public partial class SaleSauda : System.Web.UI.Page
                 script = "alert('Error!!');";
                 ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
             }
-           
+
         }
         else
         {
@@ -559,19 +539,18 @@ public partial class SaleSauda : System.Web.UI.Page
         }
 
     }
-    public int chkData(string DDate,string PN)
+    public int chkData(string DDate, string PN)
     {
         int tst = 0;
         DataTable dtOut = new DataTable();
         string q = "";
         param = new List<SqlParameter>();//Emp_Id
 
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
         param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(DDate).ToString("dd-MMM-yyyy")));
-        
+
         param.Add(new SqlParameter("@PartyName", PN));
 
-        q = "select * from prabha.Sale_Sauda_Master where CompanyID=@CompanyID and DataDate=@DataDate and PartyName=@PartyName";
+        q = "select * from prabha.Sale_Sauda_Master where DataDate=@DataDate and PartyName=@PartyName";
         dac = new DataAccessLayer();
         dtOut = dac.GetDataTable(q, param);
         if (dtOut.Rows.Count > 0)
@@ -593,10 +572,9 @@ public partial class SaleSauda : System.Web.UI.Page
         if (sPartyName.SelectedItem.Text.Trim() == "Other")
         {
 
-            param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
 
-            q = "select ID,[No],DataDate,PartyName,BrokerName from prabha.Sale_Sauda_Master where CompanyID=@CompanyID and PartyName=@PartyName order by DataDate desc";
+            q = "select ID,[No],DataDate,PartyName,BrokerName from prabha.Sale_Sauda_Master where PartyName=@PartyName order by DataDate desc";
         }
         else
         {
@@ -607,15 +585,14 @@ public partial class SaleSauda : System.Web.UI.Page
             string Pname = result[0];
             string PMobile = result[1].Substring(0, (result[1].Length - 1));
 
-            param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@PartyName", Pname));
             param.Add(new SqlParameter("@PMobile", PMobile));
 
-            q = "select ID,[No],DataDate,PartyName,BrokerName from prabha.Sale_Sauda_Master where CompanyID=@CompanyID and PartyName=@PartyName and PMobile=@PMobile order by DataDate desc";
+            q = "select ID,[No],DataDate,PartyName,BrokerName from prabha.Sale_Sauda_Master where PartyName=@PartyName and PMobile=@PMobile order by DataDate desc";
 
         }
 
-            
+
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
 
@@ -677,4 +654,4 @@ public partial class SaleSauda : System.Web.UI.Page
 
         return invoiceNo;
     }
-}  
+}
