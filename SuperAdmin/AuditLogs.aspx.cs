@@ -12,6 +12,7 @@ public partial class superadmin_AuditLogs : System.Web.UI.Page
 
     protected void Page_Load(object sender, EventArgs e)
     {
+        
         if (Session["User"] == null || Session["UserType"] == null ||
             Session["UserType"].ToString() != "SuperAdmin")
         {

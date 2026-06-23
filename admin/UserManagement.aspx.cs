@@ -15,6 +15,7 @@ public partial class admin_UserManagement : System.Web.UI.Page
 
     protected void Page_Load(object sender, EventArgs e)
     {
+       
         // Auth: sirf Admin ya SuperAdmin
         if (Session["User"] == null || Session["UserType"] == null)
         {

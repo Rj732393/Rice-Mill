@@ -19,10 +19,7 @@ public partial class Payment : System.Web.UI.Page
     string script;
     protected void Page_Load(object sender, EventArgs e)
     {
-        if (!SecurityHelper.HasAccess(1, 2))
-        {
-            Response.Redirect("~/Unauthorized.aspx");
-        }
+
         if (!Page.IsPostBack)
         {   
 

@@ -16,6 +16,7 @@ public partial class admin_RiceStock : System.Web.UI.Page
     DataAccessLayer dac;
     protected void Page_Load(object sender, EventArgs e)
     {
+      
         if (Session["User"] == null || Session["CompanyID"] == null)
         {
             Response.Redirect("../Login.aspx");

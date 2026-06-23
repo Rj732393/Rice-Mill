@@ -10,6 +10,7 @@ public partial class admin_Dashboard : System.Web.UI.Page
 
     protected void Page_Load(object sender, EventArgs e)
     {
+       
         // Session check - sirf Admin (ya Manager/Accountant jo dashboard dekh sake) aa sake
         if (Session["User"] == null || Session["UserType"] == null || Session["CompanyID"] == null)
         {

@@ -16,6 +16,11 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
     DataAccessLayer dac;
     protected void Page_Load(object sender, EventArgs e)
     {
+        if (!SecurityHelper.HasAccess(1, 2))
+        {
+            Response.Redirect("~/Unauthorized.aspx"
+            return;
+        }
         if (Session["User"] == null || Session["CompanyID"] == null)
         {
             Response.Redirect("../Login.aspx");
