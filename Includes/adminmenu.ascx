@@ -43,13 +43,6 @@
         </li>
 
         <li>
-            <a href="EditData.aspx">
-                <i class="fas fa-edit"></i>
-                Edit Data
-            </a>
-        </li>
-
-        <li>
             <a href="EditBySauda.aspx">
                 <i class="fas fa-boxes"></i>
                 Edit Sauda
