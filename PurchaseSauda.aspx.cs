@@ -450,6 +450,7 @@ public partial class PurchaseSauda : System.Web.UI.Page
             param = new List<SqlParameter>();//Emp_Id
 
             string[] Inv = dtMain.Rows[0]["No"].ToString().Split('/');
+            param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@No", Inv[3]));
             param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(dtMain.Rows[0]["DataDate"].ToString()).ToString("dd-MMM-yyyy")));
             param.Add(new SqlParameter("@MNo", dtMain.Rows[0]["MNo"].ToString()));
@@ -502,7 +503,7 @@ public partial class PurchaseSauda : System.Web.UI.Page
 
             q = "insert into prabha.Purchase_Sauda_Info([No],DataDate,MNo,PartyName,BrokerName,";
             q += "RupaliWt,RupaliRate,MansuriWt,MansuriRate,SonamWt,SonamRate,HybridWt,HybridRate,OperatorName,EntryDate,IsActive) ";
-            q += " values(@No,@DataDate,@MNo,@PartyName,@BrokerName,";
+            q += " values(@CompanyID,@No,@DataDate,@MNo,@PartyName,@BrokerName,";
             q += "@RupaliWt,@RupaliRate,@MansuriWt,@MansuriRate,@SonamWt,@SonamRate,@HybridWt,@HybridRate,@OperatorName,@EntryDate,@IsActive) ";
             dac = new DataAccessLayer();
 
@@ -523,6 +524,7 @@ public partial class PurchaseSauda : System.Web.UI.Page
 
                     q = "";
                     param = new List<SqlParameter>();
+                    param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
                     param.Add(new SqlParameter("@Party_Name", Pname));
                     param.Add(new SqlParameter("@Party_Mobile", PMobile));
                     q = "insert into prabha.Purchase_Party_Info(Party_Name,Party_Mobile) values(@Party_Name,@Party_Mobile)";

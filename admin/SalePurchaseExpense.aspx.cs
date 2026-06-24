@@ -16,21 +16,16 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
     DataAccessLayer dac;
     protected void Page_Load(object sender, EventArgs e)
     {
-        if (Session["User"] == null)
+        
+        if (Session["User"] == null || Session["CompanyID"] == null)
         {
             Response.Redirect("../Login.aspx");
+            return;
         }
-        else if (Session["User"].ToString() == "operator")
-        {
-            Response.Redirect("../RiceStock.aspx");
-        }
-        else if (Session["User"].ToString() == "admin")
-        {
-
-        }
-        else
+        else if (Session["UserType"] != null && Session["UserType"].ToString() != "Admin")
         {
             Response.Redirect("../Login.aspx");
+            return;
         }
         if (!Page.IsPostBack)
         {

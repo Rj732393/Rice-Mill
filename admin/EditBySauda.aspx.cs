@@ -18,6 +18,7 @@ public partial class admin_EditBySauda : System.Web.UI.Page
     // ---------------------------------------------------------------
     protected void Page_Load(object sender, EventArgs e)
     {
+       
         if (Session["User"] == null || Session["User"].ToString() != "admin")
         {
             Response.Redirect("../Login.aspx");

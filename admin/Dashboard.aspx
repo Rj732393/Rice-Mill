@@ -13,7 +13,7 @@
 
 <head id="Head1" runat="server">
 
-    <title>Admin Dashboard | Rashmi Rice Mills</title>
+    <title>Admin Dashboard | Rice Mill</title>
 
     <meta name="viewport"
         content="width=device-width, initial-scale=1" />
@@ -278,12 +278,12 @@
         <div class="welcome-banner">
 
             <h1>
-                Welcome Admin 👋
+                Welcome <asp:Label ID="lblUserName" runat="server">Admin</asp:Label> 👋
             </h1>
 
             <p>
-    <asp:Label ID="lblDashboardCompany" runat="server"></asp:Label> Management Dashboard
-</p>
+                <asp:Label ID="lblCompanyName" runat="server">Rice Mill</asp:Label> Management Dashboard
+            </p>
 
         </div>
 
@@ -299,9 +299,9 @@
                         <i class="fas fa-seedling"></i>
                     </div>
 
-                    <h2>250</h2>
+                    <h2><asp:Label ID="lblRiceStock" runat="server">0</asp:Label></h2>
 
-                    <p>Total Rice Stock</p>
+                    <p>Total Rice Stock (KG)</p>
 
                 </div>
 
@@ -316,9 +316,9 @@
                         <i class="fas fa-boxes"></i>
                     </div>
 
-                    <h2>180</h2>
+                    <h2><asp:Label ID="lblPaddyStock" runat="server">0</asp:Label></h2>
 
-                    <p>Total Paddy Stock</p>
+                    <p>Total Paddy Stock (KG)</p>
 
                 </div>
 
@@ -333,7 +333,7 @@
                         <i class="fas fa-shopping-cart"></i>
                     </div>
 
-                    <h2>420</h2>
+                    <h2><asp:Label ID="lblTotalSales" runat="server">0</asp:Label></h2>
 
                     <p>Total Sales</p>
 
@@ -350,9 +350,9 @@
                         <i class="fas fa-rupee-sign"></i>
                     </div>
 
-                    <h2>₹5.8L</h2>
+                    <h2><asp:Label ID="lblRevenue" runat="server">₹0</asp:Label></h2>
 
-                    <p>Total Revenue</p>
+                    <p>Total Revenue Received</p>
 
                 </div>
 
@@ -412,65 +412,37 @@
                 Recent Activity
             </h2>
 
-            <div class="activity-item">
+            <asp:Repeater ID="rptActivity" runat="server">
+                <ItemTemplate>
+                    <div class="activity-item">
 
-                <div class="activity-icon">
-                    <i class="fas fa-check"></i>
+                        <div class="activity-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+
+                        <div class="activity-text">
+
+                            <h5>
+                                <%# Eval("ActivityText") %>
+                            </h5>
+
+                            <p>
+                                <%# Eval("ActivityDate", "{0:dd-MMM-yyyy}") %>
+                            </p>
+
+                        </div>
+
+                    </div>
+                </ItemTemplate>
+            </asp:Repeater>
+
+            <asp:Panel ID="pnlNoActivity" runat="server" Visible="false">
+                <div class="activity-item">
+                    <div class="activity-text">
+                        <p>Abhi tak koi activity nahi hui hai.</p>
+                    </div>
                 </div>
-
-                <div class="activity-text">
-
-                    <h5>
-                        Rice Stock Updated
-                    </h5>
-
-                    <p>
-                        10 minutes ago
-                    </p>
-
-                </div>
-
-            </div>
-
-            <div class="activity-item">
-
-                <div class="activity-icon">
-                    <i class="fas fa-shopping-bag"></i>
-                </div>
-
-                <div class="activity-text">
-
-                    <h5>
-                        Sale Purchase Report Generated
-                    </h5>
-
-                    <p>
-                        30 minutes ago
-                    </p>
-
-                </div>
-
-            </div>
-
-            <div class="activity-item">
-
-                <div class="activity-icon">
-                    <i class="fas fa-user-edit"></i>
-                </div>
-
-                <div class="activity-text">
-
-                    <h5>
-                        Admin Edited Database Record
-                    </h5>
-
-                    <p>
-                        1 hour ago
-                    </p>
-
-                </div>
-
-            </div>
+            </asp:Panel>
 
         </div>
 
