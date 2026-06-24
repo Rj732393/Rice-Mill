@@ -350,7 +350,7 @@
                         <i class="fas fa-rupee-sign"></i>
                     </div>
 
-                    <h2><asp:Label ID="lblRevenue" runat="server">₹0</asp:Label></h2>
+                    <h2><asp:Label ID="lblRevenue" runat="server">10</asp:Label></h2>
 
                     <p>Total Revenue Received</p>
 

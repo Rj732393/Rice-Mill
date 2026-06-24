@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,183 +17,311 @@ public partial class Payment : System.Web.UI.Page
     List<SqlParameter> param;
     DataAccessLayer dac;
     string script;
+
+    /* ================================================================
+       PAGE LOAD
+    ================================================================ */
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!Page.IsPostBack)
         {
+            // Session check
             if (Session["User"] == null)
             {
                 Response.Redirect("Login.aspx");
+                return;
             }
 
             sdate.Attributes["type"] = "date";
-            //pMobile.Attributes["type"] = "number";
-
             amountpaid.Attributes["type"] = "number";
             amountpaid.Attributes["step"] = ".01";
-
+            amountpaid.Attributes["min"] = "0.01";
             pACNo.Attributes["type"] = "number";
             pACNo.Attributes["step"] = "1";
+            lblOSB.Attributes["type"] = "number";
+            lblOSB.Attributes["step"] = ".01";
+            lblOSB.Attributes["min"] = "0";
+            lblOSB.Attributes["placeholder"] = "Enter previous balance";
 
-            lblOSB.Text = "0";
             bindParty();
-            Session["Data"] = null;
-
             dataDisplay();
         }
     }
+
+    /* ================================================================
+       ADD PAYMENT (btnContinue)
+    ================================================================ */
     public void btnContinue_ServerClick(object sender, EventArgs e)
     {
-        if (bankvalidate() == 0)
+        // ---- Server-side validation ----
+        string errMsg = ServerValidate();
+        if (errMsg != "")
         {
-            Session["Data"] = null;
-            dt = new DataTable();
-            dt.Columns.Add("No");
-            dt.Columns.Add("DataDate");
-            dt.Columns.Add("PName");
-
-            dt.Columns.Add("AmountPaid");
-
-            dt.Columns.Add("PaymentMode");
-            dt.Columns.Add("Transaction");
-            dt.Columns.Add("Bank");
-            dt.Columns.Add("MPVNo");
-
-
-            DataRow myrow = dt.NewRow();
-            myrow[0] = GenInvoiceNo();
-            myrow[1] = Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy");
-            myrow[2] = ddlParty.SelectedItem.Text.Trim();
-
-            myrow[3] = amountpaid.Value.Trim();
-            myrow[4] = paymentmode.Value.Trim();
-            myrow[5] = transaction.Value.Trim();
-            if (paymentmode.Value.Trim() == "Online")
-            {
-                myrow[6] = pACName.Value.Trim() + " (" + pACNo.Value.Trim() + ")";
-            }
-            else
-            {
-                myrow[6] = " ";
-            }
-            myrow[7] = pvNo.Value.Trim();
-            dt.Rows.Add(myrow);
-            Session["Data"] = dt;
+            ShowAlert(errMsg);
             dataDisplay();
+            return;
         }
-        else
+
+        if (bankvalidate() != 0)
         {
-            script = "alert('Please fill bank details!!');";
-            ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
+            ShowAlert("Please fill all bank details correctly.");
+            dataDisplay();
+            return;
         }
+
+        // ---- Build DataTable ----
+        Session["Data"] = null;
+        dt = new DataTable();
+        dt.Columns.Add("No");
+        dt.Columns.Add("DataDate");
+        dt.Columns.Add("PName");
+        dt.Columns.Add("AmountPaid");
+        dt.Columns.Add("PaymentMode");
+        dt.Columns.Add("Transaction");
+        dt.Columns.Add("Bank");
+        dt.Columns.Add("MPVNo");
+
+        DataRow myrow = dt.NewRow();
+        myrow["No"] = GenInvoiceNo();
+        myrow["DataDate"] = Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy");
+        myrow["PName"] = ddlParty.SelectedItem.Text.Trim();
+        myrow["AmountPaid"] = amountpaid.Value.Trim();
+        myrow["PaymentMode"] = paymentmode.Value.Trim();
+        myrow["Transaction"] = transaction.Value.Trim();
+        myrow["Bank"] = (paymentmode.Value.Trim() == "Online")
+                                ? pACName.Value.Trim() + " (" + pACNo.Value.Trim() + ")"
+                                : " ";
+        myrow["MPVNo"] = pvNo.Value.Trim();
+        dt.Rows.Add(myrow);
+
+        Session["Data"] = dt;
+        dataDisplay();
     }
 
+    /* ================================================================
+       SUBMIT PAYMENT (btnSave)
+    ================================================================ */
     public void btnSave_ServerClick(object sender, EventArgs e)
     {
         if (Session["Data"] == null)
         {
-            script = "alert('Please add atleast one data!!');";
-            ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
-        }
-        else if (Session["User"] == null)
-        {
-            script = "alert('Your Sessioin has expired!!');";
-            ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
-        }
-        else
-        {
-            insertData();
-
+            ShowAlert("Please add at least one payment entry before submitting.");
             dataDisplay();
-            CallPrint("prntContent");
+            return;
         }
 
+        if (Session["User"] == null)
+        {
+            ShowAlert("Your session has expired. Please login again.");
+            dataDisplay();
+            return;
+        }
+
+        insertData();
+        dataDisplay();
+        CallPrint("prntContent");
     }
 
-
+    /* ================================================================
+       PARTY DROPDOWN CHANGED
+    ================================================================ */
     protected void ddlParty_SelectedIndexChanged(object sender, EventArgs e)
     {
         Party();
     }
+
+    /* ================================================================
+       SERVER-SIDE VALIDATION  — returns error string or ""
+    ================================================================ */
+    private string ServerValidate()
+    {
+        // Date
+        if (string.IsNullOrWhiteSpace(sdate.Value))
+            return "Please select a date.";
+
+        DateTime parsedDate;
+        if (!DateTime.TryParse(sdate.Value.Trim(), out parsedDate))
+            return "Please enter a valid date.";
+
+        // Party
+        if (ddlParty.Items.Count == 0 || string.IsNullOrWhiteSpace(ddlParty.SelectedItem.Text))
+            return "Please select a party name.";
+
+        // Amount
+        if (string.IsNullOrWhiteSpace(amountpaid.Value))
+            return "Please enter the amount paid.";
+
+        double amt;
+        if (!double.TryParse(amountpaid.Value.Trim(), out amt))
+            return "Amount must be a valid number.";
+
+        if (amt <= 0)
+            return "Amount must be greater than zero.";
+
+        // Transaction / Paid To
+        string mode = paymentmode.Value.Trim();
+        if (string.IsNullOrWhiteSpace(transaction.Value))
+        {
+            if (mode == "Online") return "Please enter Transaction / Reference ID.";
+            else if (mode == "By Cheque") return "Please enter Cheque No. & Date.";
+            else return "Please enter the name of person paid to.";
+        }
+
+        // Online extra fields
+        if (mode == "Online")
+        {
+            if (string.IsNullOrWhiteSpace(pACName.Value))
+                return "Please enter Account Holder Name.";
+
+            if (string.IsNullOrWhiteSpace(pACNo.Value))
+                return "Please enter Account Number.";
+
+            if (ddlBank.SelectedItem == null || ddlBank.SelectedItem.Text.Trim() == "--Select Bank--")
+                return "Please select a Bank.";
+
+            if (string.IsNullOrWhiteSpace(pBankIFSC.Value))
+                return "Please enter Bank IFSC Code.";
+        }
+
+        return ""; // All good
+    }
+
+    /* ================================================================
+       SHOW ALERT (client-side)
+    ================================================================ */
+    private void ShowAlert(string msg)
+    {
+        script = "document.getElementById('topAlert').style.display='block';" +
+                 "document.getElementById('topAlert').innerText='" + msg.Replace("'", "\\'") + "';" +
+                 "document.getElementById('topAlert').className='alert-custom alert-danger-custom';" +
+                 "window.scrollTo(0,0);";
+        ClientScript.RegisterStartupScript(this.GetType(), "ShowAlert", script, true);
+    }
+
+    private void ShowSuccess(string msg)
+    {
+        script = "document.getElementById('topAlert').style.display='block';" +
+                 "document.getElementById('topAlert').innerText='" + msg.Replace("'", "\\'") + "';" +
+                 "document.getElementById('topAlert').className='alert-custom alert-success-custom';" +
+                 "window.scrollTo(0,0);";
+        ClientScript.RegisterStartupScript(this.GetType(), "ShowAlert", script, true);
+    }
+
+    /* ================================================================
+       DATA DISPLAY
+    ================================================================ */
     public void dataDisplay()
     {
         StringBuilder htmlTable;
+
         if (Session["Data"] == null)
         {
             htmlTable = new StringBuilder();
             htmlTable.Append("<table class='table' cellspacing='0'>");
-            htmlTable.Append("<tr><td align='center'>No Data Added...</td></tr></table>");
+            htmlTable.Append("<tr><td align='center' style='color:#94a3b8;padding:30px;'>No data added yet...</td></tr></table>");
         }
         else
         {
             dt = (DataTable)Session["Data"];
             htmlTable = new StringBuilder();
-            htmlTable.Append("<table runat='server' style='font-size:10pt; noWrap; min-width: 600px; min-height:400px;' id='printTable' cellspacing='0' border='1px'>");
+            htmlTable.Append("<div id='prntContent'>");
+            htmlTable.Append("<table runat='server' style='font-size:10pt; min-width:600px;' id='printTable' cellspacing='0' border='1'>");
 
-            htmlTable.Append("<tr><td colspan='2' align='center'><span style='display:table-cell; vertical-align:top;'><img src='http://prabhasoftware.com/Rashmi Rice Logo (1).png' height='100px'/></span><span style='display:table-cell; vertical-align:top;'><span style='font-size:16pt; font-weight:bold;'> Rashmi Rice Mills Pvt. Ltd. </span></br><span style='font-size:8pt;'>Daniyawan Chandi Road, Hasanpur, Patna- 801304 </br>Mob.: 9304052349, 9334280057</br>Email: srirajbhog@gmail.com</br>CIN: U15312BR2014PTC022237</br>PAN No.: AAGCR9497P</br>GSTIN: 10AAGCR9497P1ZK</span></span></td></tr>");
+            // Header
+            htmlTable.Append("<tr><td colspan='2' align='center'>" +
+                "<span style='display:table-cell; vertical-align:top;'>" +
+                "<img src='http://prabhasoftware.com/Rashmi Rice Logo (1).png' height='100px'/></span>" +
+                "<span style='display:table-cell; vertical-align:top;'>" +
+                "<span style='font-size:16pt; font-weight:bold;'> Rashmi Rice Mills Pvt. Ltd. </span><br/>" +
+                "<span style='font-size:8pt;'>Daniyawan Chandi Road, Hasanpur, Patna- 801304 <br/>" +
+                "Mob.: 9304052349, 9334280057<br/>Email: srirajbhog@gmail.com<br/>" +
+                "CIN: U15312BR2014PTC022237<br/>PAN No.: AAGCR9497P<br/>GSTIN: 10AAGCR9497P1ZK</span></span></td></tr>");
+
             htmlTable.Append("<tr><td colspan='2' align='center'><span style='font-size:10pt; font-weight:bold;'> PAYMENT VOUCHER </span></td></tr>");
-            if (dt.Rows[0]["MPVNo"].ToString() == "")
+
+            // Voucher No
+            if (dt.Rows[0]["MPVNo"].ToString().Trim() == "")
             {
-                htmlTable.Append("<tr><td colspan='2' align='right'>Voucher No.: <b>" + dt.Rows[0]["No"].ToString() + "</b></td></tr>");
+                htmlTable.Append("<tr><td colspan='2' align='right'>Voucher No.: <b>" + dt.Rows[0]["No"] + "</b></td></tr>");
             }
             else
             {
-                htmlTable.Append("<tr><td colspan='2' align='right'>Voucher No.: <b>" + dt.Rows[0]["No"].ToString() + "</b></br>Manual Voucher No.: <b>" + dt.Rows[0]["MPVNo"].ToString() + "</b></td></tr>");
+                htmlTable.Append("<tr><td colspan='2' align='right'>Voucher No.: <b>" + dt.Rows[0]["No"] +
+                    "</b><br/>Manual Voucher No.: <b>" + dt.Rows[0]["MPVNo"] + "</b></td></tr>");
             }
-            htmlTable.Append("<tr><td colspan='2' align='right'>Payment Date: " + dt.Rows[0]["DataDate"].ToString() + "</td></tr>");
-            htmlTable.Append("<tr><td colspan='2' align='left'>Amount: <b>" + dt.Rows[0]["AmountPaid"].ToString() + " (RUPEES " + ConvertNumbertoWords(Convert.ToInt64(Math.Round(Convert.ToDouble(dt.Rows[0]["AmountPaid"].ToString()), 0))) + " ONLY)</b></td></tr>");
-            htmlTable.Append("<tr><td colspan='2' align='left'>Party Name: " + dt.Rows[0]["PName"].ToString() + "</td></tr>");
 
-            if (dt.Rows[0]["PaymentMode"].ToString() == "By Cash")
+            htmlTable.Append("<tr><td colspan='2' align='right'>Payment Date: " + dt.Rows[0]["DataDate"] + "</td></tr>");
+
+            // Amount in words
+            long amtLong = Convert.ToInt64(Math.Round(Convert.ToDouble(dt.Rows[0]["AmountPaid"].ToString()), 0));
+            htmlTable.Append("<tr><td colspan='2' align='left'>Amount: <b>" + dt.Rows[0]["AmountPaid"] +
+                " (RUPEES " + ConvertNumbertoWords(amtLong) + " ONLY)</b></td></tr>");
+
+            htmlTable.Append("<tr><td colspan='2' align='left'>Party Name: " + dt.Rows[0]["PName"] + "</td></tr>");
+
+            // Payment mode details
+            string pMode = dt.Rows[0]["PaymentMode"].ToString();
+            if (pMode == "By Cash")
             {
                 htmlTable.Append("<tr><td colspan='2' align='left'>Payment Mode: Cash</td></tr>");
-                htmlTable.Append("<tr><td colspan='2' align='left'>Amount Paid To: " + dt.Rows[0]["Transaction"].ToString() + "</td></tr>");
+                htmlTable.Append("<tr><td colspan='2' align='left'>Paid To: " + dt.Rows[0]["Transaction"] + "</td></tr>");
             }
-            else if (dt.Rows[0]["PaymentMode"].ToString() == "By Cheque")
+            else if (pMode == "By Cheque")
             {
                 htmlTable.Append("<tr><td colspan='2' align='left'>Payment Mode: Cheque</td></tr>");
-                htmlTable.Append("<tr><td colspan='2' align='left'>Cheque No. & Date: " + dt.Rows[0]["Transaction"].ToString() + "</td></tr>");
+                htmlTable.Append("<tr><td colspan='2' align='left'>Cheque No. &amp; Date: " + dt.Rows[0]["Transaction"] + "</td></tr>");
             }
             else
             {
                 htmlTable.Append("<tr><td colspan='2' align='left'>Payment Mode: Online</td></tr>");
-                htmlTable.Append("<tr><td colspan='2' align='left'>On Account Of: " + dt.Rows[0]["Bank"].ToString() + "</td></tr>");
-                htmlTable.Append("<tr><td colspan='2' align='left'>Payment Reference No.: " + dt.Rows[0]["Transaction"].ToString() + "</td></tr>");
+                htmlTable.Append("<tr><td colspan='2' align='left'>On Account Of: " + dt.Rows[0]["Bank"] + "</td></tr>");
+                htmlTable.Append("<tr><td colspan='2' align='left'>Payment Reference No.: " + dt.Rows[0]["Transaction"] + "</td></tr>");
             }
-            htmlTable.Append("<tr><td width='50%' align='left'></td><td align='center'><b>For Rashmi Rice Mills Pvt. Ltd.</br></br>Authorised Signatory</b></td></tr>");
+
+            htmlTable.Append("<tr><td width='50%' align='left'></td>" +
+                "<td align='center'><b>For Rashmi Rice Mills Pvt. Ltd.<br/><br/>Authorised Signatory</b></td></tr>");
             htmlTable.Append("</table>");
+            htmlTable.Append("</div>"); // prntContent
         }
+
+        DBDataPlaceHolder.Controls.Clear();
         DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
     }
+
+    /* ================================================================
+       PRINT
+    ================================================================ */
     public void CallPrint(string strid)
     {
         StringBuilder sb = new StringBuilder();
-        sb.Append("<script type = 'text/javascript'>");
+        sb.Append("<script type='text/javascript'>");
         sb.Append("var prtContent = document.getElementById('" + strid + "');");
-        sb.Append("var WinPrint = window.open('', '', 'letf=50,top=40,width=400,height=400,toolbar=0,scrollbars=0,status=0');");
+        sb.Append("var WinPrint = window.open('','','left=50,top=40,width=600,height=500,toolbar=0,scrollbars=0,status=0');");
         sb.Append("WinPrint.document.write(prtContent.innerHTML);");
         sb.Append("WinPrint.document.close();");
         sb.Append("WinPrint.focus();");
-        sb.Append("setTimeout(function() {");
+        sb.Append("setTimeout(function(){");
         sb.Append("WinPrint.print();");
-        //sb.Append("return false;");
         sb.Append("WinPrint.close();");
-        sb.Append("}, 250);");
-
-        sb.Append("</script>");
+        sb.Append("},350);");
+        sb.Append("</" + "script>");
         ClientScript.RegisterStartupScript(this.GetType(), "Print", sb.ToString());
-
-
     }
+
+    /* ================================================================
+       CONVERT NUMBER TO WORDS
+    ================================================================ */
     public string ConvertNumbertoWords(long number)
     {
         if (number == 0) return "ZERO";
-        if (number < 0) return "minus " + ConvertNumbertoWords(Math.Abs(number));
+        if (number < 0) return "MINUS " + ConvertNumbertoWords(Math.Abs(number));
+
         string words = "";
-        if ((number / 1000000) > 0)
+
+        if ((number / 100000) > 0)
         {
             words += ConvertNumbertoWords(number / 100000) + " LAKH ";
-            number %= 1000000;
+            number %= 100000;
         }
         if ((number / 1000) > 0)
         {
@@ -206,22 +333,18 @@ public partial class Payment : System.Web.UI.Page
             words += ConvertNumbertoWords(number / 100) + " HUNDRED ";
             number %= 100;
         }
-        //if ((number / 10) > 0)  
-        //{  
-        // words += ConvertNumbertoWords(number / 10) + " RUPEES ";  
-        // number %= 10;  
-        //}  
         if (number > 0)
         {
             if (words != "") words += "AND ";
-            var unitsMap = new[]   
-        {  
-            "ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVEN", "TWELVE", "THIRTEEN", "FOURTEEN", "FIFTEEN", "SIXTEEN", "SEVENTEEN", "EIGHTEEN", "NINETEEN"  
-        };
-            var tensMap = new[]   
-        {  
-            "ZERO", "TEN", "TWENTY", "THIRTY", "FORTY", "FIFTY", "SIXTY", "SEVENTY", "EIGHTY", "NINETY"  
-        };
+            var unitsMap = new[] {
+                "ZERO","ONE","TWO","THREE","FOUR","FIVE","SIX","SEVEN","EIGHT","NINE",
+                "TEN","ELEVEN","TWELVE","THIRTEEN","FOURTEEN","FIFTEEN","SIXTEEN",
+                "SEVENTEEN","EIGHTEEN","NINETEEN"
+            };
+            var tensMap = new[] {
+                "ZERO","TEN","TWENTY","THIRTY","FORTY","FIFTY","SIXTY","SEVENTY","EIGHTY","NINETY"
+            };
+
             if (number < 20) words += unitsMap[number];
             else
             {
@@ -231,344 +354,277 @@ public partial class Payment : System.Web.UI.Page
         }
         return words;
     }
+
+    /* ================================================================
+       BIND PARTY DROPDOWN
+    ================================================================ */
     public void bindParty()
     {
-        DataTable dtP = new DataTable();
-        string q = "";
-        param = new List<SqlParameter>();//Emp_Id
-        q = "select concat(Party_Name, ' (Mobile No.: ',Party_Mobile,')') as PartyName,Bank_Name,Account_No,Account_Name,IFSC_Code from prabha.Purchase_Party_Info order by PartyName";
+        param = new List<SqlParameter>();
+        string q = "select concat(Party_Name, ' (Mobile No.: ',Party_Mobile,')') as PartyName," +
+                   "Bank_Name,Account_No,Account_Name,IFSC_Code " +
+                   "from prabha.Purchase_Party_Info order by PartyName";
         dac = new DataAccessLayer();
-        dtP = dac.GetDataTable(q, param);
+        DataTable dtP = dac.GetDataTable(q, param);
 
         ddlParty.DataSource = dtP;
         ddlParty.DataTextField = "PartyName";
         ddlParty.DataValueField = "PartyName";
         ddlParty.DataBind();
     }
+
+    /* ================================================================
+       FILL PARTY BANK DETAILS
+    ================================================================ */
     public void Party()
     {
-        DataTable dtPBank = new DataTable();
-        string q = "";
-        param = new List<SqlParameter>();//Emp_Id
-
         string source = ddlParty.SelectedItem.Text.Trim();
-        string[] stringSeparators = new string[] { " (Mobile No.: " };
-        var result = source.Split(stringSeparators, StringSplitOptions.None);
+        string[] sep = new string[] { " (Mobile No.: " };
+        var parts = source.Split(sep, StringSplitOptions.None);
 
-        string Pname = result[0];
-        string PMobile = result[1].Substring(0, (result[1].Length - 1));
+        if (parts.Length < 2) return;
 
+        string Pname = parts[0];
+        string PMobile = parts[1].TrimEnd(')');
 
+        param = new List<SqlParameter>();
         param.Add(new SqlParameter("@Party_Name", Pname));
         param.Add(new SqlParameter("@Party_Mobile", PMobile));
-        q = "select Bank_Name,Account_No,Account_Name,IFSC_Code from prabha.Purchase_Party_Info where Party_Name=@Party_Name and Party_Mobile=@Party_Mobile";
-        dac = new DataAccessLayer();
-        dtPBank = dac.GetDataTable(q, param);
 
-        if (dtPBank.Rows[0]["Account_Name"].ToString() == "")
+        string q = "select Bank_Name,Account_No,Account_Name,IFSC_Code " +
+                   "from prabha.Purchase_Party_Info " +
+                   "where Party_Name=@Party_Name and Party_Mobile=@Party_Mobile";
+
+        dac = new DataAccessLayer();
+        DataTable dtPBank = dac.GetDataTable(q, param);
+
+        if (dtPBank.Rows.Count == 0) return;
+
+        DataRow r = dtPBank.Rows[0];
+
+        // Account Name
+        pACName.Value = r["Account_Name"].ToString();
+        pACName.Disabled = (r["Account_Name"].ToString() != "");
+
+        // Account No
+        pACNo.Value = r["Account_No"].ToString();
+        pACNo.Disabled = (r["Account_No"].ToString() != "");
+
+        // Bank
+        if (r["Bank_Name"].ToString() == "")
         {
-            pACName.Value = "";
-            pACName.Disabled = false;
-        }
-        else
-        {
-            pACName.Value = dtPBank.Rows[0]["Account_Name"].ToString();
-            pACName.Disabled = true;
-        }
-        if (dtPBank.Rows[0]["Account_No"].ToString() == "")
-        {
-            pACNo.Value = "";
-            pACNo.Disabled = false;
-        }
-        else
-        {
-            pACNo.Value = dtPBank.Rows[0]["Account_No"].ToString();
-            pACNo.Disabled = true;
-        }
-        if (dtPBank.Rows[0]["Bank_Name"].ToString() == "")
-        {
-            ddlBank.SelectedValue = ddlBank.Items.FindByText("--Select Bank--").Value;
             ddlBank.Items.FindByText("--Select Bank--").Selected = true;
             ddlBank.Enabled = true;
         }
         else
         {
-            ddlBank.SelectedValue = ddlBank.Items.FindByText(dtPBank.Rows[0]["Bank_Name"].ToString()).Value;
+            ListItem li = ddlBank.Items.FindByText(r["Bank_Name"].ToString());
+            if (li != null) { li.Selected = true; }
             ddlBank.Enabled = false;
         }
-        if (dtPBank.Rows[0]["IFSC_Code"].ToString() == "")
-        {
-            pBankIFSC.Value = "";
-            pBankIFSC.Disabled = false;
-        }
-        else
-        {
-            pBankIFSC.Value = dtPBank.Rows[0]["IFSC_Code"].ToString();
-            pBankIFSC.Disabled = true;
-        }
 
+        // IFSC
+        pBankIFSC.Value = r["IFSC_Code"].ToString();
+        pBankIFSC.Disabled = (r["IFSC_Code"].ToString() != "");
     }
+
+    /* ================================================================
+       GENERATE INVOICE / VOUCHER NO
+    ================================================================ */
     public string GenInvoiceNo()
     {
-        int mon = Convert.ToDateTime(sdate.Value.Trim()).Month;
-        int yr = Convert.ToDateTime(sdate.Value.Trim()).Year;
-        int yr1 = 0;
-        int yr2 = 0;
-        string dtFrom;
-        string dtTo;
+        DateTime d = Convert.ToDateTime(sdate.Value.Trim());
+        int mon = d.Month;
+        int yr = d.Year;
+        int yr1, yr2;
 
-        if (mon <= 3)
-        {
-            dtFrom = "01-Apr-" + (yr - 1);
-            dtTo = "31-Mar-" + yr;
-            yr1 = yr - 1;
-            yr2 = yr;
-        }
-        else
-        {
-            dtFrom = "01-Apr-" + yr;
-            dtTo = "31-Mar-" + (yr + 1);
-            yr1 = yr;
-            yr2 = yr + 1;
-        }
+        if (mon <= 3) { yr1 = yr - 1; yr2 = yr; }
+        else { yr1 = yr; yr2 = yr + 1; }
 
-        string invoiceNo = "";
-        string q = "";
+        string dtFrom = "01-Apr-" + yr1;
+        string dtTo = "31-Mar-" + yr2;
 
-        param = new List<SqlParameter>();//Emp_Id
-
+        param = new List<SqlParameter>();
         param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(dtFrom).ToString("dd-MMM-yyyy")));
         param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(dtTo).ToString("dd-MMM-yyyy")));
 
-        q = "select max([No]) from prabha.Purchase_Payment_Info where DataDate>=@DataDate1 and DataDate<=@DataDate2";
+        string q = "select max([No]) from prabha.Purchase_Payment_Info " +
+                   "where DataDate>=@DataDate1 and DataDate<=@DataDate2";
+
         dac = new DataAccessLayer();
         object test = dac.Scalar(q, param);
-        if (test == DBNull.Value)
-        {
-            invoiceNo = "RR/PV/" + yr1 + "-" + yr2 + "/0001";
-        }
-        else
-        {
-            if ((Convert.ToInt32(test) + 1).ToString().Length == 1)
-            {
-                invoiceNo = "RR/PV/" + yr1 + "-" + yr2 + "/000" + (Convert.ToInt32(test) + 1);
-            }
-            else if ((Convert.ToInt32(test) + 1).ToString().Length == 2)
-            {
-                invoiceNo = "RR/PV/" + yr1 + "-" + yr2 + "/00" + (Convert.ToInt32(test) + 1);
-            }
-            else if ((Convert.ToInt32(test) + 1).ToString().Length == 3)
-            {
-                invoiceNo = "RR/PV/" + yr1 + "-" + yr2 + "/0" + (Convert.ToInt32(test) + 1);
-            }
-            else
-            {
-                invoiceNo = "RR/PV/" + yr1 + "-" + yr2 + "/" + Convert.ToInt32(test) + 1;
-            }
 
-        }
-        return invoiceNo;
+        string prefix = "RR/PV/" + yr1 + "-" + yr2 + "/";
+
+        if (test == DBNull.Value || test == null)
+            return prefix + "0001";
+
+        int next = Convert.ToInt32(test) + 1;
+        return prefix + next.ToString("D4");
     }
+
+    /* overload — for display in list */
+    public string GenInvoiceNo(string a, string b)
+    {
+        DateTime d = Convert.ToDateTime(b);
+        int mon = d.Month;
+        int yr = d.Year;
+        int yr1 = (mon <= 3) ? yr - 1 : yr;
+        int yr2 = (mon <= 3) ? yr : yr + 1;
+
+        return "RR/PV/" + yr1 + "-" + yr2 + "/" + a.PadLeft(4, '0');
+    }
+
+    /* ================================================================
+       BANK VALIDATE — 0 = ok, 1 = error
+    ================================================================ */
     public int bankvalidate()
     {
-        int vd = 0;
-        if (paymentmode.Value.Trim() == "Online")
+        if (paymentmode.Value.Trim() != "Online") return 0;
+
+        if (string.IsNullOrWhiteSpace(pACName.Value) ||
+            string.IsNullOrWhiteSpace(pACNo.Value) ||
+            ddlBank.SelectedItem == null ||
+            ddlBank.SelectedItem.Text.Trim() == "--Select Bank--" ||
+            string.IsNullOrWhiteSpace(pBankIFSC.Value))
         {
-            if (pACName.Value.Trim() == "" || pACNo.Value.Trim() == "" || ddlBank.SelectedItem.Text.Trim() == "--Select Bank--" || pBankIFSC.Value.Trim() == "")
-            {
-                vd = 1;
-            }
+            return 1;
         }
-        else
-        {
-            vd = 0;
-        }
-        return vd;
+        return 0;
     }
+
+    /* ================================================================
+       INSERT DATA
+    ================================================================ */
     public void insertData()
     {
         dt = (DataTable)Session["Data"];
 
-        int chkValid = chkDupData(dt.Rows[0]["DataDate"].ToString(), dt.Rows[0]["PName"].ToString(), dt.Rows[0]["AmountPaid"].ToString());
-
-        if (chkValid == 0)
+        // Duplicate check
+        if (chkDupData(dt.Rows[0]["DataDate"].ToString(),
+                       dt.Rows[0]["PName"].ToString(),
+                       dt.Rows[0]["AmountPaid"].ToString()) != 0)
         {
-            int msg = 0;
-            string q = "";
-            param = new List<SqlParameter>();//Emp_Id
+            ShowAlert("This payment entry already exists. Duplicate data not saved.");
+            return;
+        }
 
-            string[] Inv = dt.Rows[0]["No"].ToString().Split('/');
-            param.Add(new SqlParameter("@No", Inv[3]));
-            param.Add(new SqlParameter("@MPVNo", dt.Rows[0]["MPVNo"].ToString()));
-            param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(dt.Rows[0]["DataDate"].ToString()).ToString("dd-MMM-yyyy")));
-            param.Add(new SqlParameter("@PName", dt.Rows[0]["PName"].ToString()));
-            param.Add(new SqlParameter("@AmountPaid", dt.Rows[0]["AmountPaid"].ToString()));
-            param.Add(new SqlParameter("@PaymentMode", dt.Rows[0]["PaymentMode"].ToString()));
-            param.Add(new SqlParameter("@Transaction", dt.Rows[0]["Transaction"].ToString()));
-            param.Add(new SqlParameter("@Bank", dt.Rows[0]["Bank"].ToString()));
-            param.Add(new SqlParameter("@OperatorName", Session["User"].ToString()));
-            param.Add(new SqlParameter("@Entry_Date", Convert.ToDateTime(System.DateTime.Now).ToString("dd-MMM-yyyy")));
+        param = new List<SqlParameter>();
+        string[] Inv = dt.Rows[0]["No"].ToString().Split('/');
 
-            q = "insert into prabha.Purchase_Payment_Info([No],MPVNo,DataDate,PName,AmountPaid,PaymentMode,[Transaction],Bank,OperatorName,EntryDate) ";
-            q += " values(@No,@MPVNo,@DataDate,@PName,@AmountPaid,@PaymentMode,@Transaction,@Bank,@OperatorName,@Entry_Date)";
-            dac = new DataAccessLayer();
+        param.Add(new SqlParameter("@No", Inv[3]));
+        param.Add(new SqlParameter("@MPVNo", dt.Rows[0]["MPVNo"].ToString()));
+        param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(dt.Rows[0]["DataDate"].ToString()).ToString("dd-MMM-yyyy")));
+        param.Add(new SqlParameter("@PName", dt.Rows[0]["PName"].ToString()));
+        param.Add(new SqlParameter("@AmountPaid", dt.Rows[0]["AmountPaid"].ToString()));
+        param.Add(new SqlParameter("@PaymentMode", dt.Rows[0]["PaymentMode"].ToString()));
+        param.Add(new SqlParameter("@Transaction", dt.Rows[0]["Transaction"].ToString()));
+        param.Add(new SqlParameter("@Bank", dt.Rows[0]["Bank"].ToString()));
+        param.Add(new SqlParameter("@OperatorName", Session["User"].ToString()));
+        param.Add(new SqlParameter("@Entry_Date", DateTime.Now.ToString("dd-MMM-yyyy")));
 
-            msg = Convert.ToInt32(dac.update(q, param));
+        string q = "insert into prabha.Purchase_Payment_Info([No],MPVNo,DataDate,PName,AmountPaid,PaymentMode,[Transaction],Bank,OperatorName,EntryDate) " +
+                   "values(@No,@MPVNo,@DataDate,@PName,@AmountPaid,@PaymentMode,@Transaction,@Bank,@OperatorName,@Entry_Date)";
 
+        dac = new DataAccessLayer();
+        int msg = dac.update(q, param);
 
-            if (msg > 0)
+        if (msg > 0)
+        {
+            // Update bank details if Online
+            if (dt.Rows[0]["PaymentMode"].ToString() == "Online")
             {
-                if (dt.Rows[0]["PaymentMode"].ToString() == "Online")
-                {
-                    int OutMsg = 0;
+                string source = dt.Rows[0]["PName"].ToString();
+                string[] sep = new string[] { " (Mobile No.: " };
+                var parts = source.Split(sep, StringSplitOptions.None);
+                string Pname = parts[0];
+                string PMobile = parts[1].TrimEnd(')');
 
-                    q = "";
-                    param = new List<SqlParameter>();
-                    param.Add(new SqlParameter("@Bank_Name", ddlBank.SelectedItem.Text.Trim()));
-                    param.Add(new SqlParameter("@Account_No", pACNo.Value.Trim()));
-                    param.Add(new SqlParameter("@Account_Name", pACName.Value.Trim()));
-                    param.Add(new SqlParameter("@IFSC_Code", pBankIFSC.Value.Trim()));
+                param = new List<SqlParameter>();
+                param.Add(new SqlParameter("@Bank_Name", ddlBank.SelectedItem.Text.Trim()));
+                param.Add(new SqlParameter("@Account_No", pACNo.Value.Trim()));
+                param.Add(new SqlParameter("@Account_Name", pACName.Value.Trim()));
+                param.Add(new SqlParameter("@IFSC_Code", pBankIFSC.Value.Trim()));
+                param.Add(new SqlParameter("@Party_Name", Pname));
+                param.Add(new SqlParameter("@Party_Mobile", PMobile));
 
-                    string source = dt.Rows[0]["PName"].ToString();
-                    string[] stringSeparators = new string[] { " (Mobile No.: " };
-                    var result = source.Split(stringSeparators, StringSplitOptions.None);
+                q = "update prabha.Purchase_Party_Info set Bank_Name=@Bank_Name, Account_No=@Account_No, " +
+                    "Account_Name=@Account_Name, IFSC_Code=@IFSC_Code " +
+                    "where Party_Name=@Party_Name and Party_Mobile=@Party_Mobile";
 
-                    string Pname = result[0];
-                    string PMobile = result[1].Substring(0, (result[1].Length - 1));
-
-
-                    param.Add(new SqlParameter("@Party_Name", Pname));
-                    param.Add(new SqlParameter("@Party_Mobile", PMobile));
-                    q = "update prabha.Purchase_Party_Info set Bank_Name=@Bank_Name, Account_No=@Account_No, Account_Name=@Account_Name, IFSC_Code=@IFSC_Code where Party_Name=@Party_Name and Party_Mobile=@Party_Mobile";
-                    dac = new DataAccessLayer();
-                    OutMsg = dac.update(q, param);
-                }
-
+                dac = new DataAccessLayer();
+                dac.update(q, param);
             }
-            else
-            {
-                script = "alert('Error!!');";
-                ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
-            }
+
+            ShowSuccess("Payment submitted successfully!");
+            Session["Data"] = null;
         }
         else
         {
-            script = "alert('Data Already Exist!!');";
-            ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
+            ShowAlert("Error saving payment. Please try again.");
         }
     }
+
+    /* ================================================================
+       CHECK DUPLICATE
+    ================================================================ */
     public int chkDupData(string DDate, string PN, string Am)
     {
-        int tst = 0;
-        DataTable dtOut = new DataTable();
-        string q = "";
-        param = new List<SqlParameter>();//Emp_Id
-
+        param = new List<SqlParameter>();
         param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(DDate).ToString("dd-MMM-yyyy")));
         param.Add(new SqlParameter("@PName", PN));
         param.Add(new SqlParameter("@AmountPaid", Am));
 
-        q = "select * from prabha.Purchase_Payment_Info where DataDate=@DataDate and PName=@PName and AmountPaid=@AmountPaid";
+        string q = "select * from prabha.Purchase_Payment_Info " +
+                   "where DataDate=@DataDate and PName=@PName and AmountPaid=@AmountPaid";
+
         dac = new DataAccessLayer();
-        dtOut = dac.GetDataTable(q, param);
-        if (dtOut.Rows.Count > 0)
-        {
-            tst = 1;
-        }
-        else
-        {
-            tst = 0;
-        }
-        return tst;
+        DataTable dtOut = dac.GetDataTable(q, param);
+
+        return (dtOut.Rows.Count > 0) ? 1 : 0;
     }
+
+    /* ================================================================
+       LINK BUTTON — PARTY PAYMENT HISTORY
+    ================================================================ */
     protected void LinkButton1_Click(object sender, EventArgs e)
     {
-        string q = "";
-        param = new List<SqlParameter>();//Emp_Id
-        //string source = ddlParty.SelectedItem.Text.Trim();
-        //string[] stringSeparators = new string[] { " (Mobile No.: " };
-        //var result = source.Split(stringSeparators, StringSplitOptions.None);
-
-        //string Pname = result[0];
-        //string PMobile = result[1].Substring(0, (result[1].Length - 1));
-
-
+        param = new List<SqlParameter>();
         param.Add(new SqlParameter("@PName", ddlParty.SelectedItem.Text.Trim()));
 
-        q = "select * from prabha.Purchase_Payment_Info where PName=@PName order by DataDate";
+        string q = "select * from prabha.Purchase_Payment_Info where PName=@PName order by DataDate";
         dac = new DataAccessLayer();
         DataTable dtPayment = dac.GetDataTable(q, param);
-        string INVNo = "";
-        StringBuilder htmlTable;
 
-        if (dtPayment.Rows.Count <= 0)
+        StringBuilder htmlTable = new StringBuilder();
+
+        if (dtPayment.Rows.Count == 0)
         {
-            htmlTable = new StringBuilder();
             htmlTable.Append("<table class='table' cellspacing='0'>");
-            htmlTable.Append("<tr><td align='center'>No Data found...</td></tr></table>");
+            htmlTable.Append("<tr><td align='center'>No payment data found for this party.</td></tr></table>");
         }
         else
         {
-            htmlTable = new StringBuilder();
             htmlTable.Append("<table class='table table-bordered' id='dataTable' cellspacing='0'>");
-            htmlTable.Append("<thead><tr><th>Sl. No.</th><th>Voucher No. & Date</th><th>Party Name</th><th>Amount Paid</th><th>Payment Mode</th><th></th></tr></thead><tbody>");
+            htmlTable.Append("<thead><tr><th>Sl. No.</th><th>Voucher No. &amp; Date</th>" +
+                             "<th>Party Name</th><th>Amount Paid</th><th>Payment Mode</th><th></th></tr></thead><tbody>");
+
             for (int i = 0; i < dtPayment.Rows.Count; i++)
             {
+                string INVNo = GenInvoiceNo(dtPayment.Rows[i]["No"].ToString(), dtPayment.Rows[i]["DataDate"].ToString());
                 htmlTable.Append("<tr>");
                 htmlTable.Append("<td>" + (i + 1) + "</td>");
-                INVNo = GenInvoiceNo(dtPayment.Rows[i]["No"].ToString(), dtPayment.Rows[i]["DataDate"].ToString());
                 htmlTable.Append("<td>" + INVNo + ", " + Convert.ToDateTime(dtPayment.Rows[i]["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
-                htmlTable.Append("<td>" + dtPayment.Rows[i]["PName"].ToString() + "</td>");
-                htmlTable.Append("<td>" + dtPayment.Rows[i]["AmountPaid"].ToString() + "</td>");
-                htmlTable.Append("<td>" + dtPayment.Rows[i]["PaymentMode"].ToString() + "</td>");
-
-                htmlTable.Append("<td><a href='PV.aspx?ID=" + dtPayment.Rows[i]["ID"].ToString() + "' target='_blank'>Payment Voucher</a></td></tr>");
+                htmlTable.Append("<td>" + dtPayment.Rows[i]["PName"] + "</td>");
+                htmlTable.Append("<td>" + dtPayment.Rows[i]["AmountPaid"] + "</td>");
+                htmlTable.Append("<td>" + dtPayment.Rows[i]["PaymentMode"] + "</td>");
+                htmlTable.Append("<td><a href='PV.aspx?ID=" + dtPayment.Rows[i]["ID"] + "' target='_blank'>View Voucher</a></td>");
+                htmlTable.Append("</tr>");
             }
             htmlTable.Append("</tbody></table>");
-
         }
 
+        DBDataPlaceHolder.Controls.Clear();
         DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
-
-    }
-    public string GenInvoiceNo(string a, string b)
-    {
-        int mon = Convert.ToDateTime(b).Month;
-        int yr = Convert.ToDateTime(b).Year;
-        int yr1 = 0;
-        int yr2 = 0;
-
-        if (mon <= 3)
-        {
-            yr1 = yr - 1;
-            yr2 = yr;
-        }
-        else
-        {
-            yr1 = yr;
-            yr2 = yr + 1;
-        }
-
-        string invoiceNo = "";
-
-        if (a.Length == 1)
-        {
-            invoiceNo = "RR/PV/" + yr1 + "-" + yr2 + "/000" + a;
-        }
-        else if (a.Length == 2)
-        {
-            invoiceNo = "RR/PV/" + yr1 + "-" + yr2 + "/00" + a;
-        }
-        else if (a.Length == 3)
-        {
-            invoiceNo = "RR/PV/" + yr1 + "-" + yr2 + "/0" + a;
-        }
-        else
-        {
-            invoiceNo = "RR/PV/" + yr1 + "-" + yr2 + "/" + a;
-        }
-
-
-        return invoiceNo;
     }
 }

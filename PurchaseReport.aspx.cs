@@ -15,11 +15,12 @@ public partial class PurchaseReport : System.Web.UI.Page
 {
     DataTable dt;
     DataTable dtMain;
-    DataRow dtRow;
-    DataRow rmain;
     List<SqlParameter> param;
     DataAccessLayer dac;
-    string script = "";
+
+    /* ================================================================
+       PAGE LOAD
+    ================================================================ */
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!Page.IsPostBack)
@@ -27,49 +28,327 @@ public partial class PurchaseReport : System.Web.UI.Page
             if (Session["User"] == null)
             {
                 Response.Redirect("Login.aspx");
+                return;
             }
-
 
             fdate.Attributes["type"] = "date";
             tdate.Attributes["type"] = "date";
+
             Party();
             Session["Data"] = null;
             Session["DataMain"] = null;
-
+            Session["Export"] = null;
         }
     }
+
+    /* ================================================================
+       GENERATE REPORT BUTTON
+    ================================================================ */
     public void btnContinue_ServerClick(object sender, EventArgs e)
     {
-
+        string err = ServerValidate();
+        if (err != "")
+        {
+            ShowAlert(err);
+            return;
+        }
         checkData();
-
-
     }
 
-    public int chkDate()
+    /* ================================================================
+       SERVER-SIDE VALIDATION
+    ================================================================ */
+    private string ServerValidate()
     {
-        int i = 0;
-        try
-        {
-            string dat = Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy");
-        }
-        catch
-        {
-            i = i + 1;
-        }
-        finally
-        {
+        if (string.IsNullOrWhiteSpace(fdate.Value))
+            return "Please select From Date.";
 
+        if (string.IsNullOrWhiteSpace(tdate.Value))
+            return "Please select To Date.";
 
-        }
-        return i;
+        DateTime d1, d2;
+        if (!DateTime.TryParse(fdate.Value.Trim(), out d1))
+            return "From Date is invalid.";
+
+        if (!DateTime.TryParse(tdate.Value.Trim(), out d2))
+            return "To Date is invalid.";
+
+        if (d1 > d2)
+            return "From Date cannot be after To Date.";
+
+        return "";
     }
+
+    /* ================================================================
+       SHOW / HIDE ALERT (client-side)
+    ================================================================ */
+    private void ShowAlert(string msg, bool success = false)
+    {
+        string cls = success ? "alert-success-custom" : "alert-danger-custom";
+        string js = "var el=document.getElementById('topAlert');" +
+                     "el.style.display='block';" +
+                     "el.className='alert-custom " + cls + "';" +
+                     "el.innerText='" + msg.Replace("'", "\\'") + "';" +
+                     "window.scrollTo(0,0);";
+        ClientScript.RegisterStartupScript(this.GetType(), "ShowAlert", js, true);
+    }
+
+    /* ================================================================
+       BUILD REPORT TABLE
+    ================================================================ */
+    public void checkData()
+    {
+        DataTable DtData = new DataTable();
+        param = new List<SqlParameter>();
+
+        string d1 = Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy");
+        string d2 = Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy");
+
+        string q;
+
+        if (sPartyName.SelectedItem.Text.Trim() == "--Select One--")
+        {
+            param.Add(new SqlParameter("@DataDate1", d1));
+            param.Add(new SqlParameter("@DataDate2", d2));
+            q = "select ID,[No],MPurNo,DataDate,PartyName,BrokerName,SaudaNo,SaudaDate,TruckNo,KantaNo,Advance " +
+                "from prabha.Purchase_Master_Data " +
+                "where DataDate>=@DataDate1 and DataDate<=@DataDate2 " +
+                "order by [No],DataDate";
+        }
+        else
+        {
+            param.Add(new SqlParameter("@DataDate1", d1));
+            param.Add(new SqlParameter("@DataDate2", d2));
+            param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
+            q = "select ID,[No],MPurNo,DataDate,PartyName,BrokerName,SaudaNo,SaudaDate,TruckNo,KantaNo,Advance " +
+                "from prabha.Purchase_Master_Data " +
+                "where DataDate>=@DataDate1 and DataDate<=@DataDate2 and PartyName=@PartyName " +
+                "order by [No],DataDate";
+        }
+
+        dac = new DataAccessLayer();
+        DtData = dac.GetDataTable(q, param);
+
+        if (DtData.Rows.Count == 0)
+        {
+            ShowAlert("No data found for the selected date range / party.", false);
+            DBDataPlaceHolder.Controls.Clear();
+            DBDataPlaceHolder.Controls.Add(new Literal
+            {
+                Text = "<p style='text-align:center;color:#94a3b8;padding:30px;'>No records found.</p>"
+            });
+            Session["Export"] = null;
+            return;
+        }
+
+        DtData.Columns.Add("Amount", typeof(string));
+        DtData.Columns.Add("CD", typeof(string));
+        DtData.Columns.Add("GK", typeof(string));
+
+        StringBuilder html = new StringBuilder();
+
+        html.Append("<table class='table table-bordered' id='dataTable' cellspacing='0'>");
+
+        // Company header
+        html.Append("<tr><td colspan='12' align='center'>" +
+            "<span style='display:table-cell;vertical-align:top;'>" +
+            "<img src='http://prabhasoftware.com/Rashmi Rice Logo (1).png' height='80px'/></span>" +
+            "<span style='display:table-cell;vertical-align:top;padding-left:10px;'>" +
+            "<span style='font-size:16pt;font-weight:bold;'>Rashmi Rice Mills Pvt. Ltd.</span><br/>" +
+            "<span style='font-size:8pt;'>Daniyawan Chandi Road, Hasanpur, Patna- 801304<br/>" +
+            "Mob.: 9304052349, 9334280057 | Email: srirajbhog@gmail.com<br/>" +
+            "CIN: U15312BR2014PTC022237 | PAN: AAGCR9497P | GSTIN: 10AAGCR9497P1ZK</span>" +
+            "</span></td></tr>");
+
+        html.Append("<tr><td colspan='12' align='center'>" +
+            "<span style='font-size:11pt;font-weight:bold;'>PURCHASE &amp; UNLOADING REPORT</span></td></tr>");
+
+        // Period row
+        html.Append("<tr><td colspan='12' align='right' style='font-size:11px;color:#64748b;'>" +
+            "Period: " + Convert.ToDateTime(fdate.Value).ToString("dd/MM/yyyy") +
+            " to " + Convert.ToDateTime(tdate.Value).ToString("dd/MM/yyyy") +
+            (sPartyName.SelectedItem.Text.Trim() != "--Select One--"
+                ? " | Party: " + sPartyName.SelectedItem.Text.Trim()
+                : "") +
+            "</td></tr>");
+
+        // Table header
+        html.Append("<tr style='background:#16a34a;color:white;font-weight:bold;'>" +
+            "<td>Sl. No.</td><td>Invoice No. &amp; Date</td><td>Party Name</td>" +
+            "<td>Broker Name</td><td>Sauda No. &amp; Date</td><td>Truck No.</td>" +
+            "<td>Kanta No.</td><td>Freight Adv.</td><td>CD</td><td>GK</td>" +
+            "<td>Amount</td><td></td></tr><tbody>");
+
+        double totalAmount = 0;
+        double totalCD = 0;
+        double totalGK = 0;
+        double totalAdvance = 0;
+
+        for (int i = 0; i < DtData.Rows.Count; i++)
+        {
+            string INVNo = GenInvoiceNo(DtData.Rows[i]["No"].ToString(), DtData.Rows[i]["DataDate"].ToString());
+            string[] calc = dataDisplay(DtData.Rows[i]["ID"].ToString()).Split('-');
+
+            double rowAmt = (calc[0].Trim() == "") ? 0 : Math.Round(Convert.ToDouble(calc[0]), 0);
+            double rowCD = Math.Round(Convert.ToDouble(calc[1]), 0);
+            double rowGK = Math.Round(Convert.ToDouble(calc[2]), 0);
+            double rowAdv = Convert.ToDouble(DtData.Rows[i]["Advance"].ToString());
+
+            DtData.Rows[i]["Amount"] = rowAmt.ToString();
+            DtData.Rows[i]["CD"] = rowCD.ToString();
+            DtData.Rows[i]["GK"] = rowGK.ToString();
+
+            totalAmount += rowAmt;
+            totalCD += rowCD;
+            totalGK += rowGK;
+            totalAdvance += rowAdv;
+
+            html.Append("<tr>");
+            html.Append("<td>" + (i + 1) + "</td>");
+            html.Append("<td>" + INVNo + ", " + Convert.ToDateTime(DtData.Rows[i]["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
+            html.Append("<td>" + DtData.Rows[i]["PartyName"] + "</td>");
+            html.Append("<td>" + DtData.Rows[i]["BrokerName"] + "</td>");
+            html.Append("<td>" + DtData.Rows[i]["SaudaNo"] + ", " + Convert.ToDateTime(DtData.Rows[i]["SaudaDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
+            html.Append("<td>" + DtData.Rows[i]["TruckNo"] + "</td>");
+            html.Append("<td>" + DtData.Rows[i]["KantaNo"] + "</td>");
+            html.Append("<td style='text-align:right;'>" + rowAdv.ToString("N0") + "</td>");
+            html.Append("<td style='text-align:right;'>" + rowCD.ToString("N0") + "</td>");
+            html.Append("<td style='text-align:right;'>" + rowGK.ToString("N0") + "</td>");
+            html.Append("<td style='text-align:right;font-weight:600;'>" + rowAmt.ToString("N0") + "</td>");
+            html.Append("<td><a href='PurchaseBill.aspx?ID=" + DtData.Rows[i]["ID"] + "' target='_blank' class='btn btn-xs' style='background:#16a34a;color:white;border-radius:6px;padding:4px 10px;font-size:11px;'>Bill</a></td>");
+            html.Append("</tr>");
+        }
+
+        // Totals row
+        html.Append("<tr class='total-row'>");
+        html.Append("<td colspan='7' style='text-align:right;'><b>Total (" + DtData.Rows.Count + " records)</b></td>");
+        html.Append("<td style='text-align:right;'><b>" + totalAdvance.ToString("N0") + "</b></td>");
+        html.Append("<td style='text-align:right;'><b>" + totalCD.ToString("N0") + "</b></td>");
+        html.Append("<td style='text-align:right;'><b>" + totalGK.ToString("N0") + "</b></td>");
+        html.Append("<td style='text-align:right;'><b>" + totalAmount.ToString("N0") + "</b></td>");
+        html.Append("<td></td></tr>");
+
+        html.Append("</tbody></table>");
+
+        Session["Export"] = DtData;
+
+        DBDataPlaceHolder.Controls.Clear();
+        DBDataPlaceHolder.Controls.Add(new Literal { Text = html.ToString() });
+    }
+
+    /* ================================================================
+       CALCULATE AMOUNT FOR EACH ROW
+    ================================================================ */
+    public string dataDisplay(string id)
+    {
+        double FAmount = 0;
+        double LCD = 0;
+        double LGK = 0;
+
+        param = new List<SqlParameter>();
+        param.Add(new SqlParameter("@ID", id));
+        dac = new DataAccessLayer();
+        DataTable dtM = dac.GetDataTable("select * from [prabha].[Purchase_Master_Data] where ID=@ID", param);
+
+        param = new List<SqlParameter>();
+        param.Add(new SqlParameter("@ID", id));
+        DataTable dtI = dac.GetDataTable("select * from [prabha].[Purchase_Item_Info] where Master_ID=@ID", param);
+
+        if (dtI == null || dtI.Rows.Count == 0 || dtM == null || dtM.Rows.Count == 0)
+            return "0-0-0";
+
+        int tBags = 0;
+        double tQuantity = 0;
+        double tAmount = 0;
+        double LClaim = 0;
+
+        for (int i = 0; i < dtI.Rows.Count; i++)
+        {
+            DataRow r = dtI.Rows[i];
+
+            double rate = Convert.ToDouble(r["Rate"].ToString());
+            double avgWt = Convert.ToDouble(r["AvgWt"].ToString());
+            double fresh = Convert.ToDouble(r["FreshQuantity"].ToString());
+            double moist = Convert.ToDouble(r["Moisture"].ToString());
+
+            double am = Math.Round(fresh * avgWt * rate, 2);
+
+            // Khakhri
+            double KhRate = GetAdjRate(rate, Convert.ToDouble(r["KhakhriPer"].ToString()), 2);
+            double KhAmount = Math.Round(Convert.ToDouble(r["KhakhriBags"].ToString()) * avgWt * KhRate, 2);
+
+            // Mitti
+            double MRate = GetAdjRate(rate, Convert.ToDouble(r["MittiPer"].ToString()), 0);
+            double MAmount = Math.Round(Convert.ToDouble(r["MittiBags"].ToString()) * avgWt * MRate, 2);
+
+            // Daagi
+            double DRate = GetAdjRate(rate, Convert.ToDouble(r["DaagiPer"].ToString()), 0);
+            double DAmount = Math.Round(Convert.ToDouble(r["DaagiBags"].ToString()) * avgWt * DRate, 2);
+
+            // Mix
+            double DMixRate = GetAdjRate(rate, Convert.ToDouble(r["MixPer"].ToString()), 0);
+            double DMixAmount = Math.Round(Convert.ToDouble(r["MixBags"].ToString()) * avgWt * DMixRate, 2);
+
+            // Other
+            double ORate = GetAdjRate(rate, Convert.ToDouble(r["OtherPer"].ToString()), 0);
+            double OAmount = Math.Round(Convert.ToDouble(r["OtherBags"].ToString()) * avgWt * ORate, 2);
+
+            double rowTotal = am + KhAmount + MAmount + DAmount + DMixAmount + OAmount;
+
+            tBags += Convert.ToInt32(r["FreshQuantity"].ToString())
+                   + Convert.ToInt32(r["KhakhriBags"].ToString())
+                   + Convert.ToInt32(r["MittiBags"].ToString())
+                   + Convert.ToInt32(r["DaagiBags"].ToString())
+                   + Convert.ToInt32(r["MixBags"].ToString())
+                   + Convert.ToInt32(r["OtherBags"].ToString());
+
+            tQuantity = Math.Round(tBags * avgWt, 2);
+            tAmount += rowTotal;
+
+            // Moisture claim
+            string pName = dtM.Rows[0]["PartyName"].ToString();
+            int lt = (pName == "SHIVAM BHANDAR (SUBODH JEE (Mobile No.: 9334280057)" ||
+                      pName == "PRACHI TRADERS (MASURHI) (Mobile No.: 9334280057)" ||
+                      pName == "Sankat Mochan Traders(Kunil jee) jahanabad (Mobile No.: 9334280057)") ? 18 : 17;
+
+            if (moist > lt)
+                LClaim += Math.Round(rowTotal * (moist - lt) / 100, 2);
+
+            // Last item — compute final
+            if (i == dtI.Rows.Count - 1)
+            {
+                LCD = Math.Round(tAmount * Convert.ToDouble(dtM.Rows[0]["CD"].ToString()) / 100);
+                LGK = Math.Round(tQuantity / 1000 * 25, 2);
+                if (LGK < 100) LGK = 100;
+
+                double Frt = Convert.ToDouble(dtM.Rows[0]["FreightOwn"].ToString());
+                double PAmount = tAmount - LCD - LClaim - Frt;
+
+                double LAdvance = Convert.ToDouble(dtM.Rows[0]["Advance"].ToString());
+                double OAdvance = (LAdvance == 0) ? LGK : LAdvance;
+
+                double Brok = Convert.ToDouble(dtM.Rows[0]["Brokerage"].ToString());
+                FAmount = PAmount - OAdvance - Brok;
+            }
+        }
+
+        return FAmount + "-" + LCD + "-" + LGK;
+    }
+
+    // Helper: adjusted rate based on percentage threshold
+    private double GetAdjRate(double rate, double per, double threshold)
+    {
+        if (per <= threshold) return rate;
+        return Math.Round(rate - (rate * (per - threshold) / 100), 2);
+    }
+
+    /* ================================================================
+       BIND PARTY DROPDOWN
+    ================================================================ */
     public void Party()
     {
-        dt = new DataTable();
-        string q = "";
-        param = new List<SqlParameter>();//Emp_Id
-        q = "select distinct PartyName from prabha.Purchase_Master_Data order by PartyName";
+        param = new List<SqlParameter>();
+        string q = "select distinct PartyName from prabha.Purchase_Master_Data order by PartyName";
         dac = new DataAccessLayer();
         dt = dac.GetDataTable(q, param);
 
@@ -79,358 +358,100 @@ public partial class PurchaseReport : System.Web.UI.Page
         sPartyName.DataBind();
         sPartyName.Items.Insert(0, "--Select One--");
     }
-    public void CallPrint(string strid)
-    {
-        StringBuilder sb = new StringBuilder();
-        sb.Append("<script type = 'text/javascript'>");
-        sb.Append("var prtContent = document.getElementById('" + strid + "');");
-        sb.Append("var WinPrint = window.open('', '', 'letf=50,top=40,width=400,height=400,toolbar=0,scrollbars=0,status=0');");
-        sb.Append("WinPrint.document.write(prtContent.innerHTML);");
-        sb.Append("WinPrint.document.close();");
-        sb.Append("WinPrint.focus();");
-        sb.Append("setTimeout(function() {");
-        sb.Append("WinPrint.print();");
-        //sb.Append("return false;");
-        sb.Append("WinPrint.close();");
-        sb.Append("}, 250);");
 
-        sb.Append("</script>");
-        ClientScript.RegisterStartupScript(this.GetType(), "Print", sb.ToString());
-
-
-    }
-
-    public void checkData()
-    {
-        DataTable DtData = new DataTable();
-        string q = "";
-        param = new List<SqlParameter>();//Emp_Id
-
-
-        if (sPartyName.SelectedItem.Text.Trim() == "--Select One--")
-        {
-            param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-            param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-
-            q = "select ID,[No],MPurNo,DataDate,PartyName,BrokerName,SaudaNo,SaudaDate,TruckNo,KantaNo,Advance from prabha.Purchase_Master_Data where DataDate>=@DataDate1 and DataDate<=@DataDate2 order by [No],DataDate";
-        }
-        else
-        {
-            param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-            param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-            param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
-
-            q = "select ID,[No],MPurNo,DataDate,PartyName,BrokerName,SaudaNo,SaudaDate,TruckNo,KantaNo,Advance from prabha.Purchase_Master_Data where DataDate>=@DataDate1 and DataDate<=@DataDate2 and PartyName=@PartyName order by [No],DataDate";
-        }
-        dac = new DataAccessLayer();
-        DtData = dac.GetDataTable(q, param);
-        DtData.Columns.Add("Amount", typeof(string));
-        DtData.Columns.Add("CD", typeof(string));
-        DtData.Columns.Add("GK", typeof(string));
-        StringBuilder htmlTable = new StringBuilder();
-        string INVNo = "";
-        //TruckNo,KantaNo,Advance
-        htmlTable.Append("<table class='table table-bordered' id='dataTable' cellspacing='0'>");
-        htmlTable.Append("<tr><td colspan='12' align='center'><span style='display:table-cell; vertical-align:top;'><img src='http://prabhasoftware.com/Rashmi Rice Logo (1).png' height='100px'/></span><span style='display:table-cell; vertical-align:top;'><span style='font-size:16pt; font-weight:bold;'> Rashmi Rice Mills Pvt. Ltd. </span></br><span style='font-size:8pt;'>Daniyawan Chandi Road, Hasanpur, Patna- 801304 </br>Mob.: 9304052349, 9334280057</br>Email: srirajbhog@gmail.com</br>CIN: U15312BR2014PTC022237</br>PAN No.: AAGCR9497P</br>GSTIN: 10AAGCR9497P1ZK</span></span></td></tr>");
-        htmlTable.Append("<tr><td colspan='12' align='center'><span style='font-size:10pt; font-weight:bold;'> PURCHASE & UNLOADING REPORT </span></td></tr>");
-        htmlTable.Append("<tr><td>Sl. No.</td><td>Invoice No. & Date</td><td>Party Name</td><td>Broker Name</td><td>Sauda No. & Date</td><td>Truck No.</td><td>Kanta No.</td><td>Freight Adv.</td><td>CD</td><td>GK</td><td>Amount</td><td></td></tr><tbody>");
-        for (int i = 0; i < DtData.Rows.Count; i++)
-        {
-            htmlTable.Append("<tr>");
-            htmlTable.Append("<td>" + (i + 1) + "</td>");
-            INVNo = GenInvoiceNo(DtData.Rows[i]["No"].ToString(), DtData.Rows[i]["DataDate"].ToString());
-            htmlTable.Append("<td>" + INVNo + ", " + Convert.ToDateTime(DtData.Rows[i]["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
-            htmlTable.Append("<td>" + DtData.Rows[i]["PartyName"].ToString() + "</td>");
-            htmlTable.Append("<td>" + DtData.Rows[i]["BrokerName"].ToString() + "</td>");
-            htmlTable.Append("<td>" + DtData.Rows[i]["SaudaNo"].ToString() + ", " + Convert.ToDateTime(DtData.Rows[i]["SaudaDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
-            htmlTable.Append("<td>" + DtData.Rows[i]["TruckNo"].ToString() + "</td>");
-            htmlTable.Append("<td>" + DtData.Rows[i]["KantaNo"].ToString() + "</td>");
-            htmlTable.Append("<td>" + DtData.Rows[i]["Advance"].ToString() + "</td>");
-            string[] calc = dataDisplay(DtData.Rows[i]["ID"].ToString()).Split('-');
-            if (calc[0].ToString().Trim() == "")
-            {
-                DtData.Rows[i]["Amount"] = "0";
-            }
-            else
-            {
-                DtData.Rows[i]["Amount"] = Math.Round(Convert.ToDouble(calc[0].ToString()), 0);
-            }
-            DtData.Rows[i]["CD"] = Math.Round(Convert.ToDouble(calc[1].ToString()), 0);
-            DtData.Rows[i]["GK"] = Math.Round(Convert.ToDouble(calc[2].ToString()), 0);
-            htmlTable.Append("<td>" + DtData.Rows[i]["CD"].ToString() + "</td>");
-            htmlTable.Append("<td>" + DtData.Rows[i]["GK"].ToString() + "</td>");
-            htmlTable.Append("<td>" + DtData.Rows[i]["Amount"].ToString() + "</td>");
-            htmlTable.Append("<td><a href='PurchaseBill.aspx?ID=" + DtData.Rows[i]["ID"].ToString() + "' target='_blank'>Purchase Bill</a></td></tr>");
-        }
-        Session["Export"] = null;
-        Session["Export"] = DtData;
-        htmlTable.Append("</tbody></table>");
-        DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
-    }
-    public string dataDisplay(string id)
-    {
-        string q = "";
-        param = new List<SqlParameter>();
-        param.Add(new SqlParameter("@ID", id));
-        q = "select * from [prabha].[Purchase_Master_Data] where ID=@ID";
-        dac = new DataAccessLayer();
-        Session["DataMain"] = dac.GetDataTable(q, param);
-
-        q = "";
-        param = new List<SqlParameter>();
-        param.Add(new SqlParameter("@ID", id));
-        q = "select * from [prabha].[Purchase_Item_Info] where Master_ID=@ID";
-        dac = new DataAccessLayer();
-        Session["Data"] = dac.GetDataTable(q, param);
-        double FAmount = 0;
-        double LCD = 0;
-        double LGK = 0;
-        if (Session["Data"] == null)
-        {
-            FAmount = 0;
-        }
-        else
-        {
-            dtMain = (DataTable)Session["DataMain"];
-            dt = (DataTable)Session["Data"];
-
-
-            int tBags = 0;
-            double KhRate = 0;
-            double MRate = 0;
-            double DRate = 0;
-            double DMixRate = 0;
-            double ORate = 0;
-
-            double am = 0;
-            double KhAmount = 0;
-            double MAmount = 0;
-            double DAmount = 0;
-            double DMixAmount = 0;
-            double OAmount = 0;
-
-            double tQuantity = 0;
-            double tAmount = 0;
-            double LClaim = 0;
-
-
-
-            for (int i = 0; i < dt.Rows.Count; i++)
-            {
-
-                am = Math.Round(Convert.ToDouble(dt.Rows[i]["FreshQuantity"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
-
-                if (Convert.ToDouble(dt.Rows[i]["KhakhriPer"].ToString()) <= 2)
-                {
-
-                    KhAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["KhakhriBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
-                }
-                else
-                {
-                    KhRate = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["KhakhriPer"].ToString()) - 2) / 100), 2);
-
-                    KhAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["KhakhriBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * KhRate, 2);
-                }
-
-                if (Convert.ToDouble(dt.Rows[i]["MittiPer"].ToString()) <= 0)
-                {
-
-                    MAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["MittiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
-                }
-                else
-                {
-                    MRate = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["MittiPer"].ToString()) - 0) / 100), 2);
-
-                    MAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["MittiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * MRate, 2);
-                }
-
-                if (Convert.ToDouble(dt.Rows[i]["DaagiPer"].ToString()) <= 0)
-                {
-
-                    DAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["DaagiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
-                }
-                else
-                {
-                    DRate = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["DaagiPer"].ToString()) - 0) / 100), 2);
-
-                    DAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["DaagiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * DRate, 2);
-                }
-
-
-                if (Convert.ToDouble(dt.Rows[i]["MixPer"].ToString()) <= 0)
-                {
-
-                    DMixAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["MixBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
-                }
-                else
-                {
-                    DMixRate = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["MixPer"].ToString()) - 0) / 100), 2);
-
-                    DMixAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["MixBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * DMixRate, 2);
-                }
-
-                if (Convert.ToDouble(dt.Rows[i]["OtherPer"].ToString()) <= 0)
-                {
-
-                    OAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["OtherBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
-                }
-                else
-                {
-                    ORate = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["OtherPer"].ToString()) - 0) / 100), 2);
-
-                    OAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["OtherBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * ORate, 2);
-                }
-
-                tBags += Convert.ToInt32(dt.Rows[i]["FreshQuantity"].ToString()) + Convert.ToInt32(dt.Rows[i]["KhakhriBags"].ToString()) + Convert.ToInt32(dt.Rows[i]["MittiBags"].ToString()) + Convert.ToInt32(dt.Rows[i]["DaagiBags"].ToString()) + Convert.ToInt32(dt.Rows[i]["MixBags"].ToString()) + Convert.ToInt32(dt.Rows[i]["OtherBags"].ToString());
-                tQuantity = Math.Round(tBags * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2);
-                tAmount += am + KhAmount + MAmount + DAmount + DMixAmount + OAmount;
-
-                int lt = 0;
-                if (dtMain.Rows[0]["PartyName"].ToString() == "SHIVAM BHANDAR (SUBODH JEE (Mobile No.: 9334280057)" || dtMain.Rows[0]["PartyName"].ToString() == "PRACHI TRADERS (MASURHI) (Mobile No.: 9334280057)" || dtMain.Rows[0]["PartyName"].ToString() == "Sankat Mochan Traders(Kunil jee) jahanabad (Mobile No.: 9334280057)")
-                {
-                    lt = 18;
-                }
-                else
-                {
-                    lt = 17;
-                }
-
-                if (Convert.ToDouble(dt.Rows[i]["Moisture"].ToString()) <= lt)
-                {
-                    LClaim += 0;
-                }
-                else
-                {
-                    LClaim += Math.Round((am + KhAmount + MAmount + DAmount + DMixAmount + OAmount) * (Convert.ToDouble(dt.Rows[i]["Moisture"].ToString()) - lt) / 100, 2);
-
-                }
-
-                if (i == (dt.Rows.Count - 1))
-                {
-                    LCD = Math.Round(tAmount * Convert.ToDouble(dtMain.Rows[0]["CD"].ToString()) / 100);
-
-                    LGK = Math.Round(tQuantity / 1000 * 25, 2);
-                    if (LGK <= 100)
-                    {
-                        LGK = 100;
-                    }
-                    double Frt = Convert.ToDouble(dtMain.Rows[0]["FreightOwn"].ToString());
-                    LClaim += (Convert.ToDouble(dtMain.Rows[0]["PTBags"].ToString()) * 0) + (Convert.ToDouble(dtMain.Rows[0]["JTBags"].ToString()) * 0);
-                    double PAmount = 0;
-                    PAmount = tAmount - LCD - LClaim - Frt;
-
-                    double LAdvance = Convert.ToDouble(dtMain.Rows[0]["Advance"].ToString());
-                    double OAdvance = 0;
-                    if (LAdvance == 0)
-                    {
-                        OAdvance = LGK;
-                    }
-                    else
-                    {
-                        OAdvance = LAdvance;
-                    }
-
-                    double Brok = Convert.ToDouble(dtMain.Rows[0]["Brokerage"].ToString());
-                    //double AGK = Math.Round(tQuantity / 1000 * 15, 2);
-                    //double pb = 0;
-
-                    FAmount = PAmount - OAdvance - Brok;
-
-
-
-                }
-
-
-            }
-
-        }
-        return FAmount + "-" + LCD + "-" + LGK;
-    }
+    /* ================================================================
+       GENERATE INVOICE NO — PURCHASE
+    ================================================================ */
     public string GenInvoiceNo(string a, string b)
     {
-        int mon = Convert.ToDateTime(b).Month;
-        int yr = Convert.ToDateTime(b).Year;
-        int yr1 = 0;
-        int yr2 = 0;
-
-        if (mon <= 3)
-        {
-            yr1 = yr - 1;
-            yr2 = yr;
-        }
-        else
-        {
-            yr1 = yr;
-            yr2 = yr + 1;
-        }
-
-        string invoiceNo = "";
-
-        if (a.Length == 1)
-        {
-            invoiceNo = "RR/PUR/" + yr1 + "-" + yr2 + "/000" + a;
-        }
-        else if (a.Length == 2)
-        {
-            invoiceNo = "RR/PUR/" + yr1 + "-" + yr2 + "/00" + a;
-        }
-        else if (a.Length == 3)
-        {
-            invoiceNo = "RR/PUR/" + yr1 + "-" + yr2 + "/0" + a;
-        }
-        else
-        {
-            invoiceNo = "RR/PUR/" + yr1 + "-" + yr2 + "/" + a;
-        }
-
-
-        return invoiceNo;
+        DateTime d = Convert.ToDateTime(b);
+        int mon = d.Month, yr = d.Year;
+        int yr1 = (mon <= 3) ? yr - 1 : yr;
+        int yr2 = (mon <= 3) ? yr : yr + 1;
+        return "RR/PUR/" + yr1 + "-" + yr2 + "/" + a.PadLeft(4, '0');
     }
+
+    /* ================================================================
+       GENERATE INVOICE NO — PAYMENT VOUCHER
+    ================================================================ */
+    public string GenInvoiceNoSale(string a, string b)
+    {
+        DateTime d = Convert.ToDateTime(b);
+        int mon = d.Month, yr = d.Year;
+        int yr1 = (mon <= 3) ? yr - 1 : yr;
+        int yr2 = (mon <= 3) ? yr : yr + 1;
+        return "RR/PV/" + yr1 + "-" + yr2 + "/" + a.PadLeft(4, '0');
+    }
+
+    /* ================================================================
+       EXPORT TO EXCEL
+    ================================================================ */
     public void Export_ServerClick(object sender, EventArgs e)
     {
+        string err = ServerValidate();
+        if (err != "")
+        {
+            ShowAlert(err);
+            return;
+        }
+
+        // If report not yet generated, generate first
+        if (Session["Export"] == null)
+            checkData();
 
         if (Session["Export"] == null)
         {
+            ShowAlert("No data to export. Please generate the report first.");
+            return;
+        }
 
+        DataTable EData = (DataTable)Session["Export"];
+
+        // Also pull payment data for the same period
+        param = new List<SqlParameter>();
+        string d1 = Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy");
+        string d2 = Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy");
+        string q;
+
+        if (sPartyName.SelectedItem.Text.Trim() == "--Select One--")
+        {
+            param.Add(new SqlParameter("@DataDate1", d1));
+            param.Add(new SqlParameter("@DataDate2", d2));
+            q = "select ID,[No],MPVNo as MPurNo,DataDate,PName as PartyName,PaymentMode as BrokerName," +
+                "'' as SaudaNo,convert(smalldatetime,'01/01/1990') as SaudaDate," +
+                "Bank as TruckNo,[Transaction] as KantaNo," +
+                "CAST('0' AS DECIMAL(10,2)) AS Advance," +
+                "convert(varchar,AmountPaid) as Amount,'' as CD,'' as GK " +
+                "from prabha.[Purchase_Payment_Info] " +
+                "where DataDate>=@DataDate1 and DataDate<=@DataDate2 order by DataDate";
         }
         else
         {
-            DataTable EData = (DataTable)Session["Export"];
-
-            DataTable DtDataF = new DataTable();
-            string q = "";
-            param = new List<SqlParameter>();//Emp_Id
-
-
-            if (sPartyName.SelectedItem.Text.Trim() == "--Select One--")
-            {
-                param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-                param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-                //ID,[No],MPurNo,DataDate,PartyName,BrokerName,SaudaNo,SaudaDate,TruckNo,KantaNo,Advance,Amount,CD,GK
-                q = "select ID,[No],MPVNo as MPurNo,DataDate,PName as PartyName,PaymentMode as BrokerName,'' as SaudaNo,convert(smalldatetime,'01/01/1990') as SaudaDate,Bank as TruckNo,[Transaction] as KantaNo,CAST('0' AS DECIMAL(10, 2)) AS Advance,convert(varchar,AmountPaid) as Amount,'' as CD,'' as GK from prabha.[Purchase_Payment_Info] where DataDate>=@DataDate1 and DataDate<=@DataDate2 order by DataDate";
-            }
-            else
-            {
-                param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-                param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-                param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
-
-                q = "select ID,[No],MPVNo as MPurNo,DataDate,PName as PartyName,PaymentMode as BrokerName,'' as SaudaNo,convert(smalldatetime,'01/01/1990') as SaudaDate,Bank as TruckNo,[Transaction] as KantaNo,CAST('0' AS DECIMAL(10, 2)) AS Advance,convert(varchar,AmountPaid) as Amount,'' as CD,'' as GK from prabha.[Purchase_Payment_Info] where DataDate>=@DataDate1 and DataDate<=@DataDate2 and PName=@PartyName order by DataDate";
-            }
-
-            dac = new DataAccessLayer();
-            DtDataF = dac.GetDataTable(q, param);
-
-            EData.Merge(DtDataF);
-
-            //string script = "alert('" + EData.Rows.Count + "');";
-            //ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
-            EData.DefaultView.Sort = "DataDate";
-            EData = EData.DefaultView.ToTable();
-            ExporttoExcel(EData);
+            param.Add(new SqlParameter("@DataDate1", d1));
+            param.Add(new SqlParameter("@DataDate2", d2));
+            param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
+            q = "select ID,[No],MPVNo as MPurNo,DataDate,PName as PartyName,PaymentMode as BrokerName," +
+                "'' as SaudaNo,convert(smalldatetime,'01/01/1990') as SaudaDate," +
+                "Bank as TruckNo,[Transaction] as KantaNo," +
+                "CAST('0' AS DECIMAL(10,2)) AS Advance," +
+                "convert(varchar,AmountPaid) as Amount,'' as CD,'' as GK " +
+                "from prabha.[Purchase_Payment_Info] " +
+                "where DataDate>=@DataDate1 and DataDate<=@DataDate2 and PName=@PartyName order by DataDate";
         }
 
+        dac = new DataAccessLayer();
+        DataTable DtDataF = dac.GetDataTable(q, param);
+
+        EData.Merge(DtDataF);
+        EData.DefaultView.Sort = "DataDate";
+        EData = EData.DefaultView.ToTable();
+
+        ExporttoExcel(EData);
     }
+
+    /* ================================================================
+       EXPORT HELPER
+    ================================================================ */
     private void ExporttoExcel(DataTable table)
     {
         HttpContext.Current.Response.Clear();
@@ -438,180 +459,64 @@ public partial class PurchaseReport : System.Web.UI.Page
         HttpContext.Current.Response.ClearHeaders();
         HttpContext.Current.Response.Buffer = true;
         HttpContext.Current.Response.ContentType = "application/ms-excel";
-        HttpContext.Current.Response.Write(@"<!DOCTYPE HTML PUBLIC ""-//W3C//DTD HTML 4.0 Transitional//EN"">");
-        HttpContext.Current.Response.AddHeader("Content-Disposition", "attachment;filename=Reports.xls");
-
+        HttpContext.Current.Response.AddHeader("Content-Disposition", "attachment;filename=PurchaseReport.xls");
         HttpContext.Current.Response.Charset = "utf-8";
         HttpContext.Current.Response.ContentEncoding = System.Text.Encoding.GetEncoding("windows-1250");
-        //sets font
-        HttpContext.Current.Response.Write("<font style='font-size:10.0pt; font-family:Calibri;'>");
-        HttpContext.Current.Response.Write("<BR><BR><BR>");
-        //sets the table border, cell spacing, border color, font of the text, background, foreground, font height
-        HttpContext.Current.Response.Write("<Table border='1' bgColor='#ffffff' " +
-          "borderColor='#000000' cellSpacing='0' cellPadding='0' " +
-          "style='font-size:10.0pt; font-family:Calibri; background:white;'> <TR>");
-        //am getting my grid's column headers
-        //write in new column
-        HttpContext.Current.Response.Write("<Td>");
-        //Get column headers  and make it as bold in excel columns
-        HttpContext.Current.Response.Write("<B>");
-        HttpContext.Current.Response.Write("Sl. No.");
-        HttpContext.Current.Response.Write("</B>");
-        HttpContext.Current.Response.Write("</Td>");
 
-        HttpContext.Current.Response.Write("<Td><B>Purchase/Payment No.</B></Td>");
-        HttpContext.Current.Response.Write("<Td><B>Manual No.</B></Td>");
-        HttpContext.Current.Response.Write("<Td><B>Invoice/Payment Date</B></Td>");
-        HttpContext.Current.Response.Write("<Td><B>Party Name</B></Td>");
-        HttpContext.Current.Response.Write("<Td><B>Sauda No. & Date</B></Td>");
-        HttpContext.Current.Response.Write("<Td><B>Vehicle No.</B></Td>");
-        HttpContext.Current.Response.Write("<Td><B>Kanta No.</B></Td>");
-        HttpContext.Current.Response.Write("<Td><B>Freight Adv.</B></Td>");
-        HttpContext.Current.Response.Write("<Td><B>CD</B></Td>");
-        HttpContext.Current.Response.Write("<Td><B>GK</B></Td>");
-        HttpContext.Current.Response.Write("<Td><B>Bill Amount</B></Td>");
-        HttpContext.Current.Response.Write("<Td><B>Paid Amount</B></Td>");
+        HttpContext.Current.Response.Write("<font style='font-size:10.0pt;font-family:Calibri;'>");
+        HttpContext.Current.Response.Write("<Table border='1' bgColor='#ffffff' borderColor='#000000' cellSpacing='0' cellPadding='0' style='font-size:10.0pt;font-family:Calibri;background:white;'><TR>");
+
+        // Headers
+        string[] headers = {
+            "Sl. No.", "Purchase/Payment No.", "Manual No.", "Invoice/Payment Date",
+            "Party Name", "Sauda No. & Date", "Vehicle No.", "Kanta No.",
+            "Freight Adv.", "CD", "GK", "Bill Amount", "Paid Amount"
+        };
+        foreach (string h in headers)
+            HttpContext.Current.Response.Write("<Td><B>" + h + "</B></Td>");
 
         HttpContext.Current.Response.Write("</TR>");
+
         int i = 0;
-        string InvoiceNo = "";
         foreach (DataRow row in table.Rows)
-        {//write in new row
-            i = i + 1;
-            if (row["SaudaNo"].ToString() == "")
+        {
+            i++;
+            bool isPayment = (row["SaudaNo"].ToString() == "");
+            string InvNo = isPayment
+                ? GenInvoiceNoSale(row["No"].ToString(), row["DataDate"].ToString())
+                : GenInvoiceNo(row["No"].ToString(), row["DataDate"].ToString());
+
+            HttpContext.Current.Response.Write("<TR>");
+            HttpContext.Current.Response.Write("<Td>" + i + "</Td>");
+            HttpContext.Current.Response.Write("<Td>" + InvNo + "</Td>");
+            HttpContext.Current.Response.Write("<Td>" + row["MPurNo"] + "</Td>");
+            HttpContext.Current.Response.Write("<Td>" + Convert.ToDateTime(row["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</Td>");
+            HttpContext.Current.Response.Write("<Td>" + row["PartyName"] + "</Td>");
+
+            if (isPayment)
             {
-                HttpContext.Current.Response.Write("<TR>");
+                HttpContext.Current.Response.Write("<Td colspan='3'>" + row["BrokerName"] + " (" + row["KantaNo"] + ")</Td>");
+                HttpContext.Current.Response.Write("<Td colspan='3'>" + row["TruckNo"] + "</Td>");
+                HttpContext.Current.Response.Write("<Td>&nbsp;</Td>");
+                HttpContext.Current.Response.Write("<Td>" + Math.Round(Convert.ToDouble(row["Amount"].ToString()), 2) + "</Td>");
             }
             else
             {
-                HttpContext.Current.Response.Write("<TR>");
-            }
-            HttpContext.Current.Response.Write("<Td>");
-            HttpContext.Current.Response.Write(i.ToString());
-            HttpContext.Current.Response.Write("<Td>");
-            if (row["SaudaNo"].ToString() == "")
-            {
-                InvoiceNo = GenInvoiceNoSale(row["No"].ToString(), row["DataDate"].ToString());
-            }
-            else
-            {
-                InvoiceNo = GenInvoiceNo(row["No"].ToString(), row["DataDate"].ToString());
-            }
-            HttpContext.Current.Response.Write(InvoiceNo);
-            HttpContext.Current.Response.Write("</Td>");
-            HttpContext.Current.Response.Write("<Td>");
-            HttpContext.Current.Response.Write(row["MPurNo"].ToString());
-            HttpContext.Current.Response.Write("</Td>");
-            HttpContext.Current.Response.Write("<Td>");
-            HttpContext.Current.Response.Write(Convert.ToDateTime(row["DataDate"].ToString()).ToString("dd/MM/yyyy"));
-            HttpContext.Current.Response.Write("</Td>");
-            HttpContext.Current.Response.Write("<Td>");
-            HttpContext.Current.Response.Write(row["PartyName"].ToString());
-            HttpContext.Current.Response.Write("</Td>");
-
-            if (row["SaudaNo"].ToString() == "")
-            {
-                HttpContext.Current.Response.Write("<Td colspan='3'>");
-                HttpContext.Current.Response.Write(row["BrokerName"].ToString() + " (" + row["KantaNo"].ToString() + ")");
-                HttpContext.Current.Response.Write("</Td>");
-            }
-            else
-            {
-                HttpContext.Current.Response.Write("<Td>");
-                HttpContext.Current.Response.Write(row["SaudaNo"].ToString() + ", " + Convert.ToDateTime(row["SaudaDate"].ToString()).ToString("dd/MM/yyyy"));
-                HttpContext.Current.Response.Write("</Td>");
-                HttpContext.Current.Response.Write("<Td>");
-                HttpContext.Current.Response.Write(row["TruckNo"].ToString());
-                HttpContext.Current.Response.Write("</Td>");
-                HttpContext.Current.Response.Write("<Td>");
-                HttpContext.Current.Response.Write(row["KantaNo"].ToString());
-                HttpContext.Current.Response.Write("</Td>");
+                HttpContext.Current.Response.Write("<Td>" + row["SaudaNo"] + ", " + Convert.ToDateTime(row["SaudaDate"].ToString()).ToString("dd/MM/yyyy") + "</Td>");
+                HttpContext.Current.Response.Write("<Td>" + row["TruckNo"] + "</Td>");
+                HttpContext.Current.Response.Write("<Td>" + row["KantaNo"] + "</Td>");
+                HttpContext.Current.Response.Write("<Td>" + Math.Round(Convert.ToDouble(row["Advance"].ToString()), 0) + "</Td>");
+                HttpContext.Current.Response.Write("<Td>" + Math.Round(Convert.ToDouble(row["CD"].ToString()), 2) + "</Td>");
+                HttpContext.Current.Response.Write("<Td>" + Math.Round(Convert.ToDouble(row["GK"].ToString()), 2) + "</Td>");
+                HttpContext.Current.Response.Write("<Td>" + Math.Round(Convert.ToDouble(row["Amount"].ToString()), 2) + "</Td>");
+                HttpContext.Current.Response.Write("<Td>&nbsp;</Td>");
             }
 
-            if (row["SaudaNo"].ToString() == "")
-            {
-                HttpContext.Current.Response.Write("<Td colspan='3'>");
-                HttpContext.Current.Response.Write(row["TruckNo"].ToString());
-                HttpContext.Current.Response.Write("</Td>");
-            }
-            else
-            {
-                HttpContext.Current.Response.Write("<Td>");
-                HttpContext.Current.Response.Write(Math.Round(Convert.ToDouble(row["Advance"].ToString()), 0));
-
-                HttpContext.Current.Response.Write("</Td>");
-                HttpContext.Current.Response.Write("<Td>");
-                HttpContext.Current.Response.Write(Math.Round(Convert.ToDouble(row["CD"].ToString()), 2).ToString());
-
-                HttpContext.Current.Response.Write("</Td>");
-                HttpContext.Current.Response.Write("<Td>");
-                HttpContext.Current.Response.Write(Math.Round(Convert.ToDouble(row["GK"].ToString()), 2).ToString());
-
-                HttpContext.Current.Response.Write("</Td>");
-            }
-            if (row["SaudaNo"].ToString() == "")
-            {
-                HttpContext.Current.Response.Write("<Td>");
-                HttpContext.Current.Response.Write("&nbsp;");
-                HttpContext.Current.Response.Write("</Td>");
-                HttpContext.Current.Response.Write("<Td>");
-                HttpContext.Current.Response.Write(Math.Round(Convert.ToDouble(row["Amount"].ToString()), 2).ToString());
-                HttpContext.Current.Response.Write("</Td>");
-            }
-            else
-            {
-                HttpContext.Current.Response.Write("<Td>");
-                HttpContext.Current.Response.Write(Math.Round(Convert.ToDouble(row["Amount"].ToString()), 2).ToString());
-                HttpContext.Current.Response.Write("</Td>");
-                HttpContext.Current.Response.Write("<Td>");
-                HttpContext.Current.Response.Write("&nbsp;");
-                HttpContext.Current.Response.Write("</Td>");
-            }
             HttpContext.Current.Response.Write("</TR>");
         }
-        HttpContext.Current.Response.Write("</Table>");
-        HttpContext.Current.Response.Write("</font>");
+
+        HttpContext.Current.Response.Write("</Table></font>");
         HttpContext.Current.Response.Flush();
         HttpContext.Current.Response.End();
-    }
-    public string GenInvoiceNoSale(string a, string b)
-    {
-        int mon = Convert.ToDateTime(b).Month;
-        int yr = Convert.ToDateTime(b).Year;
-        int yr1 = 0;
-        int yr2 = 0;
-
-        if (mon <= 3)
-        {
-            yr1 = yr - 1;
-            yr2 = yr;
-        }
-        else
-        {
-            yr1 = yr;
-            yr2 = yr + 1;
-        }
-
-        string invoiceNo = "";
-
-        if (a.Length == 1)
-        {
-            invoiceNo = "RR/PV/" + yr1 + "-" + yr2 + "/000" + a;
-        }
-        else if (a.Length == 2)
-        {
-            invoiceNo = "RR/PV/" + yr1 + "-" + yr2 + "/00" + a;
-        }
-        else if (a.Length == 3)
-        {
-            invoiceNo = "RR/PV/" + yr1 + "-" + yr2 + "/0" + a;
-        }
-        else
-        {
-            invoiceNo = "RR/PV/" + yr1 + "-" + yr2 + "/" + a;
-        }
-
-
-        return invoiceNo;
     }
 }

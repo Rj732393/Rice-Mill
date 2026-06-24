@@ -145,22 +145,48 @@ textarea:focus{
     box-shadow:0 0 0 4px rgba(249,115,22,0.12) !important;
 }
 
+/* ===== VALIDATION ===== */
+
+.val-msg{
+    color:#dc2626;
+    font-size:12px;
+    margin-top:4px;
+    display:none;
+}
+
+.val-msg.show{
+    display:block;
+}
+
+.field-error{
+    border-color:#dc2626 !important;
+    box-shadow:0 0 0 3px rgba(220,38,38,0.10) !important;
+}
+
 /* ===== BUTTON ===== */
 
 .btn-card{
-    background:#f97316;
+    background:linear-gradient(135deg,#16a34a,#15803d);
     color:white !important;
     border:none;
-    border-radius:30px;
-    padding:12px 28px;
+    border-radius:50px;
+    padding:12px 30px;
     font-size:15px;
-    font-weight:bold;
-    transition:0.3s;
+    font-weight:700;
+    letter-spacing:0.5px;
+    box-shadow:0 8px 20px rgba(37,99,235,0.35);
+    transition:all 0.3s ease;
 }
 
 .btn-card:hover{
-    background:#ea580c;
-    color:white !important;
+   background:linear-gradient(135deg,#15803d,#166534);
+    transform:translateY(-2px);
+    box-shadow:0 12px 25px rgba(37,99,235,0.45);
+    color:#fff !important;
+}
+
+.btn-card i{
+    margin-left:8px;
 }
 
 /* ===== TABLE ===== */
@@ -234,6 +260,151 @@ textarea:focus{
 
     }
 
+    /* ===== CLIENT-SIDE VALIDATION ===== */
+
+    function validateContinue() {
+
+        var valid = true;
+
+        /* Date */
+        var sdate = $.trim($("#<%= sdate.ClientID %>").val());
+        if (sdate === "") {
+            $("#errDate").text("Date zaroori hai.").addClass("show");
+            $("#<%= sdate.ClientID %>").addClass("field-error");
+            valid = false;
+        } else {
+            var d = new Date(sdate);
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (isNaN(d.getTime())) {
+                $("#errDate").text("Valid date enter karein.").addClass("show");
+                $("#<%= sdate.ClientID %>").addClass("field-error");
+                valid = false;
+            } else if (d > today) {
+                $("#errDate").text("Future date allowed nahi hai.").addClass("show");
+                $("#<%= sdate.ClientID %>").addClass("field-error");
+                valid = false;
+            } else {
+                $("#errDate").text("").removeClass("show");
+                $("#<%= sdate.ClientID %>").removeClass("field-error");
+            }
+        }
+
+        /* Supplier Ref */
+        var emp = $.trim($("#<%= txtEmpName.ClientID %>").val());
+        if (emp === "") {
+            $("#errEmp").text("Supplier Ref. zaroori hai.").addClass("show");
+            $("#<%= txtEmpName.ClientID %>").addClass("field-error");
+            valid = false;
+        } else {
+            $("#errEmp").text("").removeClass("show");
+            $("#<%= txtEmpName.ClientID %>").removeClass("field-error");
+        }
+
+        /* Party - Other selected ho to panel fields check */
+        var partyVal = $.trim($("#<%= sPartyName.ClientID %> option:selected").text());
+        if (partyVal === "Other") {
+
+            var pname = $.trim($("#<%= pName.ClientID %>").val());
+            if (pname === "") {
+                $("#errPName").text("Party Name zaroori hai.").addClass("show");
+                $("#<%= pName.ClientID %>").addClass("field-error");
+                valid = false;
+            } else {
+                $("#errPName").text("").removeClass("show");
+                $("#<%= pName.ClientID %>").removeClass("field-error");
+            }
+
+            var pmn = $.trim($("#<%= pMN.ClientID %>").val());
+            if (pmn === "") {
+                $("#errPMN").text("Mobile No. zaroori hai.").addClass("show");
+                $("#<%= pMN.ClientID %>").addClass("field-error");
+                valid = false;
+            } else {
+                $("#errPMN").text("").removeClass("show");
+                $("#<%= pMN.ClientID %>").removeClass("field-error");
+            }
+
+            var pgst = $.trim($("#<%= pGST.ClientID %>").val());
+            if (pgst === "") {
+                $("#errPGST").text("GSTIN zaroori hai.").addClass("show");
+                $("#<%= pGST.ClientID %>").addClass("field-error");
+                valid = false;
+            } else {
+                $("#errPGST").text("").removeClass("show");
+                $("#<%= pGST.ClientID %>").removeClass("field-error");
+            }
+
+            var ppan = $.trim($("#<%= pPAN.ClientID %>").val());
+            if (ppan === "") {
+                $("#errPPAN").text("PAN zaroori hai.").addClass("show");
+                $("#<%= pPAN.ClientID %>").addClass("field-error");
+                valid = false;
+            } else {
+                $("#errPPAN").text("").removeClass("show");
+                $("#<%= pPAN.ClientID %>").removeClass("field-error");
+            }
+
+            var paddr = $.trim($("#<%= pAddress.ClientID %>").val());
+            if (paddr === "") {
+                $("#errPAddr").text("Address zaroori hai.").addClass("show");
+                $("#<%= pAddress.ClientID %>").addClass("field-error");
+                valid = false;
+            } else {
+                $("#errPAddr").text("").removeClass("show");
+                $("#<%= pAddress.ClientID %>").removeClass("field-error");
+            }
+
+        }
+
+        /* Quantity */
+        var qikg = $.trim($("#<%= QIKG.ClientID %>").val());
+        if (qikg === "") {
+            $("#errQIKG").text("Quantity zaroori hai.").addClass("show");
+            $("#<%= QIKG.ClientID %>").addClass("field-error");
+            valid = false;
+        } else if (isNaN(qikg) || parseFloat(qikg) <= 0) {
+            $("#errQIKG").text("Quantity ek positive number hona chahiye.").addClass("show");
+            $("#<%= QIKG.ClientID %>").addClass("field-error");
+            valid = false;
+        } else {
+            $("#errQIKG").text("").removeClass("show");
+            $("#<%= QIKG.ClientID %>").removeClass("field-error");
+        }
+
+        /* Rate */
+        var rate = $.trim($("#<%= avgrate.ClientID %>").val());
+        if (rate === "") {
+            $("#errRate").text("Rate zaroori hai.").addClass("show");
+            $("#<%= avgrate.ClientID %>").addClass("field-error");
+            valid = false;
+        } else if (isNaN(rate) || parseFloat(rate) <= 0) {
+            $("#errRate").text("Rate ek positive number hona chahiye.").addClass("show");
+            $("#<%= avgrate.ClientID %>").addClass("field-error");
+            valid = false;
+        } else {
+            $("#errRate").text("").removeClass("show");
+            $("#<%= avgrate.ClientID %>").removeClass("field-error");
+        }
+
+        return valid;
+
+    }
+
+    function validateSave() {
+
+        var tableDiv = document.getElementById("prntContent");
+        if (tableDiv) {
+            var tables = tableDiv.getElementsByTagName("table");
+            if (tables.length === 0) {
+                alert("Pehle data add karein, phir save karein!");
+                return false;
+            }
+        }
+        return true;
+
+    }
+
 </script>
 
 </head>
@@ -272,7 +443,7 @@ textarea:focus{
 
                         <div class="input-group-custom">
 
-                            <label>Select Date</label>
+                            <label>Select Date <span style="color:#dc2626;">*</span></label>
 
                             <div class="input-box">
 
@@ -280,9 +451,12 @@ textarea:focus{
 
                                 <input id="sdate"
                                     runat="server"
+                                    required
                                     class="form-control" />
 
                             </div>
+
+                            <span id="errDate" class="val-msg"></span>
 
                         </div>
 
@@ -313,7 +487,7 @@ textarea:focus{
 
                         <div class="input-group-custom">
 
-                            <label>Supplier Ref.</label>
+                            <label>Supplier Ref. <span style="color:#dc2626;">*</span></label>
 
                             <div class="input-box">
 
@@ -321,10 +495,13 @@ textarea:focus{
 
                                 <asp:TextBox ID="txtEmpName"
                                     runat="server"
+                                    required="required"
                                     CssClass="form-control">
                                 </asp:TextBox>
 
                             </div>
+
+                            <span id="errEmp" class="val-msg"></span>
 
                         </div>
 
@@ -340,7 +517,7 @@ textarea:focus{
 
                         <div class="input-group-custom">
 
-                            <label>Party Name</label>
+                            <label>Party Name <span style="color:#dc2626;">*</span></label>
 
                             <div class="input-box">
 
@@ -386,7 +563,7 @@ textarea:focus{
 
                             <div class="input-group-custom">
 
-                                <label>Party Name</label>
+                                <label>Party Name <span style="color:#dc2626;">*</span></label>
 
                                 <div class="input-box">
 
@@ -395,9 +572,12 @@ textarea:focus{
                                     <input id="pName"
                                         type="text"
                                         runat="server"
+                                        required
                                         class="form-control" />
 
                                 </div>
+
+                                <span id="errPName" class="val-msg"></span>
 
                             </div>
 
@@ -407,7 +587,7 @@ textarea:focus{
 
                             <div class="input-group-custom">
 
-                                <label>Party Mobile No.</label>
+                                <label>Party Mobile No. <span style="color:#dc2626;">*</span></label>
 
                                 <div class="input-box">
 
@@ -415,9 +595,12 @@ textarea:focus{
 
                                     <input id="pMN"
                                         runat="server"
+                                        required
                                         class="form-control" />
 
                                 </div>
+
+                                <span id="errPMN" class="val-msg"></span>
 
                             </div>
 
@@ -431,7 +614,7 @@ textarea:focus{
 
                             <div class="input-group-custom">
 
-                                <label>Party GSTIN</label>
+                                <label>Party GSTIN <span style="color:#dc2626;">*</span></label>
 
                                 <div class="input-box">
 
@@ -440,9 +623,12 @@ textarea:focus{
                                     <input id="pGST"
                                         runat="server"
                                         type="text"
+                                        required
                                         class="form-control" />
 
                                 </div>
+
+                                <span id="errPGST" class="val-msg"></span>
 
                             </div>
 
@@ -452,7 +638,7 @@ textarea:focus{
 
                             <div class="input-group-custom">
 
-                                <label>Party PAN</label>
+                                <label>Party PAN <span style="color:#dc2626;">*</span></label>
 
                                 <div class="input-box">
 
@@ -461,9 +647,12 @@ textarea:focus{
                                     <input id="pPAN"
                                         runat="server"
                                         type="text"
+                                        required
                                         class="form-control" />
 
                                 </div>
+
+                                <span id="errPPAN" class="val-msg"></span>
 
                             </div>
 
@@ -477,7 +666,7 @@ textarea:focus{
 
                             <div class="input-group-custom">
 
-                                <label>Party Address</label>
+                                <label>Party Address <span style="color:#dc2626;">*</span></label>
 
                                 <div class="input-box">
 
@@ -486,9 +675,12 @@ textarea:focus{
                                     <textarea id="pAddress"
                                         runat="server"
                                         rows="3"
+                                        required
                                         class="form-control"></textarea>
 
                                 </div>
+
+                                <span id="errPAddr" class="val-msg"></span>
 
                             </div>
 
@@ -506,7 +698,7 @@ textarea:focus{
 
                         <div class="input-group-custom">
 
-                            <label>Item Type</label>
+                            <label>Item Type <span style="color:#dc2626;">*</span></label>
 
                             <div class="input-box">
 
@@ -514,8 +706,10 @@ textarea:focus{
 
                                 <select id="sPaddyType"
                                     runat="server"
+                                    required
                                     class="form-control">
 
+                                    <option value="">-- Select Item --</option>
                                     <option>Arwa Rice</option>
                                     <option>Rashmi Ka 7 Star</option>
                                     <option>Rashmi Ka Sonam</option>
@@ -545,7 +739,7 @@ textarea:focus{
 
                         <div class="input-group-custom">
 
-                            <label>Quantity (KG)</label>
+                            <label>Quantity (KG) <span style="color:#dc2626;">*</span></label>
 
                             <div class="input-box">
 
@@ -553,9 +747,12 @@ textarea:focus{
 
                                 <input id="QIKG"
                                     runat="server"
+                                    required
                                     class="form-control" />
 
                             </div>
+
+                            <span id="errQIKG" class="val-msg"></span>
 
                         </div>
 
@@ -565,7 +762,7 @@ textarea:focus{
 
                         <div class="input-group-custom">
 
-                            <label>Rate (₹)</label>
+                            <label>Rate (&#8377;) <span style="color:#dc2626;">*</span></label>
 
                             <div class="input-box">
 
@@ -573,9 +770,12 @@ textarea:focus{
 
                                 <input id="avgrate"
                                     runat="server"
+                                    required
                                     class="form-control" />
 
                             </div>
+
+                            <span id="errRate" class="val-msg"></span>
 
                         </div>
 
@@ -593,7 +793,8 @@ textarea:focus{
                         value="Click To Add"
                         runat="server"
                         class="btn btn-card"
-                        onserverclick="btnContinue_ServerClick" />
+                        onserverclick="btnContinue_ServerClick"
+                        onclientclick="return validateContinue();" />
 
                     &nbsp;&nbsp;
 
@@ -611,7 +812,8 @@ textarea:focus{
                         value="Click To Save"
                         runat="server"
                         class="btn btn-card"
-                        onserverclick="btnSave_ServerClick" />
+                        onserverclick="btnSave_ServerClick"
+                        onclientclick="return validateSave();" />
 
                 </div>
 

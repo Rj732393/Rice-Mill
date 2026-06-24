@@ -1,4 +1,4 @@
-<%@ Page Language="C#" AutoEventWireup="true"
+﻿<%@ Page Language="C#" AutoEventWireup="true"
     CodeFile="PurchaseSauda.aspx.cs"
     Inherits="PurchaseSauda" %>
 
@@ -299,7 +299,8 @@ select:focus{
 
                                 <input id="sdate"
                                     runat="server"
-                                    class="form-control" />
+                                    class="form-control"
+                                    required />
 
                             </div>
 
@@ -340,7 +341,8 @@ select:focus{
 
                                 <asp:TextBox ID="txtEmpName"
                                     runat="server"
-                                    CssClass="form-control">
+                                    CssClass="form-control"
+                                    required>
                                 </asp:TextBox>
 
                             </div>
@@ -368,7 +370,8 @@ select:focus{
                                     runat="server"
                                     CssClass="form-control"
                                     AutoPostBack="true"
-                                    onselectedindexchanged="sPartyName_SelectedIndexChanged">
+                                    onselectedindexchanged="sPartyName_SelectedIndexChanged"
+                                    required>
                                 </asp:DropDownList>
 
                             </div>
@@ -411,7 +414,8 @@ select:focus{
                                     <input id="pName"
                                         runat="server"
                                         type="text"
-                                        class="form-control" />
+                                        class="form-control"
+                                        required />
 
                                 </div>
 
@@ -431,7 +435,8 @@ select:focus{
 
                                     <input id="pMN"
                                         runat="server"
-                                        class="form-control" />
+                                        class="form-control"
+                                        required />
 
                                 </div>
 
@@ -458,7 +463,8 @@ select:focus{
 
                                 <select id="sPaddyType"
                                     runat="server"
-                                    class="form-control">
+                                    class="form-control"
+                                    required>
 
                                     <option>Rupali</option>
                                     <option>Mansuri</option>
@@ -485,7 +491,8 @@ select:focus{
 
                                 <input id="QIKG"
                                     runat="server"
-                                    class="form-control" />
+                                    class="form-control"
+                                    required />
 
                             </div>
 
@@ -505,7 +512,8 @@ select:focus{
 
                                 <input id="avgrate"
                                     runat="server"
-                                    class="form-control" />
+                                    class="form-control"
+                                    required />
 
                             </div>
 

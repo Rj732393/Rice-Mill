@@ -60,107 +60,162 @@ public partial class PurchaseSauda : System.Web.UI.Page
     }
     public void Submit1_ServerClick(object sender, EventArgs e)
     {
-        Session["Data"] = null;
-        Session["DataMain"] = null;
-        dataDisplay();
+        try
+        {
+            Session["Data"] = null;
+            Session["DataMain"] = null;
+            dataDisplay();
+        }
+        catch (Exception)
+        {
+            ShowAlert("Kuch error aa gaya, page reload karein!!");
+        }
     }
     public void btnSave_ServerClick(object sender, EventArgs e)
     {
-        if (Session["Data"] == null)
+        try
         {
-            script = "alert('Please add atleast one data!!');";
-            ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
+            if (Session["Data"] == null)
+            {
+                ShowAlert("Please add atleast one data!!");
+            }
+            else if (Session["User"] == null)
+            {
+                ShowAlert("Your Sessioin has expired!!");
+            }
+            else
+            {
+                insertPurchaseData();
+                dataDisplay();
+                CallPrint("prntContent");
+            }
         }
-        else if (Session["User"] == null)
+        catch (Exception)
         {
-            script = "alert('Your Sessioin has expired!!');";
-            ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
+            ShowAlert("Save karte waqt error aa gaya, dobara try karein!!");
         }
-        else
-        {
-            insertPurchaseData();
-            dataDisplay();
-            CallPrint("prntContent");
-        }
-
     }
     public void btnContinue_ServerClick(object sender, EventArgs e)
     {
-        int chk = PartyValidation();
-        if (chk == 1)
+        try
         {
-            dtMain = new DataTable();
-            dtMain.Columns.Add("No", typeof(string));
-            dtMain.Columns.Add("DataDate", typeof(string));
-            dtMain.Columns.Add("MNo", typeof(string));
-            dtMain.Columns.Add("PartyName", typeof(string));
-            dtMain.Columns.Add("BrokerName", typeof(string));
+            // ===== Server-side safety checks (prevents crash if a field is empty/invalid) =====
 
-            rmain = dtMain.NewRow();
-            rmain[0] = GenInvoiceNo();
-            rmain[1] = Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy");
-            rmain[2] = MPNo.Value.Trim();
-            if (sPartyName.SelectedItem.Text.Trim() == "Other")
+            if (string.IsNullOrWhiteSpace(sdate.Value) || chkDate() == 1)
             {
-                rmain[3] = pName.Value.Trim() + " (Mobile No.: " + pMN.Value.Trim() + ")";
+                ShowAlert("Sahi Date select karein!!");
+                return;
             }
-            else
+
+            if (string.IsNullOrWhiteSpace(txtEmpName.Text))
             {
-                rmain[3] = sPartyName.SelectedItem.Text.Trim();
+                ShowAlert("Supplier Ref. zaroori hai!!");
+                return;
             }
-            rmain[4] = txtEmpName.Text.Trim();
 
-            dtMain.Rows.Add(rmain);
-            Session["DataMain"] = null;
-            Session["DataMain"] = dtMain;
-
-            if (Session["Data"] == null)
+            if (sPartyName.SelectedItem == null || string.IsNullOrWhiteSpace(sPartyName.SelectedItem.Text))
             {
-                DataTable dtData = new DataTable();
-                dtData.Columns.Add("PaddyType", typeof(string));
-                dtData.Columns.Add("QIKG", typeof(string));
-                dtData.Columns.Add("Rate", typeof(string));
-
-                dtRow = dtData.NewRow();
-                dtRow[0] = sPaddyType.Value.Trim();
-                dtRow[1] = QIKG.Value.Trim();
-                dtRow[2] = avgrate.Value.Trim();
-                dtData.Rows.Add(dtRow);
-                Session["Data"] = null;
-                Session["Data"] = dtData;
+                ShowAlert("Party Name select karein!!");
+                return;
             }
-            else
-            {
-                DataTable dtData = (DataTable)Session["Data"];
 
-                for (int i = dtData.Rows.Count - 1; i >= 0; i--)
+            if (string.IsNullOrWhiteSpace(sPaddyType.Value))
+            {
+                ShowAlert("Paddy Type select karein!!");
+                return;
+            }
+
+            double qtyCheck;
+            if (string.IsNullOrWhiteSpace(QIKG.Value) || !double.TryParse(QIKG.Value.Trim(), out qtyCheck) || qtyCheck <= 0)
+            {
+                ShowAlert("Quantity ek valid positive number honi chahiye!!");
+                return;
+            }
+
+            double rateCheck;
+            if (string.IsNullOrWhiteSpace(avgrate.Value) || !double.TryParse(avgrate.Value.Trim(), out rateCheck) || rateCheck <= 0)
+            {
+                ShowAlert("Rate ek valid positive number honi chahiye!!");
+                return;
+            }
+
+            int chk = PartyValidation();
+            if (chk == 1)
+            {
+                dtMain = new DataTable();
+                dtMain.Columns.Add("No", typeof(string));
+                dtMain.Columns.Add("DataDate", typeof(string));
+                dtMain.Columns.Add("MNo", typeof(string));
+                dtMain.Columns.Add("PartyName", typeof(string));
+                dtMain.Columns.Add("BrokerName", typeof(string));
+
+                rmain = dtMain.NewRow();
+                rmain[0] = GenInvoiceNo();
+                rmain[1] = Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy");
+                rmain[2] = MPNo.Value.Trim();
+                if (sPartyName.SelectedItem.Text.Trim() == "Other")
                 {
-                    DataRow dr = dtData.Rows[i];
-                    if (dr["PaddyType"] == sPaddyType.Value.Trim())
-                        dr.Delete();
+                    rmain[3] = pName.Value.Trim() + " (Mobile No.: " + pMN.Value.Trim() + ")";
                 }
-                dtData.AcceptChanges();
+                else
+                {
+                    rmain[3] = sPartyName.SelectedItem.Text.Trim();
+                }
+                rmain[4] = txtEmpName.Text.Trim();
 
-                dtRow = dtData.NewRow();
-                dtRow[0] = sPaddyType.Value.Trim();
-                dtRow[1] = QIKG.Value.Trim();
-                dtRow[2] = avgrate.Value.Trim();
+                dtMain.Rows.Add(rmain);
+                Session["DataMain"] = null;
+                Session["DataMain"] = dtMain;
 
-                dtData.Rows.Add(dtRow);
-                Session["Data"] = null;
-                Session["Data"] = dtData;
+                if (Session["Data"] == null)
+                {
+                    DataTable dtData = new DataTable();
+                    dtData.Columns.Add("PaddyType", typeof(string));
+                    dtData.Columns.Add("QIKG", typeof(string));
+                    dtData.Columns.Add("Rate", typeof(string));
+
+                    dtRow = dtData.NewRow();
+                    dtRow[0] = sPaddyType.Value.Trim();
+                    dtRow[1] = QIKG.Value.Trim();
+                    dtRow[2] = avgrate.Value.Trim();
+                    dtData.Rows.Add(dtRow);
+                    Session["Data"] = null;
+                    Session["Data"] = dtData;
+                }
+                else
+                {
+                    DataTable dtData = (DataTable)Session["Data"];
+
+                    for (int i = dtData.Rows.Count - 1; i >= 0; i--)
+                    {
+                        DataRow dr = dtData.Rows[i];
+                        if (dr["PaddyType"] == sPaddyType.Value.Trim())
+                            dr.Delete();
+                    }
+                    dtData.AcceptChanges();
+
+                    dtRow = dtData.NewRow();
+                    dtRow[0] = sPaddyType.Value.Trim();
+                    dtRow[1] = QIKG.Value.Trim();
+                    dtRow[2] = avgrate.Value.Trim();
+
+                    dtData.Rows.Add(dtRow);
+                    Session["Data"] = null;
+                    Session["Data"] = dtData;
+                }
+
+
+                dataDisplay();
             }
-
-
-            dataDisplay();
+            else
+            {
+                ShowAlert("Please fill all filed of Party!!");
+            }
         }
-        else
+        catch (Exception)
         {
-
-            script = "alert('Please fill all filed of Party!!');";
-            ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
+            ShowAlert("Data add karte waqt error aa gaya, sab field check karein!!");
         }
-
     }
 
     public int chkDate()
@@ -184,60 +239,67 @@ public partial class PurchaseSauda : System.Web.UI.Page
     public void dataDisplay()
     {
         StringBuilder htmlTable;
-        if (Session["Data"] == null)
+        try
         {
-            htmlTable = new StringBuilder();
-            htmlTable.Append("<table class='table' cellspacing='0'>");
-            htmlTable.Append("<tr><td align='center'>No Data Added...</td></tr></table>");
-        }
-        else
-        {
-            dtMain = (DataTable)Session["DataMain"];
-            dt = (DataTable)Session["Data"];
-
-
-            htmlTable = new StringBuilder();
-            htmlTable.Append("<table class='table' runat='server' style='font-size:10pt; noWrap' id='printTable' cellspacing='0' border='1px'>");
-
-            htmlTable.Append("<tr><td colspan='3' align='center'><span style='display:table-cell; vertical-align:top;'><img src='http://prabhasoftware.com/Rashmi Rice Logo (1).png' height='100px'/></span><span style='display:table-cell; vertical-align:top;'><span style='font-size:16pt; font-weight:bold;'> Rashmi Rice Mills Pvt. Ltd. </span></br><span style='font-size:8pt;'>Daniyawan Chandi Road, Hasanpur, Patna- 801304 </br>Mob.: 9304052349, 9334280057</br>Email: srirajbhog@gmail.com</br>CIN: U15312BR2014PTC022237</br>PAN No.: AAGCR9497P</br>GSTIN: 10AAGCR9497P1ZK</span></span></td></tr>");
-            htmlTable.Append("<tr><td colspan='3' align='center'><span style='font-size:10pt; font-weight:bold;'>PURCHASE SAUDA REPORT </span></td></tr>");
-
-
-            string source = dtMain.Rows[0]["PartyName"].ToString();
-            string[] stringSeparators = new string[] { " (Mobile No.: " };
-            var result = source.Split(stringSeparators, StringSplitOptions.None);
-
-            string Pname = result[0];
-            string PMobile = result[1].Substring(0, (result[1].Length - 1));
-            htmlTable.Append("<tr><td align='left' rowspan='3' valign='top'><b>Party Details:</b></br>" + Pname + "</br>Mobile No.: " + PMobile + "</td>");
-            if (dtMain.Rows[0]["MNo"].ToString() == "")
+            if (Session["Data"] == null)
             {
-                htmlTable.Append("<td colspan='2' align='left'>Sauda No.: <b>" + dtMain.Rows[0]["No"].ToString() + "</b></td></tr>");
+                htmlTable = new StringBuilder();
+                htmlTable.Append("<table class='table' cellspacing='0'>");
+                htmlTable.Append("<tr><td align='center'>No Data Added...</td></tr></table>");
             }
             else
             {
-                htmlTable.Append("<td colspan='2' align='left'>Sauda No.: <b>" + dtMain.Rows[0]["No"].ToString() + "</b></br>Manual Sauda No.: <b>" + dtMain.Rows[0]["MNo"].ToString() + "</b></td></tr>");
+                dtMain = (DataTable)Session["DataMain"];
+                dt = (DataTable)Session["Data"];
+
+
+                htmlTable = new StringBuilder();
+                htmlTable.Append("<table class='table' runat='server' style='font-size:10pt; noWrap' id='printTable' cellspacing='0' border='1px'>");
+
+                htmlTable.Append("<tr><td colspan='3' align='center'><span style='display:table-cell; vertical-align:top;'><img src='http://prabhasoftware.com/Rashmi Rice Logo (1).png' height='100px'/></span><span style='display:table-cell; vertical-align:top;'><span style='font-size:16pt; font-weight:bold;'> Rashmi Rice Mills Pvt. Ltd. </span></br><span style='font-size:8pt;'>Daniyawan Chandi Road, Hasanpur, Patna- 801304 </br>Mob.: 9304052349, 9334280057</br>Email: srirajbhog@gmail.com</br>CIN: U15312BR2014PTC022237</br>PAN No.: AAGCR9497P</br>GSTIN: 10AAGCR9497P1ZK</span></span></td></tr>");
+                htmlTable.Append("<tr><td colspan='3' align='center'><span style='font-size:10pt; font-weight:bold;'>PURCHASE SAUDA REPORT </span></td></tr>");
+
+
+                string source = dtMain.Rows[0]["PartyName"].ToString();
+                string[] stringSeparators = new string[] { " (Mobile No.: " };
+                var result = source.Split(stringSeparators, StringSplitOptions.None);
+
+                string Pname = result[0];
+                string PMobile = result.Length > 1 ? result[1].Substring(0, (result[1].Length - 1)) : "";
+                htmlTable.Append("<tr><td align='left' rowspan='3' valign='top'><b>Party Details:</b></br>" + Pname + "</br>Mobile No.: " + PMobile + "</td>");
+                if (dtMain.Rows[0]["MNo"].ToString() == "")
+                {
+                    htmlTable.Append("<td colspan='2' align='left'>Sauda No.: <b>" + dtMain.Rows[0]["No"].ToString() + "</b></td></tr>");
+                }
+                else
+                {
+                    htmlTable.Append("<td colspan='2' align='left'>Sauda No.: <b>" + dtMain.Rows[0]["No"].ToString() + "</b></br>Manual Sauda No.: <b>" + dtMain.Rows[0]["MNo"].ToString() + "</b></td></tr>");
+                }
+                htmlTable.Append("<tr><td colspan='2' align='left'>Sauda Date: " + Convert.ToDateTime(dtMain.Rows[0]["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
+                htmlTable.Append("<tr><td colspan='2' align='left'>Suppler's Ref.: " + dtMain.Rows[0]["BrokerName"].ToString() + "</td>");
+                htmlTable.Append("<tr><td align='center' width='60%'><b>Description of Goods</b> </td>");
+                htmlTable.Append("<td align='center' width='20%'><b>Qty. In KG</b></td>");
+                htmlTable.Append("<td align='center' width='20%'><b>Rate /KG</b></td></tr>");
+
+                for (int i = 0; i < dt.Rows.Count; i++)
+                {
+                    htmlTable.Append("<tr><td align='left'>" + dt.Rows[i]["PaddyType"].ToString() + "</td>");
+                    htmlTable.Append("<td align='right'>" + Math.Round(Convert.ToDouble(dt.Rows[i]["QIKG"].ToString()), 3).ToString() + "</td>");
+                    htmlTable.Append("<td align='right'>" + Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2).ToString() + "</td>");
+                    htmlTable.Append("</tr>");
+                }
+
+                htmlTable.Append("<tr><td align='left'><span style='font-size:7pt;'><b>Note:</b></br>All claim disputes will be resolved within 2 working days from the date of issue of this Purchase Order and receipt of a copy of this Order to you.</br>दावे से सम्बंधित सभी विवादों का समाधान इस खरीद आदेश के जारी होने और इस आदेश की प्रति आपको प्राप्त होने की तारीख से 2 कार्य दिवसों के भीतर किया जाएगा।</span></td>");
+                htmlTable.Append("<td colspan='2' align='center'><b>For Rashmi Rice Mills Pvt. Ltd.</br></br></br>Authorised Signatory</b></td>");
+                htmlTable.Append("</table>");
+
             }
-            htmlTable.Append("<tr><td colspan='2' align='left'>Sauda Date: " + Convert.ToDateTime(dtMain.Rows[0]["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
-            htmlTable.Append("<tr><td colspan='2' align='left'>Suppler's Ref.: " + dtMain.Rows[0]["BrokerName"].ToString() + "</td>");
-            htmlTable.Append("<tr><td align='center' width='60%'><b>Description of Goods</b> </td>");
-            htmlTable.Append("<td align='center' width='20%'><b>Qty. In KG</b></td>");
-            htmlTable.Append("<td align='center' width='20%'><b>Rate /KG</b></td></tr>");
-
-            for (int i = 0; i < dt.Rows.Count; i++)
-            {
-                htmlTable.Append("<tr><td align='left'>" + dt.Rows[i]["PaddyType"].ToString() + "</td>");
-                htmlTable.Append("<td align='right'>" + Math.Round(Convert.ToDouble(dt.Rows[i]["QIKG"].ToString()), 3).ToString() + "</td>");
-                htmlTable.Append("<td align='right'>" + Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2).ToString() + "</td>");
-                htmlTable.Append("</tr>");
-            }
-
-            htmlTable.Append("<tr><td align='left'><span style='font-size:7pt;'><b>Note:</b></br>All claim disputes will be resolved within 2 working days from the date of issue of this Purchase Order and receipt of a copy of this Order to you.</br>दावे से सम्बंधित सभी विवादों का समाधान इस खरीद आदेश के जारी होने और इस आदेश की प्रति आपको प्राप्त होने की तारीख से 2 कार्य दिवसों के भीतर किया जाएगा।</span></td>");
-            htmlTable.Append("<td colspan='2' align='center'><b>For Rashmi Rice Mills Pvt. Ltd.</br></br></br>Authorised Signatory</b></td>");
-            htmlTable.Append("</table>");
-
+            DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
         }
-        DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
+        catch (Exception)
+        {
+            DBDataPlaceHolder.Controls.Add(new Literal { Text = "<table class='table'><tr><td align='center'>Data load karne mein error aaya, page refresh karein.</td></tr></table>" });
+        }
     }
     public void CallPrint(string strid)
     {
@@ -327,51 +389,71 @@ public partial class PurchaseSauda : System.Web.UI.Page
     }
     public void Party()
     {
-        dt = new DataTable();
-        string q = "";
-        param = new List<SqlParameter>();//Emp_Id
-        q = "select concat(Party_Name, ' (Mobile No.: ',Party_Mobile,')') as PartyName from prabha.Purchase_Party_Info order by PartyName";
-        dac = new DataAccessLayer();
-        dt = dac.GetDataTable(q, param);
+        try
+        {
+            dt = new DataTable();
+            string q = "";
+            param = new List<SqlParameter>();//Emp_Id
+            q = "select concat(Party_Name, ' (Mobile No.: ',Party_Mobile,')') as PartyName from prabha.Purchase_Party_Info order by PartyName";
+            dac = new DataAccessLayer();
+            dt = dac.GetDataTable(q, param);
 
-        sPartyName.DataSource = dt;
-        sPartyName.DataTextField = "PartyName";
-        sPartyName.DataValueField = "PartyName";
-        sPartyName.DataBind();
-        sPartyName.Items.Add("Other");
+            sPartyName.DataSource = dt;
+            sPartyName.DataTextField = "PartyName";
+            sPartyName.DataValueField = "PartyName";
+            sPartyName.DataBind();
+            sPartyName.Items.Add("Other");
+        }
+        catch (Exception)
+        {
+            ShowAlert("Party list load karne mein error aaya!!");
+        }
     }
     [WebMethod]
     public static List<string> GetEmployeeName(string empName)
     {
         List<string> empResult = new List<string>();
-        using (SqlConnection con = new SqlConnection(@"Server=ws241.win.arvixe.com;Database=sati1983_farming;User ID=prabha;Password=prabha@#*2022;Trusted_Connection=False;"))
+        try
         {
-            using (SqlCommand cmd = new SqlCommand())
+            using (SqlConnection con = new SqlConnection(@"Server=ws241.win.arvixe.com;Database=sati1983_farming;User ID=prabha;Password=prabha@#*2022;Trusted_Connection=False;"))
             {
-                cmd.CommandText = "SELECT [BrokerName] FROM [prabha].Purchase_Sauda_Info where [BrokerName] like ''+@SearchEmpName+'%'";
-                cmd.Connection = con;
-                con.Open();
-                cmd.Parameters.AddWithValue("@SearchEmpName", empName);
-                SqlDataReader dr = cmd.ExecuteReader();
-                while (dr.Read())
+                using (SqlCommand cmd = new SqlCommand())
                 {
-                    empResult.Add(dr["BrokerName"].ToString());
+                    cmd.CommandText = "SELECT [BrokerName] FROM [prabha].Purchase_Sauda_Info where [BrokerName] like ''+@SearchEmpName+'%'";
+                    cmd.Connection = con;
+                    con.Open();
+                    cmd.Parameters.AddWithValue("@SearchEmpName", empName);
+                    SqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        empResult.Add(dr["BrokerName"].ToString());
+                    }
+                    con.Close();
                 }
-                con.Close();
-                return empResult;
             }
         }
-
+        catch (Exception)
+        {
+            // Autocomplete ke liye crash nahi karna - empty list return kar do
+        }
+        return empResult;
     }
     protected void sPartyName_SelectedIndexChanged(object sender, EventArgs e)
     {
-        if (sPartyName.SelectedItem.Text.Trim() == "Other")
+        try
         {
-            Panel1.Visible = true;
+            if (sPartyName.SelectedItem.Text.Trim() == "Other")
+            {
+                Panel1.Visible = true;
+            }
+            else
+            {
+                Panel1.Visible = false;
+            }
         }
-        else
+        catch (Exception)
         {
-            Panel1.Visible = false;
+            ShowAlert("Party select karne mein error aaya!!");
         }
     }
     public string GenInvoiceNo()
@@ -450,7 +532,6 @@ public partial class PurchaseSauda : System.Web.UI.Page
             param = new List<SqlParameter>();//Emp_Id
 
             string[] Inv = dtMain.Rows[0]["No"].ToString().Split('/');
-            param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
             param.Add(new SqlParameter("@No", Inv[3]));
             param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(dtMain.Rows[0]["DataDate"].ToString()).ToString("dd-MMM-yyyy")));
             param.Add(new SqlParameter("@MNo", dtMain.Rows[0]["MNo"].ToString()));
@@ -503,7 +584,7 @@ public partial class PurchaseSauda : System.Web.UI.Page
 
             q = "insert into prabha.Purchase_Sauda_Info([No],DataDate,MNo,PartyName,BrokerName,";
             q += "RupaliWt,RupaliRate,MansuriWt,MansuriRate,SonamWt,SonamRate,HybridWt,HybridRate,OperatorName,EntryDate,IsActive) ";
-            q += " values(@CompanyID,@No,@DataDate,@MNo,@PartyName,@BrokerName,";
+            q += " values(@No,@DataDate,@MNo,@PartyName,@BrokerName,";
             q += "@RupaliWt,@RupaliRate,@MansuriWt,@MansuriRate,@SonamWt,@SonamRate,@HybridWt,@HybridRate,@OperatorName,@EntryDate,@IsActive) ";
             dac = new DataAccessLayer();
 
@@ -524,7 +605,6 @@ public partial class PurchaseSauda : System.Web.UI.Page
 
                     q = "";
                     param = new List<SqlParameter>();
-                    param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
                     param.Add(new SqlParameter("@Party_Name", Pname));
                     param.Add(new SqlParameter("@Party_Mobile", PMobile));
                     q = "insert into prabha.Purchase_Party_Info(Party_Name,Party_Mobile) values(@Party_Name,@Party_Mobile)";
@@ -534,14 +614,12 @@ public partial class PurchaseSauda : System.Web.UI.Page
             }
             else
             {
-                script = "alert('Error!!');";
-                ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
+                ShowAlert("Error!!");
             }
         }
         else
         {
-            script = "alert('Data Already Exist!!');";
-            ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
+            ShowAlert("Data Already Exist!!");
         }
 
     }
@@ -571,34 +649,41 @@ public partial class PurchaseSauda : System.Web.UI.Page
     }
     protected void lBtnSaudaParty_Click(object sender, EventArgs e)
     {
-        dt = new DataTable();
-        string q = "";
-        param = new List<SqlParameter>();//Emp_Id
-
-        param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
-
-        q = "select ID,[No],DataDate,PartyName,BrokerName from prabha.Purchase_Sauda_Info where PartyName=@PartyName order by DataDate desc";
-
-        dac = new DataAccessLayer();
-        dt = dac.GetDataTable(q, param);
-
-        StringBuilder htmlTable = new StringBuilder();
-        string INVNo = "";
-        htmlTable.Append("<table class='table table-bordered' id='dataTable' cellspacing='0'>");
-        htmlTable.Append("<thead><tr><th>Sl. No.</th><th>Sauda No. & Date</th><th>Party Name</th><th>Supplier's Ref.</th><th></th></tr></thead><tbody>");
-        for (int i = 0; i < dt.Rows.Count; i++)
+        try
         {
-            htmlTable.Append("<tr>");
-            htmlTable.Append("<td>" + (i + 1) + "</td>");
-            INVNo = GenInvoiceNo(dt.Rows[i]["No"].ToString(), dt.Rows[i]["DataDate"].ToString());
-            htmlTable.Append("<td><a href='PO.aspx?ID=" + dt.Rows[i]["ID"].ToString() + "' target='_blank'>" + INVNo + ", " + Convert.ToDateTime(dt.Rows[i]["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</a></td>");
-            htmlTable.Append("<td>" + dt.Rows[i]["PartyName"].ToString() + "</td>");
-            htmlTable.Append("<td>" + dt.Rows[i]["BrokerName"].ToString() + "</td>");
+            dt = new DataTable();
+            string q = "";
+            param = new List<SqlParameter>();//Emp_Id
 
-            htmlTable.Append("<td><a href='PurchaseUnloading.aspx?ID=" + dt.Rows[i]["ID"].ToString() + "' target='_blank'>Purchase Entry</a></td></tr>");
+            param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
+
+            q = "select ID,[No],DataDate,PartyName,BrokerName from prabha.Purchase_Sauda_Info where PartyName=@PartyName order by DataDate desc";
+
+            dac = new DataAccessLayer();
+            dt = dac.GetDataTable(q, param);
+
+            StringBuilder htmlTable = new StringBuilder();
+            string INVNo = "";
+            htmlTable.Append("<table class='table table-bordered' id='dataTable' cellspacing='0'>");
+            htmlTable.Append("<thead><tr><th>Sl. No.</th><th>Sauda No. & Date</th><th>Party Name</th><th>Supplier's Ref.</th><th></th></tr></thead><tbody>");
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                htmlTable.Append("<tr>");
+                htmlTable.Append("<td>" + (i + 1) + "</td>");
+                INVNo = GenInvoiceNo(dt.Rows[i]["No"].ToString(), dt.Rows[i]["DataDate"].ToString());
+                htmlTable.Append("<td><a href='PO.aspx?ID=" + dt.Rows[i]["ID"].ToString() + "' target='_blank'>" + INVNo + ", " + Convert.ToDateTime(dt.Rows[i]["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</a></td>");
+                htmlTable.Append("<td>" + dt.Rows[i]["PartyName"].ToString() + "</td>");
+                htmlTable.Append("<td>" + dt.Rows[i]["BrokerName"].ToString() + "</td>");
+
+                htmlTable.Append("<td><a href='PurchaseUnloading.aspx?ID=" + dt.Rows[i]["ID"].ToString() + "' target='_blank'>Purchase Entry</a></td></tr>");
+            }
+            htmlTable.Append("</tbody></table>");
+            DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
         }
-        htmlTable.Append("</tbody></table>");
-        DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
+        catch (Exception)
+        {
+            ShowAlert("Sauda List load karne mein error aaya!!");
+        }
     }
     public string GenInvoiceNo(string a, string b)
     {
@@ -639,5 +724,12 @@ public partial class PurchaseSauda : System.Web.UI.Page
 
 
         return invoiceNo;
+    }
+
+    /* ===== Helper: show a friendly alert instead of letting the page crash ===== */
+    private void ShowAlert(string message)
+    {
+        script = "alert('" + message.Replace("'", "\\'") + "');";
+        ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
     }
 }
