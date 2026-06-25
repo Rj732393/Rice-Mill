@@ -44,6 +44,18 @@
             margin-bottom:18px;
             color:#1e293b;
         }
+        @media(max-width:768px){
+
+    .main-wrapper{
+        margin-left:0;
+        margin-top:20px;
+        padding:15px;
+    }
+
+    .card-box{
+        max-width:100%;
+    }
+}
 
     </style>
 

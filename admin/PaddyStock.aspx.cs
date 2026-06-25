@@ -16,36 +16,60 @@ public partial class admin_PaddyStock : System.Web.UI.Page
     DataAccessLayer dac;
     protected void Page_Load(object sender, EventArgs e)
     {
-        
-        if (Session["User"] == null || Session["CompanyID"] == null)
+        if (Session["User"] == null || Session["UserType"] == null)
         {
             Response.Redirect("../Login.aspx");
             return;
         }
-        else if (Session["UserType"] != null && Session["UserType"].ToString() != "Admin")
+
+        string userType = Session["UserType"].ToString();
+        if (userType != "Admin" && userType != "SuperAdmin")
         {
             Response.Redirect("../Login.aspx");
             return;
         }
+
         if (!Page.IsPostBack)
         {
-            fdate.Attributes["type"] = "date";
-            tdate.Attributes["type"] = "date";
+         
+
+            // Company naam session se set karo
+            string companyName = Session["CompanyName"] != null
+                ? Session["CompanyName"].ToString()
+                : "Rice Mills";
+            lblCompanyName.Text = companyName;
         }
     }
-    public void btnReport_ServerClick(object sender, EventArgs e)
-    {
-        dt = new DataTable();
-        string q = "";
-        param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
+   public void btnReport_ServerClick(object sender, EventArgs e)
+{
+    lblFromDateError.Text = "";
+    lblToDateError.Text = "";
 
-        param.Add(new SqlParameter("@Entry_Date1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-        param.Add(new SqlParameter("@Entry_Date2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
+    if (string.IsNullOrWhiteSpace(fdate.Value))
+    {
+        lblFromDateError.Text = "Please Select From Date";
+        return;
+    }
+
+    if (string.IsNullOrWhiteSpace(tdate.Value))
+    {
+        lblToDateError.Text = "Please Select To Date";
+        return;
+    }
+
+    dt = new DataTable();
+    string q = "";
+    param = new List<SqlParameter>();
+
+    param.Add(new SqlParameter("@Entry_Date1",
+        Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
+
+    param.Add(new SqlParameter("@Entry_Date2",
+        Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
         if (srType.Value.Trim() == "Daily")
         {
-            q = "select * from prabha.PaddyStock where CompanyID=@CompanyID and Entry_Date>=@Entry_Date1 and Entry_Date<=@Entry_Date2";
+            q = "select * from prabha.PaddyStock where Entry_Date>=@Entry_Date1 and Entry_Date<=@Entry_Date2";
         }
         else if (srType.Value.Trim() == "Monthly")
         {
@@ -103,22 +127,20 @@ public partial class admin_PaddyStock : System.Web.UI.Page
 
                         q = "";
                         param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
                         string mont = calMonth(Convert.ToInt32(dt.Rows[i]["Month"].ToString()));
                         param.Add(new SqlParameter("@Entry_Date", Convert.ToDateTime("01-" + mont + "-" + dt.Rows[i]["Year"].ToString()).AddDays(-1).ToString("dd-MMM-yyyy")));
 
-                        q = "select (ISNULL(Paddy_Weight,0)-ISNULL(Stock_Consume,0)) from prabha.PaddyStock where CompanyID=@CompanyID and Entry_Date=@Entry_Date";
+                        q = "select (ISNULL(Paddy_Weight,0)-ISNULL(Stock_Consume,0)) from prabha.PaddyStock where Entry_Date=@Entry_Date";
                         dac = new DataAccessLayer();
                         pSBalance = Convert.ToDecimal(dac.Scalar(q, param));
 
                         q = "";
                         param = new List<SqlParameter>();//Emp_Id
-        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
 
                         param.Add(new SqlParameter("@Month", dt.Rows[i]["Month"].ToString()));
                         param.Add(new SqlParameter("@Year", dt.Rows[i]["Year"].ToString()));
 
-                        q = "select (ISNULL(Paddy_Weight,0)-ISNULL(Stock_Consume,0)) from prabha.PaddyStock where CompanyID=@CompanyID and Entry_Date=(select max(Entry_Date) from prabha.PaddyStock where CompanyID=@CompanyID and Month(Entry_Date)=@Month and Year(Entry_Date)=@Year)";
+                        q = "select (ISNULL(Paddy_Weight,0)-ISNULL(Stock_Consume,0)) from prabha.PaddyStock where Entry_Date=(select max(Entry_Date) from prabha.PaddyStock where Month(Entry_Date)=@Month and Year(Entry_Date)=@Year)";
                         dac = new DataAccessLayer();
                         LSBalance = Convert.ToDecimal(dac.Scalar(q, param));
 

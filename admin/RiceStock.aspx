@@ -66,8 +66,10 @@
                     <div class="form-group-custom">
     <label><i class="fas fa-calendar-alt"></i> From Date</label>
 
-    <input type="text" id="fdate" name="sdate" runat="server"
-        class="form-control-custom" placeholder="dd/mm/yyyy" />
+   <input type="text" id="fdate" name="sdate" runat="server"
+    class="form-control-custom"
+    placeholder="dd/mm/yyyy"
+    autocomplete="off" />
 
     <asp:Label ID="lblFromDateError" runat="server"
         ForeColor="Red"></asp:Label>
@@ -78,7 +80,9 @@
     <label><i class="fas fa-calendar-check"></i> To Date</label>
 
     <input type="text" id="tdate" name="tdate" runat="server"
-        class="form-control-custom" placeholder="dd/mm/yyyy" />
+    class="form-control-custom"
+    placeholder="dd/mm/yyyy"
+    autocomplete="off" />
 
     <asp:Label ID="lblToDateError" runat="server"
         ForeColor="Red"></asp:Label>
@@ -117,8 +121,21 @@
 
 <script type="text/javascript">
     $(function () {
-        $("#fdate").datepicker({ dateFormat: "dd/mm/yy" });
-        $("#tdate").datepicker({ dateFormat: "dd/mm/yy" });
+
+        $("#fdate").datepicker({
+            dateFormat: "dd/mm/yy",
+            changeMonth: true,
+            changeYear: true,
+            yearRange: "2000:2050"
+        });
+
+        $("#tdate").datepicker({
+            dateFormat: "dd/mm/yy",
+            changeMonth: true,
+            changeYear: true,
+            yearRange: "2000:2050"
+        });
+
     });
 </script>
 

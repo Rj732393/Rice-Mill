@@ -16,7 +16,7 @@
     <title>Sale Purchase Expense Report</title>
 
     <meta name="viewport"
-        content="width=device-width, initial-scale=1" />
+        content="width=device-width, initial-scale=1, maximum-scale=1" />
 
     <!-- Bootstrap -->
     <link rel="stylesheet"
@@ -61,8 +61,6 @@
             overflow-x:hidden;
         }
 
-        /* MAIN CONTENT */
-
         .main-wrapper{
             margin-left:270px;
             margin-top:95px;
@@ -70,13 +68,9 @@
             transition:0.4s;
         }
 
-        /* SIDEBAR HIDE */
-
         .main-wrapper.full{
             margin-left:0;
         }
-
-        /* CARD */
 
         .dashboard-card{
             background:white;
@@ -90,19 +84,9 @@
         }
 
         @keyframes fadeIn{
-
-            from{
-                opacity:0;
-                transform:translateY(20px);
-            }
-
-            to{
-                opacity:1;
-                transform:translateY(0px);
-            }
+            from{ opacity:0; transform:translateY(20px); }
+            to{ opacity:1; transform:translateY(0px); }
         }
-
-        /* TITLE */
 
         .page-title{
             text-align:center;
@@ -120,8 +104,6 @@
             color:#64748b;
             font-size:16px;
         }
-
-        /* FORM */
 
         .form-group-custom{
             margin-bottom:28px;
@@ -152,8 +134,6 @@
             box-shadow:0 0 12px rgba(37,99,235,0.15);
         }
 
-        /* BUTTON */
-
         .btn-generate{
             background:linear-gradient(135deg,#2563eb,#06b6d4);
             border:none;
@@ -164,13 +144,12 @@
             font-weight:600;
             transition:0.3s;
             box-shadow:0 8px 20px rgba(37,99,235,0.25);
+            width:auto;
         }
 
         .btn-generate:hover{
             transform:translateY(-2px);
         }
-
-        /* TABLE */
 
         .report-table{
             background:white;
@@ -178,11 +157,14 @@
             padding:25px;
             margin-top:30px;
             box-shadow:0 8px 20px rgba(0,0,0,0.05);
+            overflow-x:auto;
+            -webkit-overflow-scrolling:touch;
         }
 
         .report-table table{
             width:100%;
             border-collapse:collapse;
+            min-width:900px;
         }
 
         .report-table table th{
@@ -190,19 +172,19 @@
             color:white;
             padding:14px;
             text-align:center;
+            white-space:nowrap;
         }
 
         .report-table table td{
             padding:12px;
             border-bottom:1px solid #e2e8f0;
             text-align:center;
+            white-space:nowrap;
         }
 
         .report-table table tr:hover{
             background:#f8fafc;
         }
-
-        /* TOGGLE BUTTON */
 
         .menu-toggle{
             position:fixed;
@@ -219,21 +201,91 @@
             box-shadow:0 8px 20px rgba(0,0,0,0.15);
         }
 
-        /* RESPONSIVE */
+        .sidebar-overlay{
+            display:none;
+            position:fixed;
+            inset:0;
+            background:rgba(15,23,42,0.5);
+            z-index:1500;
+        }
+
+        .sidebar-overlay.show{
+            display:block;
+        }
 
         @media(max-width:900px){
 
+            #sidebarArea{
+                position:fixed;
+                top:0;
+                left:0;
+                height:100%;
+                z-index:1600;
+                transform:translateX(-100%);
+                transition:transform 0.35s ease;
+                display:block !important;
+            }
+
+            #sidebarArea.show{
+                transform:translateX(0);
+            }
+
             .main-wrapper{
-                margin-left:0;
+                margin-left:0 !important;
+                margin-top:80px;
                 padding:15px;
             }
 
             .dashboard-card{
-                padding:25px;
+                padding:22px;
+                border-radius:18px;
             }
 
             .page-title h1{
-                font-size:28px;
+                font-size:24px;
+            }
+
+            .page-title p{
+                font-size:14px;
+            }
+
+            .form-control-custom{
+                height:48px;
+                font-size:14px;
+            }
+
+            .btn-generate{
+                width:100%;
+                padding:14px 0;
+            }
+
+            .report-table{
+                padding:14px;
+                border-radius:14px;
+            }
+
+            .report-table table th,
+            .report-table table td{
+                padding:9px;
+                font-size:13px;
+            }
+
+            .menu-toggle{
+                top:16px;
+                left:14px;
+                width:42px;
+                height:42px;
+            }
+        }
+
+        @media(max-width:480px){
+
+            .page-title h1{
+                font-size:20px;
+            }
+
+            .dashboard-card{
+                padding:16px;
             }
         }
 
@@ -245,8 +297,6 @@
 
 <form id="form1" runat="server">
 
-    <!-- TOGGLE BUTTON -->
-
     <button type="button"
         class="menu-toggle"
         onclick="toggleSidebar()">
@@ -255,7 +305,9 @@
 
     </button>
 
-    <!-- ADMIN MENU -->
+    <div class="sidebar-overlay"
+        id="sidebarOverlay"
+        onclick="toggleSidebar()"></div>
 
     <div id="sidebarArea">
 
@@ -264,16 +316,10 @@
 
     </div>
 
-    <!-- MAIN CONTENT -->
-
     <div class="main-wrapper"
         id="mainContent">
 
-        <!-- CARD -->
-
         <div class="dashboard-card">
-
-            <!-- TITLE -->
 
             <div class="page-title">
 
@@ -292,11 +338,7 @@
 
             </div>
 
-            <!-- FORM -->
-
             <div class="row">
-
-                <!-- FROM DATE -->
 
                 <div class="col-md-6">
 
@@ -322,8 +364,6 @@
                     </div>
 
                 </div>
-
-                <!-- TO DATE -->
 
                 <div class="col-md-6">
 
@@ -351,8 +391,6 @@
                 </div>
 
             </div>
-
-            <!-- REPORT TYPE -->
 
             <div class="row">
 
@@ -384,8 +422,6 @@
 
             </div>
 
-            <!-- BUTTON -->
-
             <div class="row">
 
                 <div class="col-md-12 text-center">
@@ -403,8 +439,6 @@
 
         </div>
 
-        <!-- REPORT TABLE -->
-
         <div class="report-table table-responsive">
 
             <asp:PlaceHolder ID="DBDataPlaceHolder"
@@ -417,8 +451,6 @@
 
 </form>
 
-<!-- DATE PICKER -->
-
 <script type="text/javascript">
 
     $(function () {
@@ -426,42 +458,55 @@
         $("#fdate").datepicker({
             dateFormat: "dd/mm/yy",
             changeMonth: true,
-            changeYear: true
+            changeYear: true,
+            yearRange: "2000:2050",
+            showButtonPanel: true
         });
 
         $("#tdate").datepicker({
             dateFormat: "dd/mm/yy",
             changeMonth: true,
-            changeYear: true
+            changeYear: true,
+            yearRange: "2000:2050",
+            showButtonPanel: true
         });
+
+        $("#fdate").attr("autocomplete", "off");
+        $("#tdate").attr("autocomplete", "off");
 
     });
 
-    /* SIDEBAR TOGGLE */
-
     function toggleSidebar() {
 
-        var sidebar =
-            document.getElementById("sidebarArea");
+        var sidebar = document.getElementById("sidebarArea");
+        var main = document.getElementById("mainContent");
+        var overlay = document.getElementById("sidebarOverlay");
 
-        var main =
-            document.getElementById("mainContent");
+        var isMobile = window.innerWidth <= 900;
 
-        if (sidebar.style.display === "none") {
-
-            sidebar.style.display = "block";
-
-            main.classList.remove("full");
-
-        }
-
-        else {
-
-            sidebar.style.display = "none";
-
-            main.classList.add("full");
+        if (isMobile) {
+            sidebar.classList.toggle("show");
+            overlay.classList.toggle("show");
+        } else {
+            if (sidebar.style.display === "none") {
+                sidebar.style.display = "block";
+                main.classList.remove("full");
+            } else {
+                sidebar.style.display = "none";
+                main.classList.add("full");
+            }
         }
     }
+
+    window.addEventListener("resize", function () {
+        var sidebar = document.getElementById("sidebarArea");
+        var overlay = document.getElementById("sidebarOverlay");
+        if (window.innerWidth > 900) {
+            sidebar.classList.remove("show");
+            overlay.classList.remove("show");
+            sidebar.style.display = "block";
+        }
+    });
 
 </script>
 

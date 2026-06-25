@@ -170,6 +170,33 @@
     color:#fff;
     border:none;
 }
+.field-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:15px;
+}
+
+.field-box{
+    flex:1 1 250px;
+}
+
+@media(max-width:768px){
+
+    .field-row{
+        display:block;
+    }
+
+    .field-box{
+        width:100%;
+        margin-bottom:15px;
+    }
+
+    .rate-table{
+        display:block;
+        overflow-x:auto;
+        white-space:nowrap;
+    }
+}
 
 @media(max-width:900px){
     .main-wrapper{

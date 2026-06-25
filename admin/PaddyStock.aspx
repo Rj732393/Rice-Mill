@@ -57,13 +57,13 @@
 
         /* MAIN CONTENT */
 
-        .main-wrapper{
-            margin-left:270px;
-            margin-top:100px;
-            padding:30px;
-            transition:0.4s;
-        }
-
+       .main-wrapper{
+    margin-left:270px;
+    margin-top:100px;
+    padding:30px;
+    transition:0.4s;
+    width:calc(100% - 270px);
+}
         /* CARD */
 
         .dashboard-card{
@@ -207,7 +207,56 @@
                 font-size:26px;
             }
         }
+        /* MOBILE RESPONSIVE */
 
+@media (max-width:768px)
+{
+    .main-wrapper{
+        margin-left:0 !important;
+        margin-top:80px !important;
+        padding:10px !important;
+    }
+
+    .dashboard-card{
+        padding:15px !important;
+        border-radius:15px !important;
+    }
+
+    .page-title h1{
+        font-size:22px !important;
+    }
+
+    .page-title p{
+        font-size:13px !important;
+    }
+
+    .form-control-custom{
+        height:42px !important;
+        font-size:14px !important;
+    }
+
+    .btn-generate{
+        width:100% !important;
+        margin-top:10px !important;
+    }
+
+    .report-table{
+        overflow-x:auto;
+    }
+
+    .report-table table{
+        min-width:700px;
+    }
+}
+@media (max-width:768px)
+{
+    .main-wrapper{
+        width:100% !important;
+        margin-left:0 !important;
+        margin-top:70px !important;
+        padding:10px !important;
+    }
+}
     </style>
 
 </head>
@@ -371,14 +420,22 @@
         $("#fdate").datepicker({
             dateFormat: "dd/mm/yy",
             changeMonth: true,
-            changeYear: true
+            changeYear: true,
+            yearRange: "2000:2050",
+            showButtonPanel: true
         });
 
         $("#tdate").datepicker({
             dateFormat: "dd/mm/yy",
             changeMonth: true,
-            changeYear: true
+            changeYear: true,
+            yearRange: "2000:2050",
+            showButtonPanel: true
         });
+
+        // Browser autocomplete band
+        $("#fdate").attr("autocomplete", "off");
+        $("#tdate").attr("autocomplete", "off");
 
     });
 
