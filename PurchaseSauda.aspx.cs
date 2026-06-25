@@ -20,6 +20,8 @@ public partial class PurchaseSauda : System.Web.UI.Page
     List<SqlParameter> param;
     DataAccessLayer dac;
     string script = "";
+    DataRow companyRow;   // <-- NAYA: current logged-in company ki details yaha store hongi
+
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!Page.IsPostBack)
@@ -58,6 +60,43 @@ public partial class PurchaseSauda : System.Web.UI.Page
             dataDisplay();
         }
     }
+
+    // ===== NAYA METHOD: Session["CompanyID"] se current company ki details DB se uthata hai =====
+    private void LoadCompanyDetails()
+    {
+        try
+        {
+            int cid = Session["CompanyID"] != null ? Convert.ToInt32(Session["CompanyID"]) : 0;
+
+            var p = new List<SqlParameter>();
+            p.Add(new SqlParameter("@CompanyID", cid));
+
+            DataTable dtC = new DataAccessLayer().GetDataTable(
+                "SELECT * FROM prabha.Companies WHERE CompanyID=@CompanyID", p);
+
+            if (dtC.Rows.Count > 0)
+            {
+                companyRow = dtC.Rows[0];
+            }
+            else
+            {
+                companyRow = null;
+            }
+        }
+        catch (Exception)
+        {
+            companyRow = null;
+        }
+    }
+
+    // ===== NAYA HELPER: agar column DB table me exist nahi karta, crash nahi hoga, khali string aayega =====
+    private string SafeCol(DataRow row, string colName)
+    {
+        if (row == null) return "";
+        if (!row.Table.Columns.Contains(colName)) return "";
+        return row[colName] == DBNull.Value ? "" : row[colName].ToString();
+    }
+
     public void Submit1_ServerClick(object sender, EventArgs e)
     {
         try
@@ -241,6 +280,8 @@ public partial class PurchaseSauda : System.Web.UI.Page
         StringBuilder htmlTable;
         try
         {
+            LoadCompanyDetails();   // <-- NAYA: bill banane se pehle current company load karo
+
             if (Session["Data"] == null)
             {
                 htmlTable = new StringBuilder();
@@ -252,11 +293,20 @@ public partial class PurchaseSauda : System.Web.UI.Page
                 dtMain = (DataTable)Session["DataMain"];
                 dt = (DataTable)Session["Data"];
 
-
+                // ===== NAYA: company ki saari details safely uthayi ja rahi hain (missing column se crash nahi hoga) =====
+                string compName = SafeCol(companyRow, "CompanyName");
+                if (string.IsNullOrWhiteSpace(compName)) compName = "Company";
+                string compAddress = (SafeCol(companyRow, "Address") + ", " + SafeCol(companyRow, "City") + ", " + SafeCol(companyRow, "State")).Trim(',', ' ');
+                string compPhone = SafeCol(companyRow, "Phone");
+                string compEmail = SafeCol(companyRow, "Email");
+                string compCIN = SafeCol(companyRow, "CIN");
+                string compPAN = SafeCol(companyRow, "PAN");
+                string compGST = SafeCol(companyRow, "GSTNumber");
                 htmlTable = new StringBuilder();
                 htmlTable.Append("<table class='table' runat='server' style='font-size:10pt; noWrap' id='printTable' cellspacing='0' border='1px'>");
 
-                htmlTable.Append("<tr><td colspan='3' align='center'><span style='display:table-cell; vertical-align:top;'><img src='http://prabhasoftware.com/Rashmi Rice Logo (1).png' height='100px'/></span><span style='display:table-cell; vertical-align:top;'><span style='font-size:16pt; font-weight:bold;'> Rashmi Rice Mills Pvt. Ltd. </span></br><span style='font-size:8pt;'>Daniyawan Chandi Road, Hasanpur, Patna- 801304 </br>Mob.: 9304052349, 9334280057</br>Email: srirajbhog@gmail.com</br>CIN: U15312BR2014PTC022237</br>PAN No.: AAGCR9497P</br>GSTIN: 10AAGCR9497P1ZK</span></span></td></tr>");
+                // ===== CHANGE: hardcoded "Rashmi Rice Mills" hata kar company ki dynamic details daali gayi hain =====
+                htmlTable.Append("<tr><td colspan='3' align='center'><span style='display:table-cell; vertical-align:top;'><span style='font-size:16pt; font-weight:bold;'> " + compName + " </span></br><span style='font-size:8pt;'>" + compAddress + " </br>Mob.: " + compPhone + "</br>Email: " + compEmail + "</br>CIN: " + compCIN + "</br>PAN No.: " + compPAN + "</br>GSTIN: " + compGST + "</span></span></td></tr>");
                 htmlTable.Append("<tr><td colspan='3' align='center'><span style='font-size:10pt; font-weight:bold;'>PURCHASE SAUDA REPORT </span></td></tr>");
 
 
@@ -290,7 +340,8 @@ public partial class PurchaseSauda : System.Web.UI.Page
                 }
 
                 htmlTable.Append("<tr><td align='left'><span style='font-size:7pt;'><b>Note:</b></br>All claim disputes will be resolved within 2 working days from the date of issue of this Purchase Order and receipt of a copy of this Order to you.</br>दावे से सम्बंधित सभी विवादों का समाधान इस खरीद आदेश के जारी होने और इस आदेश की प्रति आपको प्राप्त होने की तारीख से 2 कार्य दिवसों के भीतर किया जाएगा।</span></td>");
-                htmlTable.Append("<td colspan='2' align='center'><b>For Rashmi Rice Mills Pvt. Ltd.</br></br></br>Authorised Signatory</b></td>");
+                // ===== CHANGE: footer me hardcoded "Rashmi Rice Mills" ki jagah dynamic compName =====
+                htmlTable.Append("<td colspan='2' align='center'><b>For " + compName + "</br></br></br>Authorised Signatory</b></td>");
                 htmlTable.Append("</table>");
 
             }

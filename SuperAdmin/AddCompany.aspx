@@ -11,21 +11,18 @@
     <style>
         * { font-family: 'Poppins', sans-serif; box-sizing: border-box; }
         body { background: #f1f5f9; margin: 0; }
-
         .topbar {
             background: linear-gradient(90deg, #1a1a2e, #16213e);
             color: white; padding: 14px 25px;
             display: flex; justify-content: space-between; align-items: center;
         }
         .topbar h4 { margin: 0; font-size: 17px; color: #ffd700; }
-
         .form-wrap {
             max-width: 820px; margin: 30px auto;
             background: white; border-radius: 16px;
             padding: 30px 35px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.09);
         }
-
         .section-head {
             background: #f8fafc;
             border-left: 4px solid #3b82f6;
@@ -34,11 +31,9 @@
             margin-bottom: 20px; margin-top: 10px;
             font-size: 15px;
         }
-
         .form-group label { font-weight: 500; color: #374151; font-size: 14px; }
         .form-control { border-radius: 8px; border: 1px solid #d1d5db; font-size: 14px; height: 40px; }
         textarea.form-control { height: auto; }
-
         .btn-save {
             background: #16a34a; color: white; border: none;
             padding: 11px 28px; border-radius: 8px;
@@ -84,7 +79,7 @@
         </div>
         <div class="col-md-6">
             <div class="form-group">
-                <label>Owner </label>
+                <label>Owner</label>
                 <asp:TextBox ID="txtOwnerName" runat="server" CssClass="form-control" placeholder="jaise: Ramesh Kumar" />
             </div>
         </div>
@@ -118,6 +113,29 @@
                 <asp:TextBox ID="txtGST" runat="server" CssClass="form-control" placeholder="22AAAAA0000A1Z5" />
             </div>
         </div>
+
+        <%-- NAYE 3 FIELDS --%>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>CIN Number</label>
+                <asp:TextBox ID="txtCIN" runat="server" CssClass="form-control" placeholder="U15312BR2014PTC022237" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>PAN Number</label>
+                <asp:TextBox ID="txtPAN" runat="server" CssClass="form-control" placeholder="AAGCR9497P" />
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="form-group">
+                <label>Logo URL</label>
+                <asp:TextBox ID="txtLogoUrl" runat="server" CssClass="form-control" placeholder="https://yoursite.com/logo.png" />
+                <span class="note">Company ke logo ki URL daalein jo bill mein show hogi</span>
+            </div>
+        </div>
+        <%-- NAYE FIELDS KHATAM --%>
+
         <div class="col-md-12">
             <div class="form-group">
                 <label>Poora Address</label>
@@ -171,6 +189,5 @@
 
 </div>
 </form>
-
 </body>
 </html>

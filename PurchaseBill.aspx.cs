@@ -20,6 +20,7 @@ public partial class PurchaseBill : System.Web.UI.Page
     List<SqlParameter> param;
     DataAccessLayer dac;
     string script = "";
+
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!Page.IsPostBack)
@@ -37,11 +38,43 @@ public partial class PurchaseBill : System.Web.UI.Page
             {
                 Trace.Warn(ex.Message);
             }
-
         }
     }
+
     public void dataDisplay()
     {
+        // ============ DYNAMIC COMPANY DETAILS - SIRF YE BLOCK ADD HUA HAI ============
+        string companyName = "";
+        string companyAddress = "";
+        string companyPhone = "";
+        string companyEmail = "";
+        string companyGST = "";
+        string companyCIN = "";
+        string companyPAN = "";
+        string companyLogo = "";
+
+        if (Session["CompanyID"] != null && Session["CompanyID"].ToString() != "0")
+        {
+            var cparam = new List<SqlParameter>();
+            cparam.Add(new SqlParameter("@CompanyID", Session["CompanyID"].ToString()));
+            DataAccessLayer cdac = new DataAccessLayer();
+            DataTable dtComp = cdac.GetDataTable(
+                "SELECT * FROM prabha.Companies WHERE CompanyID=@CompanyID", cparam);
+
+            if (dtComp != null && dtComp.Rows.Count > 0)
+            {
+                companyName = dtComp.Rows[0]["CompanyName"].ToString();
+                companyAddress = dtComp.Rows[0]["Address"].ToString();
+                companyPhone = dtComp.Rows[0]["Phone"].ToString();
+                companyEmail = dtComp.Rows[0]["Email"].ToString();
+                companyGST = dtComp.Rows[0]["GSTNumber"] != DBNull.Value ? dtComp.Rows[0]["GSTNumber"].ToString() : "";
+                companyCIN = dtComp.Rows[0]["CIN"] != DBNull.Value ? dtComp.Rows[0]["CIN"].ToString() : "";
+                companyPAN = dtComp.Rows[0]["PAN"] != DBNull.Value ? dtComp.Rows[0]["PAN"].ToString() : "";
+                companyLogo = dtComp.Rows[0]["LogoUrl"] != DBNull.Value ? dtComp.Rows[0]["LogoUrl"].ToString() : "";
+            }
+        }
+        // ============ END COMPANY DETAILS ============
+
         string q = "";
         param = new List<SqlParameter>();
         param.Add(new SqlParameter("@ID", Request.QueryString["ID"].ToString()));
@@ -55,6 +88,7 @@ public partial class PurchaseBill : System.Web.UI.Page
         q = "select * from [prabha].[Purchase_Item_Info] where Master_ID=@ID";
         dac = new DataAccessLayer();
         Session["Data"] = dac.GetDataTable(q, param);
+
         StringBuilder htmlTable;
         if (Session["Data"] == null)
         {
@@ -67,11 +101,28 @@ public partial class PurchaseBill : System.Web.UI.Page
             dtMain = (DataTable)Session["DataMain"];
             dt = (DataTable)Session["Data"];
 
-
             htmlTable = new StringBuilder();
             htmlTable.Append("<table class='table' runat='server' style='font-size:10pt; noWrap' id='printTable' cellspacing='0' border='1px'>");
 
-            htmlTable.Append("<tr><td colspan='8' align='center'><span style='display:table-cell; vertical-align:top;'><img src='http://prabhasoftware.com/Rashmi Rice Logo (1).png' height='100px'/></span><span style='display:table-cell; vertical-align:top;'><span style='font-size:16pt; font-weight:bold;'> Rashmi Rice Mills Pvt. Ltd. </span></br><span style='font-size:8pt;'>Daniyawan Chandi Road, Hasanpur, Patna- 801304 </br>Mob.: 9304052349, 9334280057</br>Email: srirajbhog@gmail.com</br>CIN: U15312BR2014PTC022237</br>PAN No.: AAGCR9497P</br>GSTIN: 10AAGCR9497P1ZK</span></span></td></tr>");
+            // ============ CHANGE 1: HARDCODED HEADER HATA KE DYNAMIC KIYA ============
+            string logoHtml = !string.IsNullOrEmpty(companyLogo)
+                ? "<span style='display:table-cell; vertical-align:top;'><img src='" + companyLogo + "' height='100px'/></span>"
+                : "";
+            string cinHtml = !string.IsNullOrEmpty(companyCIN) ? "</br>CIN: " + companyCIN : "";
+            string panHtml = !string.IsNullOrEmpty(companyPAN) ? "</br>PAN No.: " + companyPAN : "";
+            string gstHtml = !string.IsNullOrEmpty(companyGST) ? "</br>GSTIN: " + companyGST : "";
+            string emailHtml = !string.IsNullOrEmpty(companyEmail) ? "</br>Email: " + companyEmail : "";
+
+            htmlTable.Append("<tr><td colspan='8' align='center'>"
+                + logoHtml
+                + "<span style='display:table-cell; vertical-align:top;'>"
+                + "<span style='font-size:16pt; font-weight:bold;'> " + companyName + " </span>"
+                + "</br><span style='font-size:8pt;'>" + companyAddress
+                + "</br>Mob.: " + companyPhone
+                + emailHtml + cinHtml + panHtml + gstHtml
+                + "</span></span></td></tr>");
+            // ============ END CHANGE 1 ============
+
             htmlTable.Append("<tr><td colspan='8' align='center'><span style='font-size:10pt; font-weight:bold;'> PURCHASE VOUCHER CUM UNLOADING REPORT </span></td></tr>");
 
             /*dtMain.Columns.Add("No", typeof(string));
@@ -94,6 +145,7 @@ public partial class PurchaseBill : System.Web.UI.Page
                 dtMain.Columns.Add("FreightParty", typeof(string));
                 dtMain.Columns.Add("Advance", typeof(string));
                 dtMain.Columns.Add("Brokerage", typeof(string));*/
+
             string PurInv = GenInvoiceNo(dtMain.Rows[0]["No"].ToString(), dtMain.Rows[0]["DataDate"].ToString());
             if (dtMain.Rows[0]["MPurNo"].ToString() == "")
             {
@@ -160,6 +212,7 @@ public partial class PurchaseBill : System.Web.UI.Page
                 dt.Columns.Add("MixBags", typeof(string));
                 dt.Columns.Add("OtherPer", typeof(string));
                 dt.Columns.Add("OtherBags", typeof(string));*/
+
                 htmlTable.Append("<tr><td align='left' style='vertical-align:top;'>" + (i + 1).ToString() + " " + dt.Rows[i]["PaddyType"].ToString() + " (Avg Wt.: " + dt.Rows[i]["AvgWt"].ToString() + " KG)</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".1 Fresh");
                 htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".2 Moisture");
                 htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".3 Khakhri");
@@ -167,8 +220,6 @@ public partial class PurchaseBill : System.Web.UI.Page
                 htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".5 Daagi");
                 htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".6 Mix Rice");
                 htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".7 Other (" + dt.Rows[i]["OtherName"].ToString() + ")</td>");
-
-
 
                 htmlTable.Append("<td align='right' style='vertical-align:top;'></br>" + dt.Rows[i]["FreshQuantity"].ToString() + "</br>");
                 htmlTable.Append("</br>" + dt.Rows[i]["KhakhriBags"].ToString());
@@ -184,14 +235,12 @@ public partial class PurchaseBill : System.Web.UI.Page
                 htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["MixBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2).ToString());
                 htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["OtherBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2).ToString() + "</td>");
 
-
                 htmlTable.Append("<td align='right' style='vertical-align:top;'></br></br>" + dt.Rows[i]["Moisture"].ToString());
                 htmlTable.Append("</br>" + dt.Rows[i]["KhakhriPer"].ToString());
                 htmlTable.Append("</br>" + dt.Rows[i]["MittiPer"].ToString());
                 htmlTable.Append("</br>" + dt.Rows[i]["DaagiPer"].ToString());
                 htmlTable.Append("</br>" + dt.Rows[i]["MixPer"].ToString());
                 htmlTable.Append("</br>" + dt.Rows[i]["OtherPer"].ToString() + "</td>");
-
 
                 htmlTable.Append("<td align='right' style='vertical-align:top;'></br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2).ToString() + "</br>");
                 am = Math.Round(Convert.ToDouble(dt.Rows[i]["FreshQuantity"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
@@ -232,7 +281,6 @@ public partial class PurchaseBill : System.Web.UI.Page
                     DAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["DaagiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * DRate, 2);
                 }
 
-
                 if (Convert.ToDouble(dt.Rows[i]["MixPer"].ToString()) <= 0)
                 {
                     htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2).ToString());
@@ -267,7 +315,7 @@ public partial class PurchaseBill : System.Web.UI.Page
                 tBags += Convert.ToInt32(dt.Rows[i]["FreshQuantity"].ToString()) + Convert.ToInt32(dt.Rows[i]["KhakhriBags"].ToString()) + Convert.ToInt32(dt.Rows[i]["MittiBags"].ToString()) + Convert.ToInt32(dt.Rows[i]["DaagiBags"].ToString()) + Convert.ToInt32(dt.Rows[i]["MixBags"].ToString()) + Convert.ToInt32(dt.Rows[i]["OtherBags"].ToString());
                 tQuantity = Math.Round(tBags * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2);
                 tAmount += am + KhAmount + MAmount + DAmount + DMixAmount + OAmount;
-                
+
                 int lt = 0;
                 if (dtMain.Rows[0]["PartyName"].ToString() == "SHIVAM BHANDAR (SUBODH JEE (Mobile No.: 9334280057)" || dtMain.Rows[0]["PartyName"].ToString() == "PRACHI TRADERS (MASURHI) (Mobile No.: 9334280057)" || dtMain.Rows[0]["PartyName"].ToString() == "Sankat Mochan Traders(Kunil jee) jahanabad (Mobile No.: 9334280057)")
                 {
@@ -285,8 +333,8 @@ public partial class PurchaseBill : System.Web.UI.Page
                 else
                 {
                     LClaim += Math.Round((am + KhAmount + MAmount + DAmount + DMixAmount + OAmount) * (Convert.ToDouble(dt.Rows[i]["Moisture"].ToString()) - lt) / 100, 2);
-
                 }
+
                 if (i == 0 & dt.Rows.Count > 1)
                 {
                     htmlTable.Append("<td colspan='2' style='vertical-align:bottom; border-bottom:none;' align='left'></td>");
@@ -299,7 +347,7 @@ public partial class PurchaseBill : System.Web.UI.Page
                 if (i == (dt.Rows.Count - 1))
                 {
                     double LCD = Math.Round(tAmount * Convert.ToDouble(dtMain.Rows[0]["CD"].ToString()) / 100);
-                    
+
                     double LGK = Math.Round(tQuantity / 1000 * 25, 2);
                     if (LGK <= 100)
                     {
@@ -309,7 +357,7 @@ public partial class PurchaseBill : System.Web.UI.Page
                     LClaim += (Convert.ToDouble(dtMain.Rows[0]["PTBags"].ToString()) * 0) + (Convert.ToDouble(dtMain.Rows[0]["JTBags"].ToString()) * 0);
                     double PAmount = 0;
                     PAmount = tAmount - LCD - LClaim - Frt;
-                    
+
                     double LAdvance = Convert.ToDouble(dtMain.Rows[0]["Advance"].ToString());
                     double OAdvance = 0;
                     if (LAdvance == 0)
@@ -347,15 +395,11 @@ public partial class PurchaseBill : System.Web.UI.Page
                     //htmlTable.Append("</br>Add: GK (Recd in Mill) Rs. " + AGK.ToString());
 
                     htmlTable.Append("</td>");
-
                 }
                 htmlTable.Append("</tr>");
-
             }
+
             htmlTable.Append("<tr><td align='left'>Total</td>");
-
-
-
             htmlTable.Append("<td align='right'>" + tBags.ToString() + "</td>");
             htmlTable.Append("<td align='right'>" + tQuantity.ToString() + "</td>");
             htmlTable.Append("<td align='right'></td>");
@@ -369,15 +413,19 @@ public partial class PurchaseBill : System.Web.UI.Page
             //htmlTable.Append("<td align='left'></td>");
             htmlTable.Append("<td align='right'><b>" + Math.Round(FAmount, 0).ToString() + "</b></td></tr>");
 
-            htmlTable.Append("<tr><td colspan='6' align='center'><span style='font-size:8pt; font-weight:bold;'>RUPEES " + ConvertNumbertoWords(Convert.ToInt64(Math.Round(FAmount, 0))) + " ONLY</span></td></tr>");//convert amount in words
+            htmlTable.Append("<tr><td colspan='6' align='center'><span style='font-size:8pt; font-weight:bold;'>RUPEES " + ConvertNumbertoWords(Convert.ToInt64(Math.Round(FAmount, 0))) + " ONLY</span></td></tr>");
 
             htmlTable.Append("<tr><td colspan='4' align='left'><span style='font-size:7pt;'><b>Note:</b></br>All claim disputes will be resolved within 2 working days from the date of issue of this Purchase Order and receipt of a copy of this Order to you.</br>दावे से सम्बंधित सभी विवादों का समाधान इस खरीद आदेश के जारी होने और इस आदेश की प्रति आपको प्राप्त होने की तारीख से 2 कार्य दिवसों के भीतर किया जाएगा।</span></td>");
-            htmlTable.Append("<td colspan='4' align='center'><b>For Rashmi Rice Mills Pvt. Ltd.</br></br>Authorised Signatory</b></td>");
-            htmlTable.Append("</table>");
 
+            // ============ CHANGE 2: FOOTER MEIN BHI DYNAMIC COMPANY NAME ============
+            htmlTable.Append("<td colspan='4' align='center'><b>For " + companyName + "</br></br>Authorised Signatory</b></td>");
+            // ============ END CHANGE 2 ============
+
+            htmlTable.Append("</table>");
         }
         DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
     }
+
     public void CallPrint(string strid)
     {
         StringBuilder sb = new StringBuilder();
@@ -392,11 +440,8 @@ public partial class PurchaseBill : System.Web.UI.Page
         //sb.Append("return false;");
         sb.Append("WinPrint.close();");
         sb.Append("}, 250);");
-
         sb.Append("</script>");
         ClientScript.RegisterStartupScript(this.GetType(), "Print", sb.ToString());
-
-
     }
 
     public string GenInvoiceNo(string a, string b)
@@ -436,9 +481,9 @@ public partial class PurchaseBill : System.Web.UI.Page
             invoiceNo = "RR/PUR/" + yr1 + "-" + yr2 + "/" + a;
         }
 
-
         return invoiceNo;
     }
+
     public string ConvertNumbertoWords(long number)
     {
         if (number == 0) return "ZERO";
@@ -467,14 +512,14 @@ public partial class PurchaseBill : System.Web.UI.Page
         if (number > 0)
         {
             if (words != "") words += "AND ";
-            var unitsMap = new[]   
-        {  
-            "ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVEN", "TWELVE", "THIRTEEN", "FOURTEEN", "FIFTEEN", "SIXTEEN", "SEVENTEEN", "EIGHTEEN", "NINETEEN"  
-        };
-            var tensMap = new[]   
-        {  
-            "ZERO", "TEN", "TWENTY", "THIRTY", "FORTY", "FIFTY", "SIXTY", "SEVENTY", "EIGHTY", "NINETY"  
-        };
+            var unitsMap = new[]
+            {
+                "ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVEN", "TWELVE", "THIRTEEN", "FOURTEEN", "FIFTEEN", "SIXTEEN", "SEVENTEEN", "EIGHTEEN", "NINETEEN"
+            };
+            var tensMap = new[]
+            {
+                "ZERO", "TEN", "TWENTY", "THIRTY", "FORTY", "FIFTY", "SIXTY", "SEVENTY", "EIGHTY", "NINETY"
+            };
             if (number < 20) words += unitsMap[number];
             else
             {
@@ -484,12 +529,10 @@ public partial class PurchaseBill : System.Web.UI.Page
         }
         return words;
     }
+
     public void btnSave_ServerClick(object sender, EventArgs e)
     {
-        
-            dataDisplay();
-            CallPrint("prntContent");
-        
-
+        dataDisplay();
+        CallPrint("prntContent");
     }
 }

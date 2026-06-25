@@ -11,8 +11,6 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        
-        // Sirf SuperAdmin aa sake
         if (Session["User"] == null || Session["UserType"] == null ||
             Session["UserType"].ToString() != "SuperAdmin")
         {
@@ -22,12 +20,9 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
 
         if (!IsPostBack)
         {
-
-            // Default dates set karo
             txtStartDate.Text = DateTime.Today.ToString("yyyy-MM-dd");
             txtEndDate.Text = DateTime.Today.AddYears(1).ToString("yyyy-MM-dd");
 
-            // Edit mode check
             if (Request.QueryString["id"] != null)
             {
                 int cid = Convert.ToInt32(Request.QueryString["id"]);
@@ -37,7 +32,6 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
             }
         }
     }
-
 
     private void LoadCompany(int cid)
     {
@@ -63,12 +57,15 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
             txtStartDate.Text = Convert.ToDateTime(r["SubscriptionStart"]).ToString("yyyy-MM-dd");
             txtEndDate.Text = Convert.ToDateTime(r["SubscriptionEnd"]).ToString("yyyy-MM-dd");
 
+            // NAYE 3 FIELDS LOAD
+            txtCIN.Text = r["CIN"] != DBNull.Value ? r["CIN"].ToString() : "";
+            txtPAN.Text = r["PAN"] != DBNull.Value ? r["PAN"].ToString() : "";
+            txtLogoUrl.Text = r["LogoUrl"] != DBNull.Value ? r["LogoUrl"].ToString() : "";
         }
     }
 
     protected void btnSave_Click(object sender, EventArgs e)
     {
-        // Validation
         if (string.IsNullOrWhiteSpace(txtCompanyName.Text) ||
             string.IsNullOrWhiteSpace(txtUserName.Text) ||
             string.IsNullOrWhiteSpace(txtPassword.Text) ||
@@ -109,29 +106,31 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
         param.Add(new SqlParameter("@SubStart", startDate));
         param.Add(new SqlParameter("@SubEnd", endDate));
 
+        // NAYE 3 PARAMS
+        param.Add(new SqlParameter("@CIN", string.IsNullOrWhiteSpace(txtCIN.Text) ? (object)DBNull.Value : txtCIN.Text.Trim()));
+        param.Add(new SqlParameter("@PAN", string.IsNullOrWhiteSpace(txtPAN.Text) ? (object)DBNull.Value : txtPAN.Text.Trim()));
+        param.Add(new SqlParameter("@LogoUrl", string.IsNullOrWhiteSpace(txtLogoUrl.Text) ? (object)DBNull.Value : txtLogoUrl.Text.Trim()));
+
         int result;
         bool isNew = (companyID == 0);
 
         if (isNew)
         {
-            // Naya record
             result = dac.update(@"
                 INSERT INTO prabha.Companies
                 (CompanyName, AdminUserName, AdminPassword, OwnerName, Phone, Email,
-                 Address, City, State, GSTNumber, SubscriptionStart, SubscriptionEnd,
-                 Status, IsActive, CreatedDate)
+                 Address, City, State, GSTNumber, CIN, PAN, LogoUrl,
+                 SubscriptionStart, SubscriptionEnd, Status, IsActive, CreatedDate)
                 VALUES
                 (@CompanyName, @AdminUserName, @AdminPassword, @OwnerName, @Phone, @Email,
-                 @Address, @City, @State, @GSTNumber, @SubStart, @SubEnd,
-                 N'Active', 1, GETDATE())", param);
+                 @Address, @City, @State, @GSTNumber, @CIN, @PAN, @LogoUrl,
+                 @SubStart, @SubEnd, N'Active', 1, GETDATE())", param);
 
-            // Get the newly created CompanyID
             object newIdObj = dac.Scalar("SELECT @@IDENTITY", null);
             companyID = Convert.ToInt32(newIdObj);
         }
         else
         {
-            // Update existing
             param.Add(new SqlParameter("@CompanyID", companyID));
             result = dac.update(@"
                 UPDATE prabha.Companies SET
@@ -139,16 +138,18 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
                     AdminPassword=@AdminPassword, OwnerName=@OwnerName,
                     Phone=@Phone, Email=@Email, Address=@Address,
                     City=@City, State=@State, GSTNumber=@GSTNumber,
+                    CIN=@CIN, PAN=@PAN, LogoUrl=@LogoUrl,
                     SubscriptionStart=@SubStart, SubscriptionEnd=@SubEnd
                 WHERE CompanyID=@CompanyID", param);
         }
 
         if (result > 0)
         {
-            saas.LogAction(companyID, Session["User"].ToString(), "SuperAdmin",
+            if (isNew)
+            {
+                saas.LogAction(companyID, Session["User"].ToString(), "SuperAdmin",
                     "CompanyCreated", "Company", "New company '" + txtCompanyName.Text.Trim() + "' created");
 
-                // Notification for new company
                 var notifParam = new List<SqlParameter>();
                 notifParam.Add(new SqlParameter("@CompanyID", companyID));
                 notifParam.Add(new SqlParameter("@Title", "New Company Created"));

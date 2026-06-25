@@ -20,6 +20,8 @@ public partial class PurchaseUnloading : System.Web.UI.Page
     List<SqlParameter> param;
     DataAccessLayer dac;
     string script = "";
+    DataRow companyRow;   // <-- NAYA: current logged-in company ki details yaha store hongi
+
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!Page.IsPostBack)
@@ -38,6 +40,43 @@ public partial class PurchaseUnloading : System.Web.UI.Page
 
         }
     }
+
+    // ===== NAYA METHOD: Session["CompanyID"] se current company ki details DB se uthata hai =====
+    private void LoadCompanyDetails()
+    {
+        try
+        {
+            int cid = Session["CompanyID"] != null ? Convert.ToInt32(Session["CompanyID"]) : 0;
+
+            var p = new List<SqlParameter>();
+            p.Add(new SqlParameter("@CompanyID", cid));
+
+            DataTable dtC = new DataAccessLayer().GetDataTable(
+                "SELECT * FROM prabha.Companies WHERE CompanyID=@CompanyID", p);
+
+            if (dtC.Rows.Count > 0)
+            {
+                companyRow = dtC.Rows[0];
+            }
+            else
+            {
+                companyRow = null;
+            }
+        }
+        catch (Exception)
+        {
+            companyRow = null;
+        }
+    }
+
+    // ===== NAYA HELPER: agar column DB table me exist nahi karta, crash nahi hoga, khali string aayega =====
+    private string SafeCol(DataRow row, string colName)
+    {
+        if (row == null) return "";
+        if (!row.Table.Columns.Contains(colName)) return "";
+        return row[colName] == DBNull.Value ? "" : row[colName].ToString();
+    }
+
     public void btnContinue_ServerClick(object sender, EventArgs e)
     {
 
@@ -102,57 +141,79 @@ public partial class PurchaseUnloading : System.Web.UI.Page
 
     public void checkData()
     {
-        DataTable DtData = new DataTable();
-        string q = "";
-        param = new List<SqlParameter>();//Emp_Id
-
-
-        if (sPartyName.SelectedItem.Text.Trim() == "--Select One--")
+        try
         {
-            param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-            param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
+            LoadCompanyDetails();   // <-- NAYA: report banane se pehle current company load karo
 
-            q = "select ID,[No],ManualInvoice,DataDate,PartyName,BOrderNo,BOrderDate,DespNo,DespDate,DespVNo,Destination from prabha.Sale_Master_Data where DataDate>=@DataDate1 and DataDate<=@DataDate2 order by [No],DataDate";
-        }
-        else
-        {
-            param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-            param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
-            param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
+            DataTable DtData = new DataTable();
+            string q = "";
+            param = new List<SqlParameter>();//Emp_Id
 
-            q = "select ID,[No],ManualInvoice,DataDate,PartyName,BOrderNo,BOrderDate,DespNo,DespDate,DespVNo,Destination from prabha.Sale_Master_Data where DataDate>=@DataDate1 and DataDate<=@DataDate2 and PartyName=@PartyName order by [No],DataDate";
+
+            if (sPartyName.SelectedItem.Text.Trim() == "--Select One--")
+            {
+                param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
+                param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
+
+                q = "select ID,[No],ManualInvoice,DataDate,PartyName,BOrderNo,BOrderDate,DespNo,DespDate,DespVNo,Destination from prabha.Sale_Master_Data where DataDate>=@DataDate1 and DataDate<=@DataDate2 order by [No],DataDate";
+            }
+            else
+            {
+                param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
+                param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
+                param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
+
+                q = "select ID,[No],ManualInvoice,DataDate,PartyName,BOrderNo,BOrderDate,DespNo,DespDate,DespVNo,Destination from prabha.Sale_Master_Data where DataDate>=@DataDate1 and DataDate<=@DataDate2 and PartyName=@PartyName order by [No],DataDate";
+            }
+            dac = new DataAccessLayer();
+            DtData = dac.GetDataTable(q, param);
+            DtData.Columns.Add("Amount", typeof(string));
+            DtData.Columns.Add("CD", typeof(string));
+
+            // ===== NAYA: company ki saari details safely uthayi ja rahi hain (missing column se crash nahi hoga) =====
+            string compName = SafeCol(companyRow, "CompanyName");
+            if (string.IsNullOrWhiteSpace(compName)) compName = "Company";
+            string compAddress = (SafeCol(companyRow, "Address") + ", " + SafeCol(companyRow, "City") + ", " + SafeCol(companyRow, "State")).Trim(',', ' ');
+            string compPhone = SafeCol(companyRow, "Phone");
+            string compEmail = SafeCol(companyRow, "Email");
+            string compCIN = SafeCol(companyRow, "CIN");
+            string compPAN = SafeCol(companyRow, "PAN");
+            string compGST = SafeCol(companyRow, "GSTNumber");
+
+            StringBuilder htmlTable = new StringBuilder();
+            string INVNo = "";
+            htmlTable.Append("<table class='table table-bordered' id='dataTable' cellspacing='0'>");
+
+            // ===== CHANGE: hardcoded "Rashmi Rice Mills" hata kar company ki dynamic details daali gayi hain (logo hata diya - 404 fix) =====
+            htmlTable.Append("<tr><td colspan='9' align='center'><span style='display:table-cell; vertical-align:top;'><span style='font-size:16pt; font-weight:bold;'> " + compName + " </span></br><span style='font-size:8pt;'>" + compAddress + " </br>Mob.: " + compPhone + "</br>Email: " + compEmail + "</br>CIN: " + compCIN + "</br>PAN No.: " + compPAN + "</br>GSTIN: " + compGST + "</span></span></td></tr>");
+            htmlTable.Append("<tr><td colspan='9' align='center'><span style='font-size:10pt; font-weight:bold;'> SALE REPORT </span></td></tr>");
+            htmlTable.Append("<tr><td>Sl. No.</td><td>Invoice No. & Date</td><td>Party Name</td><td>Buyer's Order No. & Date</td><td>Despatch Doc No. & Date</td><td>Destination</td><td>CD</td><td>Amount (In Rs.)</td><td></td></tr>");
+            for (int i = 0; i < DtData.Rows.Count; i++)
+            {
+                htmlTable.Append("<tr>");
+                htmlTable.Append("<td>" + (i + 1) + "</td>");
+                INVNo = GenInvoiceNo(DtData.Rows[i]["No"].ToString(), DtData.Rows[i]["DataDate"].ToString());
+                htmlTable.Append("<td>" + INVNo + ", " + Convert.ToDateTime(DtData.Rows[i]["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
+                htmlTable.Append("<td>" + DtData.Rows[i]["PartyName"].ToString() + "</td>");
+                htmlTable.Append("<td>" + DtData.Rows[i]["BOrderNo"].ToString() + ", " + Convert.ToDateTime(DtData.Rows[i]["BOrderDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
+                htmlTable.Append("<td>" + DtData.Rows[i]["DespNo"].ToString() + ", " + Convert.ToDateTime(DtData.Rows[i]["DespDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
+                htmlTable.Append("<td>" + DtData.Rows[i]["Destination"].ToString() + "</td>");
+                string[] calc = dataDisplay(DtData.Rows[i]["ID"].ToString()).Split('-');
+                DtData.Rows[i]["Amount"] = Math.Round(Convert.ToDouble(calc[1].ToString()), 0);
+                DtData.Rows[i]["CD"] = Math.Round(Convert.ToDouble(calc[0].ToString()), 0);
+                htmlTable.Append("<td>" + DtData.Rows[i]["CD"].ToString() + "</td>");
+                htmlTable.Append("<td>" + DtData.Rows[i]["Amount"].ToString() + "</td>");
+                htmlTable.Append("<td><a href='BillofSupply.aspx?ID=" + DtData.Rows[i]["ID"].ToString() + "' target='_blank'>Bill of Supply</a></td></tr>");
+            }
+            Session["Export"] = null;
+            Session["Export"] = DtData;
+            htmlTable.Append("</table>");
+            DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
         }
-        dac = new DataAccessLayer();
-        DtData = dac.GetDataTable(q, param);
-        DtData.Columns.Add("Amount", typeof(string));
-        DtData.Columns.Add("CD", typeof(string));
-        StringBuilder htmlTable = new StringBuilder();
-        string INVNo = "";
-        htmlTable.Append("<table class='table table-bordered' id='dataTable' cellspacing='0'>");
-        htmlTable.Append("<tr><td colspan='9' align='center'><span style='display:table-cell; vertical-align:top;'><img src='http://prabhasoftware.com/Rashmi Rice Logo (1).png' height='100px'/></span><span style='display:table-cell; vertical-align:top;'><span style='font-size:16pt; font-weight:bold;'> Rashmi Rice Mills Pvt. Ltd. </span></br><span style='font-size:8pt;'>Daniyawan Chandi Road, Hasanpur, Patna- 801304 </br>Mob.: 9304052349, 9334280057</br>Email: srirajbhog@gmail.com</br>CIN: U15312BR2014PTC022237</br>PAN No.: AAGCR9497P</br>GSTIN: 10AAGCR9497P1ZK</span></span></td></tr>");
-        htmlTable.Append("<tr><td colspan='9' align='center'><span style='font-size:10pt; font-weight:bold;'> SALE REPORT </span></td></tr>");
-        htmlTable.Append("<tr><td>Sl. No.</td><td>Invoice No. & Date</td><td>Party Name</td><td>Buyer's Order No. & Date</td><td>Despatch Doc No. & Date</td><td>Destination</td><td>CD</td><td>Amount (In Rs.)</td><td></td></tr>");
-        for (int i = 0; i < DtData.Rows.Count; i++)
+        catch (Exception)
         {
-            htmlTable.Append("<tr>");
-            htmlTable.Append("<td>" + (i + 1) + "</td>");
-            INVNo = GenInvoiceNo(DtData.Rows[i]["No"].ToString(), DtData.Rows[i]["DataDate"].ToString());
-            htmlTable.Append("<td>" + INVNo + ", " + Convert.ToDateTime(DtData.Rows[i]["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
-            htmlTable.Append("<td>" + DtData.Rows[i]["PartyName"].ToString() + "</td>");
-            htmlTable.Append("<td>" + DtData.Rows[i]["BOrderNo"].ToString() + ", " + Convert.ToDateTime(DtData.Rows[i]["BOrderDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
-            htmlTable.Append("<td>" + DtData.Rows[i]["DespNo"].ToString() + ", " + Convert.ToDateTime(DtData.Rows[i]["DespDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
-            htmlTable.Append("<td>" + DtData.Rows[i]["Destination"].ToString() + "</td>");
-            string[] calc = dataDisplay(DtData.Rows[i]["ID"].ToString()).Split('-');
-            DtData.Rows[i]["Amount"] = Math.Round(Convert.ToDouble(calc[1].ToString()), 0);
-            DtData.Rows[i]["CD"] = Math.Round(Convert.ToDouble(calc[0].ToString()), 0);
-            htmlTable.Append("<td>" + DtData.Rows[i]["CD"].ToString() + "</td>");
-            htmlTable.Append("<td>" + DtData.Rows[i]["Amount"].ToString() + "</td>");
-            htmlTable.Append("<td><a href='BillofSupply.aspx?ID=" + DtData.Rows[i]["ID"].ToString() + "' target='_blank'>Bill of Supply</a></td></tr>");
+            DBDataPlaceHolder.Controls.Add(new Literal { Text = "<table class='table'><tr><td align='center'>Data load karne mein error aaya, page refresh karein.</td></tr></table>" });
         }
-        Session["Export"] = null;
-        Session["Export"] = DtData;
-        htmlTable.Append("</table>");
-        DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
     }
     public string dataDisplay(string a)
     {

@@ -20,6 +20,7 @@ public partial class SaleSauda : System.Web.UI.Page
     List<SqlParameter> param;
     DataAccessLayer dac;
     string script = "";
+    DataRow companyRow;   // <-- NAYA: current logged-in company ki details yaha store hongi
 
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -57,6 +58,42 @@ public partial class SaleSauda : System.Web.UI.Page
 
             dataDisplay();
         }
+    }
+
+    // ===== NAYA METHOD: Session["CompanyID"] se current company ki details DB se uthata hai =====
+    private void LoadCompanyDetails()
+    {
+        try
+        {
+            int cid = Session["CompanyID"] != null ? Convert.ToInt32(Session["CompanyID"]) : 0;
+
+            var p = new List<SqlParameter>();
+            p.Add(new SqlParameter("@CompanyID", cid));
+
+            DataTable dtC = new DataAccessLayer().GetDataTable(
+                "SELECT * FROM prabha.Companies WHERE CompanyID=@CompanyID", p);
+
+            if (dtC.Rows.Count > 0)
+            {
+                companyRow = dtC.Rows[0];
+            }
+            else
+            {
+                companyRow = null;
+            }
+        }
+        catch (Exception)
+        {
+            companyRow = null;
+        }
+    }
+
+    // ===== NAYA HELPER: agar column DB table me exist nahi karta, crash nahi hoga, khali string aayega =====
+    private string SafeCol(DataRow row, string colName)
+    {
+        if (row == null) return "";
+        if (!row.Table.Columns.Contains(colName)) return "";
+        return row[colName] == DBNull.Value ? "" : row[colName].ToString();
     }
 
     public void Submit1_ServerClick(object sender, EventArgs e)
@@ -257,52 +294,73 @@ public partial class SaleSauda : System.Web.UI.Page
     public void dataDisplay()
     {
         StringBuilder htmlTable;
-        if (Session["Data"] == null)
+        try
         {
-            htmlTable = new StringBuilder();
-            htmlTable.Append("<table class='table' cellspacing='0'>");
-            htmlTable.Append("<tr><td align='center'>No Data Added...</td></tr></table>");
-        }
-        else
-        {
-            dtMain = (DataTable)Session["DataMain"];
-            dt = (DataTable)Session["Data"];
+            LoadCompanyDetails();   // <-- NAYA: bill banane se pehle current company load karo
 
-            htmlTable = new StringBuilder();
-            htmlTable.Append("<table class='table' runat='server' style='font-size:10pt; noWrap' id='printTable' cellspacing='0' border='1px'>");
-
-            htmlTable.Append("<tr><td colspan='3' align='center'><span style='display:table-cell; vertical-align:top;'><img src='http://prabhasoftware.com/Rashmi Rice Logo (1).png' height='100px'/></span><span style='display:table-cell; vertical-align:top;'><span style='font-size:16pt; font-weight:bold;'> Rashmi Rice Mills Pvt. Ltd. </span></br><span style='font-size:8pt;'>Daniyawan Chandi Road, Hasanpur, Patna- 801304 </br>Mob.: 9304052349, 9334280057</br>Email: srirajbhog@gmail.com</br>CIN: U15312BR2014PTC022237</br>PAN No.: AAGCR9497P</br>GSTIN: 10AAGCR9497P1ZK</span></span></td></tr>");
-            htmlTable.Append("<tr><td colspan='3' align='center'><span style='font-size:10pt; font-weight:bold;'>SALE SAUDA REPORT </span></td></tr>");
-
-            htmlTable.Append("<tr><td align='left' rowspan='3' valign='top'><b>Party Details:</b></br>" + dtMain.Rows[0]["PartyName"].ToString() + "</br>" + dtMain.Rows[0]["PAddress"].ToString() + "</br>");
-            htmlTable.Append("Mobile No.: " + dtMain.Rows[0]["PMobile"].ToString() + "</br>GSTIN: " + dtMain.Rows[0]["PGSTIN"].ToString() + "</br>PAN: " + dtMain.Rows[0]["PPAN"].ToString() + "</td>");
-            if (dtMain.Rows[0]["MNo"].ToString() == "")
+            if (Session["Data"] == null)
             {
-                htmlTable.Append("<td colspan='2' align='left'>Sauda No.: <b>" + dtMain.Rows[0]["No"].ToString() + "</b></td></tr>");
+                htmlTable = new StringBuilder();
+                htmlTable.Append("<table class='table' cellspacing='0'>");
+                htmlTable.Append("<tr><td align='center'>No Data Added...</td></tr></table>");
             }
             else
             {
-                htmlTable.Append("<td colspan='2' align='left'>Sauda No.: <b>" + dtMain.Rows[0]["No"].ToString() + "</b></br>Manual Sauda No.: <b>" + dtMain.Rows[0]["MNo"].ToString() + "</b></td></tr>");
-            }
-            htmlTable.Append("<tr><td colspan='2' align='left'>Sauda Date: " + Convert.ToDateTime(dtMain.Rows[0]["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
-            htmlTable.Append("<tr><td colspan='2' align='left'>Suppler's Ref.: " + dtMain.Rows[0]["BrokerName"].ToString() + "</td>");
-            htmlTable.Append("<tr><td align='center' width='60%'><b>Description of Goods</b> </td>");
-            htmlTable.Append("<td align='center' width='20%'><b>Qty. In KG</b></td>");
-            htmlTable.Append("<td align='center' width='20%'><b>Rate /KG</b></td></tr>");
+                dtMain = (DataTable)Session["DataMain"];
+                dt = (DataTable)Session["Data"];
 
-            for (int i = 0; i < dt.Rows.Count; i++)
-            {
-                htmlTable.Append("<tr><td align='left'>" + dt.Rows[i]["ItemType"].ToString() + "</td>");
-                htmlTable.Append("<td align='right'>" + Math.Round(Convert.ToDouble(dt.Rows[i]["QIKG"].ToString()), 3).ToString() + "</td>");
-                htmlTable.Append("<td align='right'>" + Math.Round(Convert.ToDouble(dt.Rows[i]["AvgRate"].ToString()), 2).ToString() + "</td>");
-                htmlTable.Append("</tr>");
-            }
+                // ===== NAYA: company ki saari details safely uthayi ja rahi hain (missing column se crash nahi hoga) =====
+                string compName = SafeCol(companyRow, "CompanyName");
+                if (string.IsNullOrWhiteSpace(compName)) compName = "Company";
+                string compAddress = (SafeCol(companyRow, "Address") + ", " + SafeCol(companyRow, "City") + ", " + SafeCol(companyRow, "State")).Trim(',', ' ');
+                string compPhone = SafeCol(companyRow, "Phone");
+                string compEmail = SafeCol(companyRow, "Email");
+                string compCIN = SafeCol(companyRow, "CIN");
+                string compPAN = SafeCol(companyRow, "PAN");
+                string compGST = SafeCol(companyRow, "GSTNumber");
 
-            htmlTable.Append("<tr><td align='left'><span style='font-size:7pt;'><b>Note:</b></br>All claim disputes will be resolved within 2 working days from the date of issue of this Purchase Order and receipt of a copy of this Order to you.</br>दावे से सम्बंधित सभी विवादों का समाधान इस खरीद आदेश के जारी होने और इस आदेश की प्रति आपको प्राप्त होने की तारीख से 2 कार्य दिवसों के भीतर किया जाएगा।</span></td>");
-            htmlTable.Append("<td colspan='2' align='center'><b>For Rashmi Rice Mills Pvt. Ltd.</br></br></br>Authorised Signatory</b></td>");
-            htmlTable.Append("</table>");
+                htmlTable = new StringBuilder();
+                htmlTable.Append("<table class='table' runat='server' style='font-size:10pt; noWrap' id='printTable' cellspacing='0' border='1px'>");
+
+                // ===== CHANGE: hardcoded "Rashmi Rice Mills" hata kar company ki dynamic details daali gayi hain (logo hata diya - 404 fix) =====
+                htmlTable.Append("<tr><td colspan='3' align='center'><span style='display:table-cell; vertical-align:top;'><span style='font-size:16pt; font-weight:bold;'> " + compName + " </span></br><span style='font-size:8pt;'>" + compAddress + " </br>Mob.: " + compPhone + "</br>Email: " + compEmail + "</br>CIN: " + compCIN + "</br>PAN No.: " + compPAN + "</br>GSTIN: " + compGST + "</span></span></td></tr>");
+                htmlTable.Append("<tr><td colspan='3' align='center'><span style='font-size:10pt; font-weight:bold;'>SALE SAUDA REPORT </span></td></tr>");
+
+                htmlTable.Append("<tr><td align='left' rowspan='3' valign='top'><b>Party Details:</b></br>" + dtMain.Rows[0]["PartyName"].ToString() + "</br>" + dtMain.Rows[0]["PAddress"].ToString() + "</br>");
+                htmlTable.Append("Mobile No.: " + dtMain.Rows[0]["PMobile"].ToString() + "</br>GSTIN: " + dtMain.Rows[0]["PGSTIN"].ToString() + "</br>PAN: " + dtMain.Rows[0]["PPAN"].ToString() + "</td>");
+                if (dtMain.Rows[0]["MNo"].ToString() == "")
+                {
+                    htmlTable.Append("<td colspan='2' align='left'>Sauda No.: <b>" + dtMain.Rows[0]["No"].ToString() + "</b></td></tr>");
+                }
+                else
+                {
+                    htmlTable.Append("<td colspan='2' align='left'>Sauda No.: <b>" + dtMain.Rows[0]["No"].ToString() + "</b></br>Manual Sauda No.: <b>" + dtMain.Rows[0]["MNo"].ToString() + "</b></td></tr>");
+                }
+                htmlTable.Append("<tr><td colspan='2' align='left'>Sauda Date: " + Convert.ToDateTime(dtMain.Rows[0]["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
+                htmlTable.Append("<tr><td colspan='2' align='left'>Suppler's Ref.: " + dtMain.Rows[0]["BrokerName"].ToString() + "</td>");
+                htmlTable.Append("<tr><td align='center' width='60%'><b>Description of Goods</b> </td>");
+                htmlTable.Append("<td align='center' width='20%'><b>Qty. In KG</b></td>");
+                htmlTable.Append("<td align='center' width='20%'><b>Rate /KG</b></td></tr>");
+
+                for (int i = 0; i < dt.Rows.Count; i++)
+                {
+                    htmlTable.Append("<tr><td align='left'>" + dt.Rows[i]["ItemType"].ToString() + "</td>");
+                    htmlTable.Append("<td align='right'>" + Math.Round(Convert.ToDouble(dt.Rows[i]["QIKG"].ToString()), 3).ToString() + "</td>");
+                    htmlTable.Append("<td align='right'>" + Math.Round(Convert.ToDouble(dt.Rows[i]["AvgRate"].ToString()), 2).ToString() + "</td>");
+                    htmlTable.Append("</tr>");
+                }
+
+                htmlTable.Append("<tr><td align='left'><span style='font-size:7pt;'><b>Note:</b></br>All claim disputes will be resolved within 2 working days from the date of issue of this Purchase Order and receipt of a copy of this Order to you.</br>दावे से सम्बंधित सभी विवादों का समाधान इस खरीद आदेश के जारी होने और इस आदेश की प्रति आपको प्राप्त होने की तारीख से 2 कार्य दिवसों के भीतर किया जाएगा।</span></td>");
+                // ===== CHANGE: footer me hardcoded "Rashmi Rice Mills" ki jagah dynamic compName =====
+                htmlTable.Append("<td colspan='2' align='center'><b>For " + compName + "</br></br></br>Authorised Signatory</b></td>");
+                htmlTable.Append("</table>");
+            }
+            DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
         }
-        DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
+        catch (Exception)
+        {
+            DBDataPlaceHolder.Controls.Add(new Literal { Text = "<table class='table'><tr><td align='center'>Data load karne mein error aaya, page refresh karein.</td></tr></table>" });
+        }
     }
 
     public void CallPrint(string strid)
