@@ -52,20 +52,18 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
             txtCity.Text = r["City"].ToString();
             txtState.Text = r["State"].ToString();
             txtGST.Text = r["GSTNumber"] != DBNull.Value ? r["GSTNumber"].ToString() : "";
+            txtPAN.Text = r["PANNumber"] != DBNull.Value ? r["PANNumber"].ToString() : "";
+            txtCIN.Text = r["CINNumber"] != DBNull.Value ? r["CINNumber"].ToString() : "";
             txtUserName.Text = r["AdminUserName"].ToString();
             txtPassword.Text = r["AdminPassword"].ToString();
             txtStartDate.Text = Convert.ToDateTime(r["SubscriptionStart"]).ToString("yyyy-MM-dd");
             txtEndDate.Text = Convert.ToDateTime(r["SubscriptionEnd"]).ToString("yyyy-MM-dd");
-
-            // NAYE 3 FIELDS LOAD
-            txtCIN.Text = r["CIN"] != DBNull.Value ? r["CIN"].ToString() : "";
-            txtPAN.Text = r["PAN"] != DBNull.Value ? r["PAN"].ToString() : "";
-            txtLogoUrl.Text = r["LogoUrl"] != DBNull.Value ? r["LogoUrl"].ToString() : "";
         }
     }
 
     protected void btnSave_Click(object sender, EventArgs e)
     {
+        // --- Validation ---
         if (string.IsNullOrWhiteSpace(txtCompanyName.Text) ||
             string.IsNullOrWhiteSpace(txtUserName.Text) ||
             string.IsNullOrWhiteSpace(txtPassword.Text) ||
@@ -91,6 +89,7 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
         }
 
         int companyID = Convert.ToInt32(hfCompanyID.Value);
+        bool isNew = (companyID == 0);
 
         var param = new List<SqlParameter>();
         param.Add(new SqlParameter("@CompanyName", txtCompanyName.Text.Trim()));
@@ -103,73 +102,92 @@ public partial class superadmin_AddCompany : System.Web.UI.Page
         param.Add(new SqlParameter("@City", txtCity.Text.Trim()));
         param.Add(new SqlParameter("@State", txtState.Text.Trim()));
         param.Add(new SqlParameter("@GSTNumber", string.IsNullOrWhiteSpace(txtGST.Text) ? (object)DBNull.Value : txtGST.Text.Trim()));
+        param.Add(new SqlParameter("@PANNumber", string.IsNullOrWhiteSpace(txtPAN.Text) ? (object)DBNull.Value : txtPAN.Text.Trim()));
+        param.Add(new SqlParameter("@CINNumber", string.IsNullOrWhiteSpace(txtCIN.Text) ? (object)DBNull.Value : txtCIN.Text.Trim()));
         param.Add(new SqlParameter("@SubStart", startDate));
         param.Add(new SqlParameter("@SubEnd", endDate));
 
-        // NAYE 3 PARAMS
-        param.Add(new SqlParameter("@CIN", string.IsNullOrWhiteSpace(txtCIN.Text) ? (object)DBNull.Value : txtCIN.Text.Trim()));
-        param.Add(new SqlParameter("@PAN", string.IsNullOrWhiteSpace(txtPAN.Text) ? (object)DBNull.Value : txtPAN.Text.Trim()));
-        param.Add(new SqlParameter("@LogoUrl", string.IsNullOrWhiteSpace(txtLogoUrl.Text) ? (object)DBNull.Value : txtLogoUrl.Text.Trim()));
-
-        int result;
-        bool isNew = (companyID == 0);
-
-        if (isNew)
-        {
-            result = dac.update(@"
-                INSERT INTO prabha.Companies
-                (CompanyName, AdminUserName, AdminPassword, OwnerName, Phone, Email,
-                 Address, City, State, GSTNumber, CIN, PAN, LogoUrl,
-                 SubscriptionStart, SubscriptionEnd, Status, IsActive, CreatedDate)
-                VALUES
-                (@CompanyName, @AdminUserName, @AdminPassword, @OwnerName, @Phone, @Email,
-                 @Address, @City, @State, @GSTNumber, @CIN, @PAN, @LogoUrl,
-                 @SubStart, @SubEnd, N'Active', 1, GETDATE())", param);
-
-            object newIdObj = dac.Scalar("SELECT @@IDENTITY", null);
-            companyID = Convert.ToInt32(newIdObj);
-        }
-        else
-        {
-            param.Add(new SqlParameter("@CompanyID", companyID));
-            result = dac.update(@"
-                UPDATE prabha.Companies SET
-                    CompanyName=@CompanyName, AdminUserName=@AdminUserName,
-                    AdminPassword=@AdminPassword, OwnerName=@OwnerName,
-                    Phone=@Phone, Email=@Email, Address=@Address,
-                    City=@City, State=@State, GSTNumber=@GSTNumber,
-                    CIN=@CIN, PAN=@PAN, LogoUrl=@LogoUrl,
-                    SubscriptionStart=@SubStart, SubscriptionEnd=@SubEnd
-                WHERE CompanyID=@CompanyID", param);
-        }
-
-        if (result > 0)
+        try
         {
             if (isNew)
             {
-                saas.LogAction(companyID, Session["User"].ToString(), "SuperAdmin",
-                    "CompanyCreated", "Company", "New company '" + txtCompanyName.Text.Trim() + "' created");
+                // FIX: SCOPE_IDENTITY() use karo, @@IDENTITY nahi — triggers ke sath safer hai
+                object newIdObj = dac.Scalar(@"
+                    INSERT INTO prabha.Companies
+                    (CompanyName, AdminUserName, AdminPassword, OwnerName, Phone, Email,
+                     Address, City, State, GSTNumber, PANNumber, CINNumber,
+                     SubscriptionStart, SubscriptionEnd, Status, IsActive, CreatedDate)
+                    VALUES
+                    (@CompanyName, @AdminUserName, @AdminPassword, @OwnerName, @Phone, @Email,
+                     @Address, @City, @State, @GSTNumber, @PANNumber, @CINNumber,
+                     @SubStart, @SubEnd, N'Active', 1, GETDATE());
+                    SELECT SCOPE_IDENTITY();", param);
 
+                if (newIdObj == null || newIdObj == DBNull.Value)
+                {
+                    lblMsg.Text = "Company save nahi hui, dobara try karein.";
+                    return;
+                }
+
+                companyID = Convert.ToInt32(newIdObj);
+
+                // Audit log
+                saas.LogAction(companyID, Session["User"].ToString(), "SuperAdmin",
+                    "CompanyCreated", "Company",
+                    "New company '" + txtCompanyName.Text.Trim() + "' created");
+
+                // Notification
                 var notifParam = new List<SqlParameter>();
                 notifParam.Add(new SqlParameter("@CompanyID", companyID));
                 notifParam.Add(new SqlParameter("@Title", "New Company Created"));
-                notifParam.Add(new SqlParameter("@Message", "Company '" + txtCompanyName.Text.Trim() + "' has been onboarded."));
+                notifParam.Add(new SqlParameter("@Message",
+                    "Company '" + txtCompanyName.Text.Trim() + "' has been onboarded."));
                 dac.update(@"INSERT INTO prabha.Notifications
                     (CompanyID, Title, Message, NotificationType, IsRead, CreatedDate)
-                    VALUES (@CompanyID, @Title, @Message, N'CompanyCreated', 0, GETDATE())", notifParam);
+                    VALUES (@CompanyID, @Title, @Message, N'CompanyCreated', 0, GETDATE())",
+                    notifParam);
+
+                Response.Redirect("Dashboard.aspx?msg=saved");
             }
             else
             {
-                saas.LogAction(companyID, Session["User"].ToString(), "SuperAdmin",
-                    "CompanyUpdated", "Company", "Company '" + txtCompanyName.Text.Trim() + "' details updated");
-            }
+                param.Add(new SqlParameter("@CompanyID", companyID));
+                int result = dac.update(@"
+                    UPDATE prabha.Companies SET
+                        CompanyName    = @CompanyName,
+                        AdminUserName  = @AdminUserName,
+                        AdminPassword  = @AdminPassword,
+                        OwnerName      = @OwnerName,
+                        Phone          = @Phone,
+                        Email          = @Email,
+                        Address        = @Address,
+                        City           = @City,
+                        State          = @State,
+                        GSTNumber      = @GSTNumber,
+                        PANNumber      = @PANNumber,
+                        CINNumber      = @CINNumber,
+                        SubscriptionStart = @SubStart,
+                        SubscriptionEnd   = @SubEnd
+                    WHERE CompanyID = @CompanyID", param);
 
-            string msg = isNew ? "saved" : "updated";
-            Response.Redirect("Dashboard.aspx?msg=" + msg);
+                if (result > 0)
+                {
+                    saas.LogAction(companyID, Session["User"].ToString(), "SuperAdmin",
+                        "CompanyUpdated", "Company",
+                        "Company '" + txtCompanyName.Text.Trim() + "' details updated");
+
+                    Response.Redirect("Dashboard.aspx?msg=updated");
+                }
+                else
+                {
+                    lblMsg.Text = "Update nahi hua — CompanyID galat ho sakta hai ya koi change nahi tha.";
+                }
+            }
         }
-        else
+        catch (Exception ex)
         {
-            lblMsg.Text = "Kuch galat hua, dobara try karein.";
+            // Production mein ex.Message hata do; abhi debug ke liye rakha hai
+            lblMsg.Text = "Kuch galat hua: " + ex.Message;
         }
     }
 }

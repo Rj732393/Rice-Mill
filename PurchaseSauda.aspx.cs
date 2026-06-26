@@ -299,8 +299,8 @@ public partial class PurchaseSauda : System.Web.UI.Page
                 string compAddress = (SafeCol(companyRow, "Address") + ", " + SafeCol(companyRow, "City") + ", " + SafeCol(companyRow, "State")).Trim(',', ' ');
                 string compPhone = SafeCol(companyRow, "Phone");
                 string compEmail = SafeCol(companyRow, "Email");
-                string compCIN = SafeCol(companyRow, "CIN");
-                string compPAN = SafeCol(companyRow, "PAN");
+                string compCIN = SafeCol(companyRow, "CINNumber");
+                string compPAN = SafeCol(companyRow, "PANNumber");
                 string compGST = SafeCol(companyRow, "GSTNumber");
                 htmlTable = new StringBuilder();
                 htmlTable.Append("<table class='table' runat='server' style='font-size:10pt; noWrap' id='printTable' cellspacing='0' border='1px'>");
