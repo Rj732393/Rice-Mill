@@ -411,7 +411,7 @@ body{
                     <div class="col-md-4 col-sm-6">
 
                         <div class="dashboard-card"
-                            onclick="window.location='Sale.aspx'">
+                            onclick="window.location='SaleSauda.aspx'">
 
                             <div class="card-icon">
                                 <i class="fa-solid fa-bag-shopping"></i>
