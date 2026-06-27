@@ -22,12 +22,7 @@ public partial class Includes_AdminMenu : System.Web.UI.UserControl
         }
 
         // Company naam session se
-        string companyName = "Rashmi Rice";
-        if (Session["CompanyName"] != null &&
-            !string.IsNullOrWhiteSpace(Session["CompanyName"].ToString()))
-        {
-            companyName = Session["CompanyName"].ToString();
-        }
+        
 
         // ✅ NAYA: Username session se
         string userName = Session["User"] != null
@@ -35,8 +30,8 @@ public partial class Includes_AdminMenu : System.Web.UI.UserControl
             : "Admin";
 
         // Sidebar + Navbar labels
-        lblSidebarCompany.Text = companyName;
-        lblNavbarCompany.Text = companyName + " Management";
+        lblSidebarCompany.Text = "Rice Mill";
+        lblNavbarCompany.Text = "Rice Mill Management System";
 
         // ✅ NAYA: Dropdown mein naam set karo
         lblAdminName.Text = userName;

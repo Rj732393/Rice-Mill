@@ -7,7 +7,7 @@
 
     <div class="rm-logo">
         <h2>
-            <asp:Label ID="lblSidebarCompany" runat="server" Text="Rashmi Rice"></asp:Label>
+            <asp:Label ID="lblSidebarCompany" runat="server" Text="Rice Mill"></asp:Label>
         </h2>
         <span>Management System</span>
     </div>

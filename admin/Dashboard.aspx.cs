@@ -26,7 +26,7 @@ public partial class admin_Dashboard : System.Web.UI.Page
 
         if (!IsPostBack)
         {
-            lblCompanyName.Text = Session["CompanyName"] != null ? Session["CompanyName"].ToString() : "Rice Mill";
+            
             lblUserName.Text = Session["User"].ToString();
 
             LoadStats();

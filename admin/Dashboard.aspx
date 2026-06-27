@@ -282,7 +282,7 @@
             </h1>
 
             <p>
-                <asp:Label ID="lblCompanyName" runat="server">Rice Mill</asp:Label> Management Dashboard
+                Rice Mill Management Dashboard
             </p>
 
         </div>
