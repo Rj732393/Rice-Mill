@@ -239,7 +239,7 @@
     </h1>
 
     <p>
-        <asp:Label ID="lblCompanyName" runat="server" Text="Rice Mills"></asp:Label>
+        Search and edit records by sauda number
     </p>
 
 </div>.

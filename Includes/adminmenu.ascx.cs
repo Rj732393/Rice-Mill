@@ -24,7 +24,7 @@ public partial class Includes_AdminMenu : System.Web.UI.UserControl
         // Company naam session se
         
 
-        // ✅ NAYA: Username session se
+        // Username session se
         string userName = Session["User"] != null
             ? Session["User"].ToString()
             : "Admin";
@@ -33,16 +33,46 @@ public partial class Includes_AdminMenu : System.Web.UI.UserControl
         lblSidebarCompany.Text = "Rice Mill";
         lblNavbarCompany.Text = "Rice Mill Management System";
 
-        // ✅ NAYA: Dropdown mein naam set karo
         lblAdminName.Text = userName;
         lblDropdownName.Text = userName;
 
+        // 👇👇 YAHAN ADD KARNA HAI
         if (!IsPostBack)
         {
             BindOperators();
+
+            string page = System.IO.Path.GetFileName(Request.Url.AbsolutePath).ToLower();
+
+            lnkDashboard.Attributes.Remove("class");
+            lnkRiceStock.Attributes.Remove("class");
+            lnkPaddyStock.Attributes.Remove("class");
+            lnkSalePurchase.Attributes.Remove("class");
+            lnkEditSauda.Attributes.Remove("class");
+
+            switch (page)
+            {
+                case "dashboard.aspx":
+                    lnkDashboard.Attributes["class"] = "active";
+                    break;
+
+                case "ricestock.aspx":
+                    lnkRiceStock.Attributes["class"] = "active";
+                    break;
+
+                case "paddystock.aspx":
+                    lnkPaddyStock.Attributes["class"] = "active";
+                    break;
+
+                case "salepurchaseexpense.aspx":
+                    lnkSalePurchase.Attributes["class"] = "active";
+                    break;
+
+                case "editbysauda.aspx":
+                    lnkEditSauda.Attributes["class"] = "active";
+                    break;
+            }
         }
     }
-
     private void BindOperators()
     {
         try

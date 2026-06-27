@@ -93,6 +93,32 @@
             opacity:0.95;
         }
 
+        @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: translateY(0px);  }
+}
+
+.welcome-banner {
+    animation: fadeInUp 0.5s ease both;
+}
+
+.col-md-3:nth-child(1) .dashboard-card { animation: fadeInUp 0.6s ease 0.1s both; }
+.col-md-3:nth-child(2) .dashboard-card { animation: fadeInUp 0.6s ease 0.2s both; }
+.col-md-3:nth-child(3) .dashboard-card { animation: fadeInUp 0.6s ease 0.3s both; }
+.col-md-3:nth-child(4) .dashboard-card { animation: fadeInUp 0.6s ease 0.4s both; }
+
+.quick-links a:nth-child(1) { animation: fadeInUp 0.6s ease 0.2s both; }
+.quick-links a:nth-child(2) { animation: fadeInUp 0.6s ease 0.3s both; }
+.quick-links a:nth-child(3) { animation: fadeInUp 0.6s ease 0.4s both; }
+.quick-links a:nth-child(4) { animation: fadeInUp 0.6s ease 0.5s both; }
+
+.activity-box {
+    animation: fadeInUp 0.6s ease 0.6s both;
+}
+
+.section-title {
+    animation: fadeInUp 0.5s ease 0.1s both;
+}
         /* CARDS */
 
         .dashboard-card{
@@ -115,6 +141,8 @@
             font-weight:700;
             margin-top:12px;
         }
+        
+        
 
         .dashboard-card p{
             color:#64748b;
@@ -278,7 +306,7 @@
         <div class="welcome-banner">
 
             <h1>
-                Welcome <asp:Label ID="lblUserName" runat="server">Admin</asp:Label> 👋
+                Welcome <asp:Label ID="lblUserName" runat="server">Admin</asp:Label> 🌾
             </h1>
 
             <p>

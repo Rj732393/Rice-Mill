@@ -1,0 +1,1469 @@
+diff --cc PurchaseUnloading.aspx.cs
+index b137560,9f643cc..0000000
+--- a/PurchaseUnloading.aspx.cs
++++ b/PurchaseUnloading.aspx.cs
+@@@ -277,228 -225,453 +277,658 @@@ public partial class PurchaseUnloading 
+  
+          return invoiceNo;
+      }
+ +
+      public void calBalance()
+      {
+++<<<<<<< HEAD
+ +        double OrderQ  = 0;
+ +        double Rate    = 0;
+ +        double RBalance = 0;
+ +        double SQ      = 0;
+ +
+ +        string[] dataB = sPaddyType.SelectedValue.ToString().Split('-');
+ +        Rate   = Convert.ToDouble(dataB[2].ToString());
+ +        avgrate.Value    = Rate.ToString();
+ +        avgrate.Disabled = true;
+ +        OrderQ = Convert.ToDouble(dataB[1].ToString());
+ +
+ +        string q = "";
+ +        param = new List<SqlParameter>();
+ +        param.Add(new SqlParameter("@SaudaNo",   SaudaNo.Value.Trim()));
+ +        param.Add(new SqlParameter("@SaudaDate", Convert.ToDateTime(SaudaDate.Value.Trim()).ToString("dd-MMM-yyyy")));
+ +        q = "select ID from [prabha].[Purchase_Master_Data] where SaudaNo=@SaudaNo and SaudaDate=@SaudaDate";
+ +        dac = new DataAccessLayer();
+ +        DataTable dtID = dac.GetDataTable(q, param);
+ +
+ +        if (dtID.Rows.Count > 0)
+++=======
++         try
+++>>>>>>> bfc9489 (operator testing completed)
+          {
+-             q = "";
++             double OrderQ = 0;
++             double Rate = 0;
++             double RBalance = 0;
++             double SQ = 0;
++             string[] dataB = sPaddyType.SelectedValue.ToString().Split('-');
++             Rate = Convert.ToDouble(dataB[2].ToString());
++             avgrate.Value = Rate.ToString();
++             avgrate.Disabled = true;
++             OrderQ = Convert.ToDouble(dataB[1].ToString());
++ 
++             string q = "";
+              param = new List<SqlParameter>();
+++<<<<<<< HEAD
+ +            param.Add(new SqlParameter("@PaddyType", dataB[0].ToString()));
+ +            q = "select FreshQuantity,KhakhriBags,MittiBags,DaagiBags,MixBags,OtherBags,AvgWt from [prabha].[Purchase_Item_Info] where PaddyType=@PaddyType and Master_ID in (";
+ +            for (int i = 0; i < dtID.Rows.Count; i++)
+ +                q = q + dtID.Rows[i]["ID"].ToString() + ",";
+ +            q = q.Substring(0, (q.Length - 1));
+ +            q += ")";
+ +
+ +            dac  = new DataAccessLayer();
+ +            dtID = new DataTable();
+ +            dtID = dac.GetDataTable(q, param);
+ +
+ +            double tst;
+ +            for (int i = 0; i < dtID.Rows.Count; i++)
+ +            {
+ +                tst = 0;
+ +                tst += Convert.ToDouble(dtID.Rows[i]["FreshQuantity"].ToString()) + Convert.ToDouble(dtID.Rows[i]["KhakhriBags"].ToString());
+ +                tst += Convert.ToDouble(dtID.Rows[i]["MittiBags"].ToString())     + Convert.ToDouble(dtID.Rows[i]["DaagiBags"].ToString());
+ +                tst += Convert.ToDouble(dtID.Rows[i]["MixBags"].ToString())       + Convert.ToDouble(dtID.Rows[i]["OtherBags"].ToString());
+ +                SQ  += (tst * Convert.ToDouble(dtID.Rows[i]["AvgWt"].ToString()));
+++=======
++             param.Add(new SqlParameter("@SaudaNo", SaudaNo.Value.Trim()));
++             param.Add(new SqlParameter("@SaudaDate", Convert.ToDateTime(SaudaDate.Value.Trim()).ToString("dd-MMM-yyyy")));
++             q = "select ID from [prabha].[Purchase_Master_Data] where SaudaNo=@SaudaNo and SaudaDate=@SaudaDate";
++             dac = new DataAccessLayer();
++             DataTable dtID = dac.GetDataTable(q, param);
++ 
++             if (dtID.Rows.Count > 0)
++             {
++                 q = "";
++                 param = new List<SqlParameter>();
++                 param.Add(new SqlParameter("@PaddyType", dataB[0].ToString()));
++                 q = "select FreshQuantity,KhakhriBags,MittiBags,DaagiBags,MixBags,OtherBags,AvgWt from [prabha].[Purchase_Item_Info] where PaddyType=@PaddyType and Master_ID in (";
++                 for (int i = 0; i < dtID.Rows.Count; i++)
++                 {
++                     q = q + dtID.Rows[i]["ID"].ToString() + ",";
++                 }
++                 q = q.Substring(0, (q.Length - 1));
++                 q += ")";
++ 
++                 dac = new DataAccessLayer();
++                 dtID = new DataTable();
++                 dtID = dac.GetDataTable(q, param);
++                 double tst;
++                 for (int i = 0; i < dtID.Rows.Count; i++)
++                 {
++                     tst = 0;
++                     tst += Convert.ToDouble(dtID.Rows[i]["FreshQuantity"].ToString()) + Convert.ToDouble(dtID.Rows[i]["KhakhriBags"].ToString());
++                     tst += Convert.ToDouble(dtID.Rows[i]["MittiBags"].ToString()) + Convert.ToDouble(dtID.Rows[i]["DaagiBags"].ToString());
++                     tst += Convert.ToDouble(dtID.Rows[i]["MixBags"].ToString()) + Convert.ToDouble(dtID.Rows[i]["OtherBags"].ToString());
++                     SQ += (tst * Convert.ToDouble(dtID.Rows[i]["AvgWt"].ToString()));
++ 
++                 }
+++>>>>>>> bfc9489 (operator testing completed)
+              }
++             else
++             {
++                 SQ = 0;
++             }
++             RBalance = OrderQ - SQ;
++             lblRBalance.Text = "Balance: " + RBalance.ToString() + " KG";
+          }
+-         else
++         catch (Exception)
+          {
+-             SQ = 0;
++             ShowAlert("Error calculating balance!");
+          }
+-         RBalance = OrderQ - SQ;
+-         lblRBalance.Text = "Balance: " + RBalance.ToString() + " KG";
+      }
+ +
+      public void Submit1_ServerClick(object sender, EventArgs e)
+      {
+++<<<<<<< HEAD
+ +        Session["Data"]     = null;
+ +        Session["DataMain"] = null;
+ +        dataDisplay();
+++=======
++         try
++         {
++             Session["Data"] = null;
++             Session["DataMain"] = null;
++             dataDisplay();
++         }
++         catch (Exception)
++         {
++             ShowAlert("An error occurred. Please reload the page!");
++         }
+++>>>>>>> bfc9489 (operator testing completed)
+      }
+ +
+      public void btnSave_ServerClick(object sender, EventArgs e)
+      {
+-         if (Session["Data"] == null)
++         try
+          {
+-             script = "alert('Please add atleast one data!!');";
+-             ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
++             if (Session["Data"] == null)
++             {
++                 ShowAlert("Please add at least one data first!");
++             }
++             else if (Session["User"] == null)
++             {
++                 ShowAlert("Your session has expired!");
++             }
++             else
++             {
++                 insertPurchaseData();
++                 dataDisplay();
++                 CallPrint("prntContent");
++             }
+          }
+-         else if (Session["User"] == null)
++         catch (Exception)
+          {
+++<<<<<<< HEAD
+ +            script = "alert('Your Session has expired!!');";
+ +            ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
+ +        }
+ +        else
+ +        {
+ +            insertPurchaseData();
+ +            dataDisplay();
+ +            CallPrint("prntContent");
+ +        }
+++=======
++             ShowAlert("An error occurred while saving. Please try again!");
++         }
+++>>>>>>> bfc9489 (operator testing completed)
+      }
+ +
+      public void btnContinue_ServerClick(object sender, EventArgs e)
+      {
+-         int chk = PartyValidation();
+-         if (chk == 1)
++         try
+          {
+++<<<<<<< HEAD
+ +            dtMain = new DataTable();
+ +            dtMain.Columns.Add("No",            typeof(string));
+ +            dtMain.Columns.Add("DataDate",      typeof(string));
+ +            dtMain.Columns.Add("TruckNo",       typeof(string));
+ +            dtMain.Columns.Add("KantaNo",       typeof(string));
+ +            dtMain.Columns.Add("UnloadedAt",    typeof(string));
+ +            dtMain.Columns.Add("TareWt",        typeof(string));
+ +            dtMain.Columns.Add("PartyName",     typeof(string));
+ +            dtMain.Columns.Add("BrokerName",    typeof(string));
+ +            dtMain.Columns.Add("PBags",         typeof(string));
+ +            dtMain.Columns.Add("PTBags",        typeof(string));
+ +            dtMain.Columns.Add("JBags",         typeof(string));
+ +            dtMain.Columns.Add("JTBags",        typeof(string));
+ +            dtMain.Columns.Add("SaudaNo",       typeof(string));
+ +            dtMain.Columns.Add("SaudaDate",     typeof(string));
+ +            dtMain.Columns.Add("CD",            typeof(string));
+ +            dtMain.Columns.Add("TFreight",      typeof(string));
+ +            dtMain.Columns.Add("FreightOwn",    typeof(string));
+ +            dtMain.Columns.Add("FreightParty",  typeof(string));
+ +            dtMain.Columns.Add("Advance",       typeof(string));
+ +            dtMain.Columns.Add("Brokerage",     typeof(string));
+ +            dtMain.Columns.Add("MPurNo",        typeof(string));
+ +
+ +            rmain = dtMain.NewRow();
+ +            rmain[0]  = GenInvoiceNo();
+ +            rmain[1]  = Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy");
+ +            rmain[2]  = truckno.Value.Trim();
+ +            rmain[3]  = katano.Value.Trim();
+ +            rmain[4]  = UAt.Value.Trim();
+ +            rmain[5]  = TWeight.Value.Trim();
+ +            if (sPartyName.SelectedItem.Text.Trim() == "Other")
+ +                rmain[6] = pName.Value.Trim() + " (Mobile No.: " + pMN.Value.Trim() + ")";
+ +            else
+ +                rmain[6] = sPartyName.SelectedItem.Text.Trim();
+ +            rmain[7]  = txtEmpName.Text.Trim();
+ +            rmain[8]  = PBags.Value.Trim();
+ +            rmain[9]  = PTBags.Value.Trim();
+ +            rmain[10] = JBags.Value.Trim();
+ +            rmain[11] = JTBags.Value.Trim();
+ +            rmain[12] = SaudaNo.Value.Trim();
+ +            rmain[13] = Convert.ToDateTime(SaudaDate.Value.Trim()).ToString("dd-MMM-yyyy");
+ +            rmain[14] = CD.Value.Trim();
+ +            rmain[15] = TFreight.Value.Trim();
+ +            rmain[16] = Freight.Value.Trim();
+ +            rmain[17] = PFreight.Value.Trim();
+ +            rmain[18] = Advance.Value.Trim();
+ +            rmain[19] = brokerage.Value.Trim();
+ +            rmain[20] = MPNo.Value.Trim();
+ +
+ +            dtMain.Rows.Add(rmain);
+ +            Session["DataMain"] = null;
+ +            Session["DataMain"] = dtMain;
+ +
+ +            if (Session["Data"] == null)
+ +            {
+ +                DataTable dtData = new DataTable();
+ +                dtData.Columns.Add("PaddyType",     typeof(string));
+ +                dtData.Columns.Add("AvgWt",         typeof(string));
+ +                dtData.Columns.Add("Rate",          typeof(string));
+ +                dtData.Columns.Add("FreshQuantity", typeof(string));
+ +                dtData.Columns.Add("Moisture",      typeof(string));
+ +                dtData.Columns.Add("KhakhriPer",    typeof(string));
+ +                dtData.Columns.Add("KhakhriBags",   typeof(string));
+ +                dtData.Columns.Add("MittiPer",      typeof(string));
+ +                dtData.Columns.Add("MittiBags",     typeof(string));
+ +                dtData.Columns.Add("DaagiPer",      typeof(string));
+ +                dtData.Columns.Add("DaagiBags",     typeof(string));
+ +                dtData.Columns.Add("MixPer",        typeof(string));
+ +                dtData.Columns.Add("MixBags",       typeof(string));
+ +                dtData.Columns.Add("OtherName",     typeof(string));
+ +                dtData.Columns.Add("OtherPer",      typeof(string));
+ +                dtData.Columns.Add("OtherBags",     typeof(string));
+ +
+ +                dtRow     = dtData.NewRow();
+ +                dtRow[0]  = sPaddyType.SelectedItem.Text.Trim();
+ +                dtRow[1]  = QIK.Value.Trim();
+ +                dtRow[2]  = avgrate.Value.Trim();
+ +                dtRow[3]  = QIB.Value.Trim();
+ +                dtRow[4]  = moisture.Value.Trim();
+ +                dtRow[5]  = KhakhriPer.Value.Trim();
+ +                dtRow[6]  = KhakhriBag.Value.Trim();
+ +                dtRow[7]  = MittiPer.Value.Trim();
+ +                dtRow[8]  = MittiBag.Value.Trim();
+ +                dtRow[9]  = DaagiPer.Value.Trim();
+ +                dtRow[10] = DaagiBag.Value.Trim();
+ +                dtRow[11] = MixRicePer.Value.Trim();
+ +                dtRow[12] = MixRiceBag.Value.Trim();
+ +                dtRow[13] = txtOthers.Value.Trim();
+ +                dtRow[14] = OtherPer.Value.Trim();
+ +                dtRow[15] = OtherBag.Value.Trim();
+ +                dtData.Rows.Add(dtRow);
+ +                Session["Data"] = null;
+ +                Session["Data"] = dtData;
+ +            }
+ +            else
+ +            {
+ +                DataTable dtData = (DataTable)Session["Data"];
+ +
+ +                for (int i = dtData.Rows.Count - 1; i >= 0; i--)
+ +                {
+ +                    DataRow dr = dtData.Rows[i];
+ +                    if (dr["PaddyType"].ToString() == sPaddyType.SelectedItem.Text.Trim() &&
+ +                        dr["Moisture"].ToString()   == moisture.Value.Trim())
+ +                        dr.Delete();
+++=======
++             /* ===== SERVER-SIDE VALIDATION (mirrors client-side validateUnloading) ===== */
++ 
++             if (string.IsNullOrWhiteSpace(sdate.Value) || chkDate() == 1)
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(truckno.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(katano.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(UAt.Value))
++             {
++                 return;
++             }
++ 
++             double tWeightCheck;
++             if (string.IsNullOrWhiteSpace(TWeight.Value) ||
++                 !double.TryParse(TWeight.Value.Trim(), out tWeightCheck) ||
++                 tWeightCheck <= 0)
++             {
++                 return;
++             }
++ 
++             if (sPartyName.SelectedItem == null || string.IsNullOrWhiteSpace(sPartyName.SelectedItem.Text))
++             {
++                 return;
++             }
++ 
++             if (sPartyName.SelectedItem.Text.Trim() == "Other")
++             {
++                 if (string.IsNullOrWhiteSpace(pName.Value))
++                 {
++                     return;
+++>>>>>>> bfc9489 (operator testing completed)
+                  }
+-                 dtData.AcceptChanges();
+  
+++<<<<<<< HEAD
+ +                dtRow     = dtData.NewRow();
+ +                dtRow[0]  = sPaddyType.SelectedItem.Text.Trim();
+ +                dtRow[1]  = QIK.Value.Trim();
+ +                dtRow[2]  = avgrate.Value.Trim();
+ +                dtRow[3]  = QIB.Value.Trim();
+ +                dtRow[4]  = moisture.Value.Trim();
+ +                dtRow[5]  = KhakhriPer.Value.Trim();
+ +                dtRow[6]  = KhakhriBag.Value.Trim();
+ +                dtRow[7]  = MittiPer.Value.Trim();
+ +                dtRow[8]  = MittiBag.Value.Trim();
+ +                dtRow[9]  = DaagiPer.Value.Trim();
+ +                dtRow[10] = DaagiBag.Value.Trim();
+ +                dtRow[11] = MixRicePer.Value.Trim();
+ +                dtRow[12] = MixRiceBag.Value.Trim();
+ +                dtRow[13] = txtOthers.Value.Trim();
+ +                dtRow[14] = OtherPer.Value.Trim();
+ +                dtRow[15] = OtherBag.Value.Trim();
+ +                dtData.Rows.Add(dtRow);
+ +                Session["Data"] = null;
+ +                Session["Data"] = dtData;
+ +            }
+ +
+ +            dataDisplay();
+++=======
++                 if (string.IsNullOrWhiteSpace(pMN.Value) || pMN.Value.Trim().Length != 10)
++                 {
++                     return;
++                 }
++             }
++ 
++             if (string.IsNullOrWhiteSpace(PBags.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(PTBags.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(JBags.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(JTBags.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(SaudaNo.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(SaudaDate.Value))
++             {
++                 return;
++             }
++ 
++             double qikCheck;
++             if (string.IsNullOrWhiteSpace(QIK.Value) ||
++                 !double.TryParse(QIK.Value.Trim(), out qikCheck) ||
++                 qikCheck <= 0)
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(CD.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(TFreight.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(Freight.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(PFreight.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(Advance.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(brokerage.Value))
++             {
++                 return;
++             }
++ 
++             if (sPaddyType.SelectedItem == null || string.IsNullOrWhiteSpace(sPaddyType.SelectedItem.Text))
++             {
++                 return;
++             }
++ 
++             double rateCheck;
++             if (string.IsNullOrWhiteSpace(avgrate.Value) ||
++                 !double.TryParse(avgrate.Value.Trim(), out rateCheck) ||
++                 rateCheck <= 0)
++             {
++                 return;
++             }
++ 
++             double qibCheck;
++             if (string.IsNullOrWhiteSpace(QIB.Value) ||
++                 !double.TryParse(QIB.Value.Trim(), out qibCheck) ||
++                 qibCheck <= 0)
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(moisture.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(KhakhriPer.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(KhakhriBag.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(MittiPer.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(MittiBag.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(DaagiPer.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(DaagiBag.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(MixRicePer.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(MixRiceBag.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(txtOthers.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(OtherPer.Value))
++             {
++                 return;
++             }
++ 
++             if (string.IsNullOrWhiteSpace(OtherBag.Value))
++             {
++                 return;
++             }
++ 
++             /* ===== ORIGINAL LOGIC (UNCHANGED) ===== */
++ 
++             int chk = PartyValidation();
++             if (chk == 1)
++             {
++                 dtMain = new DataTable();
++                 dtMain.Columns.Add("No", typeof(string));
++                 dtMain.Columns.Add("DataDate", typeof(string));
++                 dtMain.Columns.Add("TruckNo", typeof(string));
++                 dtMain.Columns.Add("KantaNo", typeof(string));
++                 dtMain.Columns.Add("UnloadedAt", typeof(string));
++                 dtMain.Columns.Add("TareWt", typeof(string));
++                 dtMain.Columns.Add("PartyName", typeof(string));
++                 dtMain.Columns.Add("BrokerName", typeof(string));
++                 dtMain.Columns.Add("PBags", typeof(string));
++                 dtMain.Columns.Add("PTBags", typeof(string));
++                 dtMain.Columns.Add("JBags", typeof(string));
++                 dtMain.Columns.Add("JTBags", typeof(string));
++                 dtMain.Columns.Add("SaudaNo", typeof(string));
++                 dtMain.Columns.Add("SaudaDate", typeof(string));
++                 dtMain.Columns.Add("CD", typeof(string));
++                 dtMain.Columns.Add("TFreight", typeof(string));
++                 dtMain.Columns.Add("FreightOwn", typeof(string));
++                 dtMain.Columns.Add("FreightParty", typeof(string));
++                 dtMain.Columns.Add("Advance", typeof(string));
++                 dtMain.Columns.Add("Brokerage", typeof(string));
++                 dtMain.Columns.Add("MPurNo", typeof(string));
++ 
++                 rmain = dtMain.NewRow();
++                 rmain[0] = GenInvoiceNo();
++                 rmain[1] = Convert.ToDateTime(sdate.Value.Trim()).ToString("dd-MMM-yyyy");
++                 rmain[2] = truckno.Value.Trim();
++                 rmain[3] = katano.Value.Trim();
++                 rmain[4] = UAt.Value.Trim();
++                 rmain[5] = TWeight.Value.Trim();
++                 if (sPartyName.SelectedItem.Text.Trim() == "Other")
++                 {
++                     rmain[6] = pName.Value.Trim() + " (Mobile No.: " + pMN.Value.Trim() + ")";
++                 }
++                 else
++                 {
++                     rmain[6] = sPartyName.SelectedItem.Text.Trim();
++                 }
++                 rmain[7] = txtEmpName.Text.Trim();
++                 rmain[8] = PBags.Value.Trim();
++                 rmain[9] = PTBags.Value.Trim();
++                 rmain[10] = JBags.Value.Trim();
++                 rmain[11] = JTBags.Value.Trim();
++                 rmain[12] = SaudaNo.Value.Trim();
++                 rmain[13] = Convert.ToDateTime(SaudaDate.Value.Trim()).ToString("dd-MMM-yyyy");
++                 rmain[14] = CD.Value.Trim();
++                 rmain[15] = TFreight.Value.Trim();
++                 rmain[16] = Freight.Value.Trim();
++                 rmain[17] = PFreight.Value.Trim();
++                 rmain[18] = Advance.Value.Trim();
++                 rmain[19] = brokerage.Value.Trim();
++                 rmain[20] = MPNo.Value.Trim();
++ 
++                 dtMain.Rows.Add(rmain);
++                 Session["DataMain"] = null;
++                 Session["DataMain"] = dtMain;
++ 
++                 if (Session["Data"] == null)
++                 {
++                     DataTable dtData = new DataTable();
++                     dtData.Columns.Add("PaddyType", typeof(string));
++                     dtData.Columns.Add("AvgWt", typeof(string));
++                     dtData.Columns.Add("Rate", typeof(string));
++                     dtData.Columns.Add("FreshQuantity", typeof(string));
++                     dtData.Columns.Add("Moisture", typeof(string));
++                     dtData.Columns.Add("KhakhriPer", typeof(string));
++                     dtData.Columns.Add("KhakhriBags", typeof(string));
++                     dtData.Columns.Add("MittiPer", typeof(string));
++                     dtData.Columns.Add("MittiBags", typeof(string));
++                     dtData.Columns.Add("DaagiPer", typeof(string));
++                     dtData.Columns.Add("DaagiBags", typeof(string));
++                     dtData.Columns.Add("MixPer", typeof(string));
++                     dtData.Columns.Add("MixBags", typeof(string));
++                     dtData.Columns.Add("OtherName", typeof(string));
++                     dtData.Columns.Add("OtherPer", typeof(string));
++                     dtData.Columns.Add("OtherBags", typeof(string));
++ 
++                     dtRow = dtData.NewRow();
++                     dtRow[0] = sPaddyType.SelectedItem.Text.Trim();
++                     dtRow[1] = QIK.Value.Trim();
++                     dtRow[2] = avgrate.Value.Trim();
++                     dtRow[3] = QIB.Value.Trim();
++                     dtRow[4] = moisture.Value.Trim();
++                     dtRow[5] = KhakhriPer.Value.Trim();
++                     dtRow[6] = KhakhriBag.Value.Trim();
++                     dtRow[7] = MittiPer.Value.Trim();
++                     dtRow[8] = MittiBag.Value.Trim();
++                     dtRow[9] = DaagiPer.Value.Trim();
++                     dtRow[10] = DaagiBag.Value.Trim();
++                     dtRow[11] = MixRicePer.Value.Trim();
++                     dtRow[12] = MixRiceBag.Value.Trim();
++                     dtRow[13] = txtOthers.Value.Trim();
++                     dtRow[14] = OtherPer.Value.Trim();
++                     dtRow[15] = OtherBag.Value.Trim();
++                     dtData.Rows.Add(dtRow);
++                     Session["Data"] = null;
++                     Session["Data"] = dtData;
++                 }
++                 else
++                 {
++                     DataTable dtData = (DataTable)Session["Data"];
++ 
++                     for (int i = dtData.Rows.Count - 1; i >= 0; i--)
++                     {
++                         DataRow dr = dtData.Rows[i];
++                         if (dr["PaddyType"] == sPaddyType.SelectedItem.Text.Trim() & dr["PaddyType"] == moisture.Value.Trim())
++                             dr.Delete();
++                     }
++                     dtData.AcceptChanges();
++ 
++                     dtRow = dtData.NewRow();
++                     dtRow[0] = sPaddyType.SelectedItem.Text.Trim();
++                     dtRow[1] = QIK.Value.Trim();
++                     dtRow[2] = avgrate.Value.Trim();
++                     dtRow[3] = QIB.Value.Trim();
++                     dtRow[4] = moisture.Value.Trim();
++                     dtRow[5] = KhakhriPer.Value.Trim();
++                     dtRow[6] = KhakhriBag.Value.Trim();
++                     dtRow[7] = MittiPer.Value.Trim();
++                     dtRow[8] = MittiBag.Value.Trim();
++                     dtRow[9] = DaagiPer.Value.Trim();
++                     dtRow[10] = DaagiBag.Value.Trim();
++                     dtRow[11] = MixRicePer.Value.Trim();
++                     dtRow[12] = MixRiceBag.Value.Trim();
++                     dtRow[13] = txtOthers.Value.Trim();
++                     dtRow[14] = OtherPer.Value.Trim();
++                     dtRow[15] = OtherBag.Value.Trim();
++                     dtData.Rows.Add(dtRow);
++                     Session["Data"] = null;
++                     Session["Data"] = dtData;
++                 }
++ 
++ 
++                 dataDisplay();
++             }
++             else
++             {
++                 ShowAlert("Please fill all fields of Party!");
++             }
+++>>>>>>> bfc9489 (operator testing completed)
+          }
+-         else
++         catch (Exception)
+          {
+++<<<<<<< HEAD
+ +            script = "alert('Please fill all filed of Party!!');";
+ +            ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
+++=======
++             ShowAlert("An error occurred while adding data. Please check all fields!");
+++>>>>>>> bfc9489 (operator testing completed)
+          }
+      }
+  
+@@@ -513,268 -696,292 +943,554 @@@
+      public void dataDisplay()
+      {
+          StringBuilder htmlTable;
+++<<<<<<< HEAD
+ +
+ +        if (Session["Data"] == null)
+ +        {
+ +            htmlTable = new StringBuilder();
+ +            htmlTable.Append("<table class='table' cellspacing='0'>");
+ +            htmlTable.Append("<tr><td align='center'>No Data Added...</td></tr></table>");
+ +        }
+ +        else
+ +        {
+ +            dtMain = (DataTable)Session["DataMain"];
+ +            dt     = (DataTable)Session["Data"];
+ +
+ +            // ---- Company info Session se ----
+ +            string coName    = CoName();
+ +            string coAddress = CoAddress();
+ +            string coPhone   = CoPhone();
+ +            string coEmail   = CoEmail();
+ +            string coGST     = CoGST();
+ +            string coCIN     = CoCIN();
+ +            string coPAN     = CoPAN();
+ +
+ +            // Contact line
+ +            string contactLine = "";
+ +            if (!string.IsNullOrEmpty(coPhone)) contactLine += "Mob.: " + coPhone;
+ +            if (!string.IsNullOrEmpty(coEmail)) contactLine += (contactLine != "" ? ", " : "") + "Email: " + coEmail;
+ +
+ +            // Legal line
+ +            string legalLine = "";
+ +            if (!string.IsNullOrEmpty(coCIN))  legalLine += "CIN: " + coCIN;
+ +            if (!string.IsNullOrEmpty(coPAN))  legalLine += (legalLine != "" ? "</br>" : "") + "PAN No.: " + coPAN;
+ +            if (!string.IsNullOrEmpty(coGST))  legalLine += (legalLine != "" ? "</br>" : "") + "GSTIN: " + coGST;
+ +
+ +            htmlTable = new StringBuilder();
+ +            htmlTable.Append("<table class='table' runat='server' style='font-size:10pt; noWrap' id='printTable' cellspacing='0' border='1px'>");
+ +
+ +            // ---- HEADER ROW: Dynamic company info ----
+ +            htmlTable.Append("<tr><td colspan='8' align='center'>");
+ +            htmlTable.Append("<span style='font-size:16pt; font-weight:bold;'> " + coName + " </span>");
+ +            if (!string.IsNullOrEmpty(coAddress))
+ +                htmlTable.Append("</br><span style='font-size:8pt;'>" + coAddress + "</span>");
+ +            if (!string.IsNullOrEmpty(contactLine))
+ +                htmlTable.Append("</br><span style='font-size:8pt;'>" + contactLine + "</span>");
+ +            if (!string.IsNullOrEmpty(legalLine))
+ +                htmlTable.Append("</br><span style='font-size:8pt;'>" + legalLine + "</span>");
+ +            htmlTable.Append("</td></tr>");
+ +            // ---- HEADER ROW END ----
+ +
+ +            htmlTable.Append("<tr><td colspan='8' align='center'><span style='font-size:10pt; font-weight:bold;'> PURCHASE VOUCHER CUM UNLOADING REPORT </span></td></tr>");
+ +
+ +            if (dtMain.Rows[0]["MPurNo"].ToString() == "")
+ +                htmlTable.Append("<tr><td colspan='8' align='left'>Purchase No.: <b>" + dtMain.Rows[0]["No"].ToString() + "</b></td></tr>");
+ +            else
+ +                htmlTable.Append("<tr><td colspan='8' align='left'>Purchase No.: <b>" + dtMain.Rows[0]["No"].ToString() + "</b></br>Manual Purchase No.: <b>" + dtMain.Rows[0]["MPurNo"].ToString() + "</b></td></tr>");
+ +
+ +            htmlTable.Append("<tr><td colspan='6' align='left'>Date.: " + Convert.ToDateTime(dtMain.Rows[0]["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
+ +            htmlTable.Append("<td align='left'>Plastic Bags: "      + dtMain.Rows[0]["PBags"].ToString()  + "</td>");
+ +            htmlTable.Append("<td align='left'>Plastic Torn Bags: " + dtMain.Rows[0]["PTBags"].ToString() + "</td></tr>");
+ +            htmlTable.Append("<tr><td colspan='6' align='left'>Truck No.: " + dtMain.Rows[0]["TruckNo"].ToString() + "</td>");
+ +            htmlTable.Append("<td align='left'>Jute Bags: "      + dtMain.Rows[0]["JBags"].ToString()  + "</td>");
+ +            htmlTable.Append("<td align='left'>Jute Torn Bags: " + dtMain.Rows[0]["JTBags"].ToString() + "</td></tr>");
+ +            htmlTable.Append("<tr><td colspan='6' align='left'>Kanta No.: " + dtMain.Rows[0]["KantaNo"].ToString() + "</td>");
+ +            htmlTable.Append("<td colspan='2' align='left'>Unloaded at: " + dtMain.Rows[0]["UnloadedAt"].ToString() + "</td></tr>");
+ +            htmlTable.Append("<tr><td colspan='8' align='left'>Party Name: "    + dtMain.Rows[0]["PartyName"].ToString()  + "</td></tr>");
+ +            htmlTable.Append("<tr><td colspan='6' align='left'>Broker's Name: " + dtMain.Rows[0]["BrokerName"].ToString() + "</td>");
+ +            htmlTable.Append("<td align='left'>Sauda No.: "   + dtMain.Rows[0]["SaudaNo"].ToString() + "</td>");
+ +            htmlTable.Append("<td align='left'>Sauda Date: "  + Convert.ToDateTime(dtMain.Rows[0]["SaudaDate"].ToString()).ToString("dd/MM/yyyy") + "</td></tr>");
+ +
+ +            htmlTable.Append("<tr><td align='left'><b>Paddy Report:</b> </td>");
+ +            htmlTable.Append("<td align='center'><b>Qty. In Bags</b></td>");
+ +            htmlTable.Append("<td align='center'><b>Qty. In KG</b></td>");
+ +            htmlTable.Append("<td align='center'><b>%</b></td>");
+ +            htmlTable.Append("<td align='center'><b>Rate</b></td>");
+ +            htmlTable.Append("<td align='center'><b>Amount (In Rs.)</b></td>");
+ +            htmlTable.Append("<td colspan='2' align='center'><b>Calculation</b></td></tr>");
+ +
+ +            int    tBags    = 0;
+ +            double KhRate   = 0, MRate  = 0, DRate = 0, DMixRate = 0, ORate = 0;
+ +            double am       = 0;
+ +            double KhAmount = 0, MAmount = 0, DAmount = 0, DMixAmount = 0, OAmount = 0;
+ +            double tQuantity = 0;
+ +            double tAmount   = 0;
+ +            double LClaim    = 0;
+ +            double FAmount   = 0;
+ +
+ +            for (int i = 0; i < dt.Rows.Count; i++)
+ +            {
+ +                htmlTable.Append("<tr><td align='left' style='vertical-align:top;'>" + (i + 1).ToString() + " " + dt.Rows[i]["PaddyType"].ToString() + " (Avg Wt.: " + dt.Rows[i]["AvgWt"].ToString() + " KG)</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".1 Fresh");
+ +                htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".2 Moisture");
+ +                htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".3 Khakhri");
+ +                htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".4 Mitti");
+ +                htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".5 Daagi");
+ +                htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".6 Mix Rice");
+ +                htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".7 Other (" + dt.Rows[i]["OtherName"].ToString() + ")</td>");
+ +
+ +                htmlTable.Append("<td align='right' style='vertical-align:top;'></br>" + dt.Rows[i]["FreshQuantity"].ToString() + "</br>");
+ +                htmlTable.Append("</br>" + dt.Rows[i]["KhakhriBags"].ToString());
+ +                htmlTable.Append("</br>" + dt.Rows[i]["MittiBags"].ToString());
+ +                htmlTable.Append("</br>" + dt.Rows[i]["DaagiBags"].ToString());
+ +                htmlTable.Append("</br>" + dt.Rows[i]["MixBags"].ToString());
+ +                htmlTable.Append("</br>" + dt.Rows[i]["OtherBags"].ToString() + "</td>");
+ +
+ +                htmlTable.Append("<td align='right' style='vertical-align:top;'></br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["FreshQuantity"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2).ToString() + "</br>");
+ +                htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["KhakhriBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2).ToString());
+ +                htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["MittiBags"].ToString())   * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2).ToString());
+ +                htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["DaagiBags"].ToString())   * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2).ToString());
+ +                htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["MixBags"].ToString())     * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2).ToString());
+ +                htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["OtherBags"].ToString())   * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2).ToString() + "</td>");
+ +
+ +                htmlTable.Append("<td align='right' style='vertical-align:top;'></br></br>" + dt.Rows[i]["Moisture"].ToString());
+ +                htmlTable.Append("</br>" + dt.Rows[i]["KhakhriPer"].ToString());
+ +                htmlTable.Append("</br>" + dt.Rows[i]["MittiPer"].ToString());
+ +                htmlTable.Append("</br>" + dt.Rows[i]["DaagiPer"].ToString());
+ +                htmlTable.Append("</br>" + dt.Rows[i]["MixPer"].ToString());
+ +                htmlTable.Append("</br>" + dt.Rows[i]["OtherPer"].ToString() + "</td>");
+ +
+ +                htmlTable.Append("<td align='right' style='vertical-align:top;'></br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2).ToString() + "</br>");
+ +                am = Math.Round(Convert.ToDouble(dt.Rows[i]["FreshQuantity"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
+ +
+ +                if (Convert.ToDouble(dt.Rows[i]["KhakhriPer"].ToString()) <= 2)
+++=======
++         try
++         {
++             if (Session["Data"] == null)
++             {
++                 htmlTable = new StringBuilder();
++                 htmlTable.Append("<table class='table' cellspacing='0'>");
++                 htmlTable.Append("<tr><td align='center'>No Data Added...</td></tr></table>");
++             }
++             else
++             {
++                 dtMain = (DataTable)Session["DataMain"];
++                 dt = (DataTable)Session["Data"];
++ 
++ 
++                 htmlTable = new StringBuilder();
++                 htmlTable.Append("<table class='table' runat='server' style='font-size:10pt; noWrap' id='printTable' cellspacing='0' border='1px'>");
++ 
++                 htmlTable.Append("<tr><td colspan='8' align='center'><span style='display:table-cell; vertical-align:top;'><img src='http://prabhasoftware.com/Rashmi Rice Logo (1).png' height='100px'/></span><span style='display:table-cell; vertical-align:top;'><span style='font-size:16pt; font-weight:bold;'> Rashmi Rice Mills Pvt. Ltd. </span></br><span style='font-size:8pt;'>Daniyawan Chandi Road, Hasanpur, Patna- 801304 </br>Mob.: 9304052349, 9334280057</br>Email: srirajbhog@gmail.com</br>CIN: U15312BR2014PTC022237</br>PAN No.: AAGCR9497P</br>GSTIN: 10AAGCR9497P1ZK</span></span></td></tr>");
++                 htmlTable.Append("<tr><td colspan='8' align='center'><span style='font-size:10pt; font-weight:bold;'> PURCHASE VOUCHER CUM UNLOADING REPORT </span></td></tr>");
++ 
++                 if (dtMain.Rows[0]["MPurNo"].ToString() == "")
+++>>>>>>> bfc9489 (operator testing completed)
+                  {
+-                     htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2).ToString());
+-                     KhAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["KhakhriBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
++                     htmlTable.Append("<tr><td colspan='8' align='left'>Purchase No.: <b>" + dtMain.Rows[0]["No"].ToString() + "</b></td></tr>");
+                  }
+                  else
+                  {
+++<<<<<<< HEAD
+ +                    KhRate   = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["KhakhriPer"].ToString()) - 2) / 100), 2);
+ +                    htmlTable.Append("</br>" + KhRate.ToString());
+ +                    KhAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["KhakhriBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * KhRate, 2);
+++=======
++                     htmlTable.Append("<tr><td colspan='8' align='left'>Purchase No.: <b>" + dtMain.Rows[0]["No"].ToString() + "</b></br>Manual Purchase No.: <b>" + dtMain.Rows[0]["MPurNo"].ToString() + "</b></td></tr>");
+++>>>>>>> bfc9489 (operator testing completed)
+                  }
+- 
++                 htmlTable.Append("<tr><td colspan='6' align='left'>Date.: " + Convert.ToDateTime(dtMain.Rows[0]["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</td>");
++                 htmlTable.Append("<td align='left'>Plastic Bags: " + dtMain.Rows[0]["PBags"].ToString() + "</td>");
++                 htmlTable.Append("<td align='left'>Plastic Torn Bags: " + dtMain.Rows[0]["PTBags"].ToString() + "</td></tr>");
++                 htmlTable.Append("<tr><td colspan='6' align='left'>Truck No.: " + dtMain.Rows[0]["TruckNo"].ToString() + "</td>");
++                 htmlTable.Append("<td align='left'>Jute Bags: " + dtMain.Rows[0]["JBags"].ToString() + "</td>");
++                 htmlTable.Append("<td align='left'>Jute Torn Bags: " + dtMain.Rows[0]["JTBags"].ToString() + "</td></tr>");
++                 htmlTable.Append("<tr><td colspan='6' align='left'>Kanta No.: " + dtMain.Rows[0]["KantaNo"].ToString() + "</td>");
++                 htmlTable.Append("<td colspan='2' align='left'>Unloaded at: " + dtMain.Rows[0]["UnloadedAt"].ToString() + "</td></tr>");
++                 htmlTable.Append("<tr><td colspan='8' align='left'>Party Name: " + dtMain.Rows[0]["PartyName"].ToString() + "</td></tr>");
++                 htmlTable.Append("<tr><td colspan='6' align='left'>Broker's Name: " + dtMain.Rows[0]["BrokerName"].ToString() + "</td>");
++                 htmlTable.Append("<td align='left'>Sauda No.: " + dtMain.Rows[0]["SaudaNo"].ToString() + "</td>");
++                 htmlTable.Append("<td align='left'>Sauda Date: " + Convert.ToDateTime(dtMain.Rows[0]["SaudaDate"].ToString()).ToString("dd/MM/yyyy") + "</td></tr>");
++                 htmlTable.Append("<tr><td align='left'><b>Paddy Report:</b> </td>");
++                 htmlTable.Append("<td align='center'><b>Qty. In Bags</b></td>");
++                 htmlTable.Append("<td align='center'><b>Qty. In KG</b></td>");
++                 htmlTable.Append("<td align='center'><b>%</b></td>");
++                 htmlTable.Append("<td align='center'><b>Rate</b></td>");
++                 htmlTable.Append("<td align='center'><b>Amount (In Rs.)</b></td>");
++                 htmlTable.Append("<td colspan='2' align='center'><b>Calculation</b></td></tr>");
++ 
+++<<<<<<< HEAD
+ +                if (Convert.ToDouble(dt.Rows[i]["MittiPer"].ToString()) <= 0)
+ +                {
+ +                    htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2).ToString());
+ +                    MAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["MittiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
+ +                }
+ +                else
+ +                {
+ +                    MRate   = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["MittiPer"].ToString()) - 0) / 100), 2);
+ +                    htmlTable.Append("</br>" + MRate.ToString());
+ +                    MAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["MittiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * MRate, 2);
+ +                }
+++=======
++                 int tBags = 0;
++                 double KhRate = 0;
++                 double MRate = 0;
++                 double DRate = 0;
++                 double DMixRate = 0;
++                 double ORate = 0;
+++>>>>>>> bfc9489 (operator testing completed)
++ 
++                 double am = 0;
++                 double KhAmount = 0;
++                 double MAmount = 0;
++                 double DAmount = 0;
++                 double DMixAmount = 0;
++                 double OAmount = 0;
++ 
++                 double tQuantity = 0;
++                 double tAmount = 0;
++                 double LClaim = 0;
++ 
++                 double FAmount = 0;
+  
+-                 if (Convert.ToDouble(dt.Rows[i]["DaagiPer"].ToString()) <= 0)
++                 for (int i = 0; i < dt.Rows.Count; i++)
+                  {
+++<<<<<<< HEAD
+ +                    htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2).ToString());
+ +                    DAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["DaagiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
+ +                }
+ +                else
+ +                {
+ +                    DRate   = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["DaagiPer"].ToString()) - 0) / 100), 2);
+ +                    htmlTable.Append("</br>" + DRate.ToString());
+ +                    DAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["DaagiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * DRate, 2);
+ +                }
+ +
+ +                if (Convert.ToDouble(dt.Rows[i]["MixPer"].ToString()) <= 0)
+ +                {
+ +                    htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2).ToString());
+ +                    DMixAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["MixBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
+ +                }
+ +                else
+ +                {
+ +                    DMixRate   = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["MixPer"].ToString()) - 0) / 100), 2);
+ +                    htmlTable.Append("</br>" + DMixRate.ToString());
+ +                    DMixAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["MixBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * DMixRate, 2);
+ +                }
+ +
+ +                if (Convert.ToDouble(dt.Rows[i]["OtherPer"].ToString()) <= 0)
+ +                {
+ +                    htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2).ToString());
+ +                    OAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["OtherBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
+ +                }
+ +                else
+ +                {
+ +                    ORate   = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["OtherPer"].ToString()) - 0) / 100), 2);
+ +                    htmlTable.Append("</br>" + ORate.ToString());
+ +                    OAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["OtherBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * ORate, 2);
+ +                }
+ +
+ +                htmlTable.Append("<td align='right' style='vertical-align:top;'></br>" + am.ToString());
+ +                htmlTable.Append("</br></br>" + KhAmount.ToString());
+ +                htmlTable.Append("</br>"      + MAmount.ToString());
+ +                htmlTable.Append("</br>"      + DAmount.ToString());
+ +                htmlTable.Append("</br>"      + DMixAmount.ToString());
+ +                htmlTable.Append("</br>"      + OAmount.ToString() + "</td>");
+ +
+ +                tBags    += Convert.ToInt32(dt.Rows[i]["FreshQuantity"].ToString()) + Convert.ToInt32(dt.Rows[i]["KhakhriBags"].ToString()) + Convert.ToInt32(dt.Rows[i]["MittiBags"].ToString()) + Convert.ToInt32(dt.Rows[i]["DaagiBags"].ToString()) + Convert.ToInt32(dt.Rows[i]["MixBags"].ToString()) + Convert.ToInt32(dt.Rows[i]["OtherBags"].ToString());
+ +                tQuantity = Math.Round(tBags * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2);
+ +                tAmount  += am + KhAmount + MAmount + DAmount + DMixAmount + OAmount;
+ +
+ +                // Moisture limit: check party name dynamically
+ +                // (aap chahein toh is list ko DB-driven bhi kar sakte hain)
+ +                int lt = 17;
+ +                // Agar kisi party ke liye 18 chahiye toh yahan check karein
+ +                // (original logic maintain)
+ +                if (dtMain.Rows[0]["PartyName"].ToString() == "SHIVAM BHANDAR (SUBODH JEE (Mobile No.: 9334280057)" ||
+ +                    dtMain.Rows[0]["PartyName"].ToString() == "PRACHI TRADERS (MASURHI) (Mobile No.: 9334280057)"   ||
+ +                    dtMain.Rows[0]["PartyName"].ToString() == "Sankat Mochan Traders(Kunil jee) jahanabad (Mobile No.: 9334280057)")
+ +                    lt = 18;
+ +
+ +                if (Convert.ToDouble(dt.Rows[i]["Moisture"].ToString()) <= lt)
+ +                    LClaim += 0;
+ +                else
+ +                    LClaim += Math.Round((am + KhAmount + MAmount + DAmount + DMixAmount + OAmount) * (Convert.ToDouble(dt.Rows[i]["Moisture"].ToString()) - lt) / 100, 2);
+ +
+ +                if (i == 0 & dt.Rows.Count > 1)
+ +                    htmlTable.Append("<td colspan='2' style='vertical-align:bottom; border-bottom:none;' align='left'></td>");
+ +
+ +                if (i > 0 & i < (dt.Rows.Count - 1))
+ +                    htmlTable.Append("<td colspan='2' style='vertical-align:bottom; border-top:none; border-bottom:none;' align='left'></td>");
+ +
+ +                if (i == (dt.Rows.Count - 1))
+ +                {
+ +                    double LCD      = Math.Round(tAmount * Convert.ToDouble(CD.Value.Trim()) / 100);
+ +                    double LGK      = Math.Round(tQuantity / 1000 * 25, 2);
+ +                    if (LGK <= 100) LGK = 100;
+ +                    double Frt      = Convert.ToDouble(Freight.Value.Trim());
+ +                    LClaim         += (Convert.ToDouble(PTBags.Value.Trim()) * 0) + (Convert.ToDouble(JTBags.Value.Trim()) * 0);
+ +                    double PAmount  = tAmount - LCD - LClaim - Frt;
+ +                    double LAdvance = Convert.ToDouble(dtMain.Rows[0]["Advance"].ToString());
+ +                    double OAdvance = (LAdvance == 0) ? LGK : LAdvance;
+ +                    double Brok     = Convert.ToDouble(dtMain.Rows[0]["Brokerage"].ToString());
+ +                    FAmount         = PAmount - OAdvance - Brok;
+ +
+ +                    if (i == 0)
+ +                        htmlTable.Append("<td colspan='2' style='vertical-align:bottom;' align='left'>");
+ +                    else
+ +                        htmlTable.Append("<td colspan='2' style='vertical-align:bottom; border-top:none;' align='left'>");
+ +
+ +                    htmlTable.Append("Gross Wt.: " + (tQuantity + Convert.ToDouble(TWeight.Value.Trim())) + " KG</br>Tare Wt.: " + Convert.ToDouble(TWeight.Value.Trim()) + " KG</br>Net Wt.: " + tQuantity.ToString() + " KG");
+ +                    htmlTable.Append("</br></br></br>Less: CD (" + dtMain.Rows[0]["CD"].ToString() + "%) Rs. " + LCD.ToString());
+ +                    htmlTable.Append("</br>Less: GK (@25/Ton) Rs. "           + LGK.ToString());
+ +                    htmlTable.Append("</br>Less: Claim-(Moist./Others) Rs. "  + LClaim.ToString());
+ +                    htmlTable.Append("</br>Less: Freight(Own) Rs.  "          + Frt.ToString());
+ +                    htmlTable.Append("</br></br><b>Purchase Amount: Rs.  "    + PAmount.ToString() + "</b>");
+ +                    htmlTable.Append("</br></br>Less: Advance Rs. "           + LAdvance.ToString());
+ +                    htmlTable.Append("</br>Less: Brokerage (of party) Rs. "   + Brok.ToString());
+ +                    htmlTable.Append("</td>");
+ +                }
+ +                htmlTable.Append("</tr>");
+ +            }
+ +
+ +            htmlTable.Append("<tr><td align='left'>Total</td>");
+ +            htmlTable.Append("<td align='right'>" + tBags.ToString()     + "</td>");
+ +            htmlTable.Append("<td align='right'>" + tQuantity.ToString() + "</td>");
+ +            htmlTable.Append("<td align='right'></td>");
+ +            htmlTable.Append("<td align='right'></td>");
+ +            htmlTable.Append("<td align='right'>" + tAmount.ToString() + "</td>");
+ +            htmlTable.Append("<td colspan='2' rowspan='3' align='left' style='vertical-align:top;'>Remarks: </td></tr>");
+ +
+ +            htmlTable.Append("<tr><td align='left' colspan='5'>G. Total</td>");
+ +            htmlTable.Append("<td align='right'><b>" + Math.Round(FAmount, 0).ToString() + "</b></td></tr>");
+ +
+ +            htmlTable.Append("<tr><td colspan='6' align='center'><span style='font-size:8pt; font-weight:bold;'>RUPEES " + ConvertNumbertoWords(Convert.ToInt64(Math.Round(FAmount, 0))) + " ONLY</span></td></tr>");
+ +
+ +            htmlTable.Append("<tr><td colspan='4' align='left'><span style='font-size:7pt;'><b>Note:</b></br>All claim disputes will be resolved within 2 working days from the date of issue of this Purchase Order and receipt of a copy of this Order to you.</br>दावे से सम्बंधित सभी विवादों का समाधान इस खरीद आदेश के जारी होने और इस आदेश की प्रति आपको प्राप्त होने की तारीख से 2 कार्य दिवसों के भीतर किया जाएगा।</span></td>");
+ +            htmlTable.Append("<td colspan='4' align='center'><b>For " + coName + "</br></br>Authorised Signatory</b></td>");
+ +            htmlTable.Append("</table>");
+ +        }
+ +
+ +        DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
+++=======
++                     htmlTable.Append("<tr><td align='left' style='vertical-align:top;'>" + (i + 1).ToString() + " " + dt.Rows[i]["PaddyType"].ToString() + " (Avg Wt.: " + dt.Rows[i]["AvgWt"].ToString() + " KG)</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".1 Fresh");
++                     htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".2 Moisture");
++                     htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".3 Khakhri");
++                     htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".4 Mitti");
++                     htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".5 Daagi");
++                     htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".6 Mix Rice");
++                     htmlTable.Append("</br>&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1).ToString() + ".7 Other (" + dt.Rows[i]["OtherName"].ToString() + ")</td>");
++ 
++ 
++ 
++                     htmlTable.Append("<td align='right' style='vertical-align:top;'></br>" + dt.Rows[i]["FreshQuantity"].ToString() + "</br>");
++                     htmlTable.Append("</br>" + dt.Rows[i]["KhakhriBags"].ToString());
++                     htmlTable.Append("</br>" + dt.Rows[i]["MittiBags"].ToString());
++                     htmlTable.Append("</br>" + dt.Rows[i]["DaagiBags"].ToString());
++                     htmlTable.Append("</br>" + dt.Rows[i]["MixBags"].ToString());
++                     htmlTable.Append("</br>" + dt.Rows[i]["OtherBags"].ToString() + "</td>");
++ 
++                     htmlTable.Append("<td align='right' style='vertical-align:top;'></br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["FreshQuantity"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2).ToString() + "</br>");
++                     htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["KhakhriBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2).ToString());
++                     htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["MittiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2).ToString());
++                     htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["DaagiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2).ToString());
++                     htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["MixBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2).ToString());
++                     htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["OtherBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2).ToString() + "</td>");
++ 
++ 
++                     htmlTable.Append("<td align='right' style='vertical-align:top;'></br></br>" + dt.Rows[i]["Moisture"].ToString());
++                     htmlTable.Append("</br>" + dt.Rows[i]["KhakhriPer"].ToString());
++                     htmlTable.Append("</br>" + dt.Rows[i]["MittiPer"].ToString());
++                     htmlTable.Append("</br>" + dt.Rows[i]["DaagiPer"].ToString());
++                     htmlTable.Append("</br>" + dt.Rows[i]["MixPer"].ToString());
++                     htmlTable.Append("</br>" + dt.Rows[i]["OtherPer"].ToString() + "</td>");
++ 
++ 
++                     htmlTable.Append("<td align='right' style='vertical-align:top;'></br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2).ToString() + "</br>");
++                     am = Math.Round(Convert.ToDouble(dt.Rows[i]["FreshQuantity"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
++ 
++                     if (Convert.ToDouble(dt.Rows[i]["KhakhriPer"].ToString()) <= 2)
++                     {
++                         htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2).ToString());
++                         KhAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["KhakhriBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
++                     }
++                     else
++                     {
++                         KhRate = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["KhakhriPer"].ToString()) - 2) / 100), 2);
++                         htmlTable.Append("</br>" + KhRate.ToString());
++                         KhAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["KhakhriBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * KhRate, 2);
++                     }
++ 
++                     if (Convert.ToDouble(dt.Rows[i]["MittiPer"].ToString()) <= 0)
++                     {
++                         htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2).ToString());
++                         MAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["MittiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
++                     }
++                     else
++                     {
++                         MRate = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["MittiPer"].ToString()) - 0) / 100), 2);
++                         htmlTable.Append("</br>" + MRate.ToString());
++                         MAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["MittiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * MRate, 2);
++                     }
++ 
++                     if (Convert.ToDouble(dt.Rows[i]["DaagiPer"].ToString()) <= 0)
++                     {
++                         htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2).ToString());
++                         DAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["DaagiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
++                     }
++                     else
++                     {
++                         DRate = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["DaagiPer"].ToString()) - 0) / 100), 2);
++                         htmlTable.Append("</br>" + DRate.ToString());
++                         DAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["DaagiBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * DRate, 2);
++                     }
++ 
++ 
++                     if (Convert.ToDouble(dt.Rows[i]["MixPer"].ToString()) <= 0)
++                     {
++                         htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2).ToString());
++                         DMixAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["MixBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
++                     }
++                     else
++                     {
++                         DMixRate = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["MixPer"].ToString()) - 0) / 100), 2);
++                         htmlTable.Append("</br>" + DMixRate.ToString());
++                         DMixAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["MixBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * DMixRate, 2);
++                     }
++ 
++                     if (Convert.ToDouble(dt.Rows[i]["OtherPer"].ToString()) <= 0)
++                     {
++                         htmlTable.Append("</br>" + Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2).ToString());
++                         OAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["OtherBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * Convert.ToDouble(dt.Rows[i]["Rate"].ToString()), 2);
++                     }
++                     else
++                     {
++                         ORate = Math.Round(Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) - (Convert.ToDouble(dt.Rows[i]["Rate"].ToString()) * (Convert.ToDouble(dt.Rows[i]["OtherPer"].ToString()) - 0) / 100), 2);
++                         htmlTable.Append("</br>" + ORate.ToString());
++                         OAmount = Math.Round(Convert.ToDouble(dt.Rows[i]["OtherBags"].ToString()) * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()) * ORate, 2);
++                     }
++ 
++                     htmlTable.Append("<td align='right' style='vertical-align:top;'></br>" + am.ToString());
++                     htmlTable.Append("</br></br>" + KhAmount.ToString());
++                     htmlTable.Append("</br>" + MAmount.ToString());
++                     htmlTable.Append("</br>" + DAmount.ToString());
++                     htmlTable.Append("</br>" + DMixAmount.ToString());
++                     htmlTable.Append("</br>" + OAmount.ToString() + "</td>");
++ 
++                     tBags += Convert.ToInt32(dt.Rows[i]["FreshQuantity"].ToString()) + Convert.ToInt32(dt.Rows[i]["KhakhriBags"].ToString()) + Convert.ToInt32(dt.Rows[i]["MittiBags"].ToString()) + Convert.ToInt32(dt.Rows[i]["DaagiBags"].ToString()) + Convert.ToInt32(dt.Rows[i]["MixBags"].ToString()) + Convert.ToInt32(dt.Rows[i]["OtherBags"].ToString());
++                     tQuantity = Math.Round(tBags * Convert.ToDouble(dt.Rows[i]["AvgWt"].ToString()), 2);
++                     tAmount += am + KhAmount + MAmount + DAmount + DMixAmount + OAmount;
++ 
++                     int lt = 0;
++                     if (dtMain.Rows[0]["PartyName"].ToString() == "SHIVAM BHANDAR (SUBODH JEE (Mobile No.: 9334280057)" || dtMain.Rows[0]["PartyName"].ToString() == "PRACHI TRADERS (MASURHI) (Mobile No.: 9334280057)" || dtMain.Rows[0]["PartyName"].ToString() == "Sankat Mochan Traders(Kunil jee) jahanabad (Mobile No.: 9334280057)")
++                     {
++                         lt = 18;
++                     }
++                     else
++                     {
++                         lt = 17;
++                     }
++ 
++                     if (Convert.ToDouble(dt.Rows[i]["Moisture"].ToString()) <= lt)
++                     {
++                         LClaim += 0;
++                     }
++                     else
++                     {
++                         LClaim += Math.Round((am + KhAmount + MAmount + DAmount + DMixAmount + OAmount) * (Convert.ToDouble(dt.Rows[i]["Moisture"].ToString()) - lt) / 100, 2);
++ 
++                     }
++                     if (i == 0 & dt.Rows.Count > 1)
++                     {
++                         htmlTable.Append("<td colspan='2' style='vertical-align:bottom; border-bottom:none;' align='left'></td>");
++                     }
++                     if (i > 0 & i < (dt.Rows.Count - 1))
++                     {
++                         htmlTable.Append("<td colspan='2' style='vertical-align:bottom; border-top:none; border-bottom:none;' align='left'></td>");
++                     }
++ 
++                     if (i == (dt.Rows.Count - 1))
++                     {
++                         double LCD = Math.Round(tAmount * Convert.ToDouble(CD.Value.Trim()) / 100);
++ 
++                         double LGK = Math.Round(tQuantity / 1000 * 25, 2);
++                         if (LGK <= 100)
++                         {
++                             LGK = 100;
++                         }
++                         double Frt = Convert.ToDouble(Freight.Value.Trim());
++                         LClaim += (Convert.ToDouble(PTBags.Value.Trim()) * 0) + (Convert.ToDouble(JTBags.Value.Trim()) * 0);
++                         double PAmount = 0;
++                         PAmount = tAmount - LCD - LClaim - Frt;
++ 
++                         double LAdvance = Convert.ToDouble(dtMain.Rows[0]["Advance"].ToString());
++ 
++                         double OAdvance = 0;
++                         if (LAdvance == 0)
++                         {
++                             OAdvance = LGK;
++                         }
++                         else
++                         {
++                             OAdvance = LAdvance;
++                         }
++ 
++                         double Brok = Convert.ToDouble(dtMain.Rows[0]["Brokerage"].ToString());
++ 
++                         FAmount = PAmount - OAdvance - Brok;
++ 
++                         if (i == 0)
++                         {
++                             htmlTable.Append("<td colspan='2' style='vertical-align:bottom;' align='left'>");
++                         }
++                         else
++                         {
++                             htmlTable.Append("<td colspan='2' style='vertical-align:bottom; border-top:none;' align='left'>");
++                         }
++                         htmlTable.Append("Gross Wt.: " + (tQuantity + Convert.ToDouble(TWeight.Value.Trim())) + " KG</br>Tare Wt.: " + Convert.ToDouble(TWeight.Value.Trim()) + " KG</br>Net Wt.: " + tQuantity.ToString() + " KG");
++                         htmlTable.Append("</br></br></br>Less: CD (" + dtMain.Rows[0]["CD"].ToString() + "%) Rs. " + LCD.ToString());
++                         htmlTable.Append("</br>Less: GK (@25/Ton) Rs. " + LGK.ToString());
++                         htmlTable.Append("</br>Less: Claim-(Moist./Others) Rs. " + LClaim.ToString());
++                         htmlTable.Append("</br>Less: Freight(Own) Rs.  " + Frt.ToString());
++                         htmlTable.Append("</br></br><b>Purchase Amount: Rs.  " + PAmount.ToString() + "</b>");
++                         htmlTable.Append("</br></br>Less: Advance Rs. " + LAdvance.ToString());
++                         htmlTable.Append("</br>Less: Brokerage (of party) Rs. " + Brok.ToString());
++ 
++                         htmlTable.Append("</td>");
++ 
++                     }
++                     htmlTable.Append("</tr>");
++ 
++                 }
++                 htmlTable.Append("<tr><td align='left'>Total</td>");
++ 
++ 
++ 
++                 htmlTable.Append("<td align='right'>" + tBags.ToString() + "</td>");
++                 htmlTable.Append("<td align='right'>" + tQuantity.ToString() + "</td>");
++                 htmlTable.Append("<td align='right'></td>");
++                 htmlTable.Append("<td align='right'></td>");
++                 htmlTable.Append("<td align='right'>" + tAmount.ToString() + "</td>");
++                 htmlTable.Append("<td colspan='2' rowspan='3' align='left'  style='vertical-align:top;'>Remarks: </td></tr>");
++                 htmlTable.Append("<tr><td align='left' colspan='5'>G. Total</td>");
++                 htmlTable.Append("<td align='right'><b>" + Math.Round(FAmount, 0).ToString() + "</b></td></tr>");
++ 
++                 htmlTable.Append("<tr><td colspan='6' align='center'><span style='font-size:8pt; font-weight:bold;'>RUPEES " + ConvertNumbertoWords(Convert.ToInt64(Math.Round(FAmount, 0))) + " ONLY</span></td></tr>");//convert amount in words
++ 
++                 htmlTable.Append("<tr><td colspan='4' align='left'><span style='font-size:7pt;'><b>Note:</b></br>All claim disputes will be resolved within 2 working days from the date of issue of this Purchase Order and receipt of a copy of this Order to you.</br>दावे से सम्बंधित सभी विवादों का समाधान इस खरीद आदेश के जारी होने और इस आदेश की प्रति आपको प्राप्त होने की तारीख से 2 कार्य दिवसों के भीतर किया जाएगा।</span></td>");
++                 htmlTable.Append("<td colspan='4' align='center'><b>For Rashmi Rice Mills Pvt. Ltd.</br></br>Authorised Signatory</b></td>");
++                 htmlTable.Append("</table>");
++ 
++             }
++             DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
++         }
++         catch (Exception)
++         {
++             DBDataPlaceHolder.Controls.Add(new Literal { Text = "<table class='table'><tr><td align='center'>Error loading data. Please refresh the page.</td></tr></table>" });
++         }
+++>>>>>>> bfc9489 (operator testing completed)
+      }
+ +
+      public void CallPrint(string strid)
+      {
+          StringBuilder sb = new StringBuilder();
+@@@ -795,11 -1004,23 +1511,29 @@@
+      public string ConvertNumbertoWords(long number)
+      {
+          if (number == 0) return "ZERO";
+ -        if (number < 0) return "minus " + ConvertNumbertoWords(Math.Abs(number));
+ +        if (number < 0)  return "minus " + ConvertNumbertoWords(Math.Abs(number));
+          string words = "";
+++<<<<<<< HEAD
+ +        if ((number / 1000000) > 0) { words += ConvertNumbertoWords(number / 100000) + " LAKH "; number %= 1000000; }
+ +        if ((number / 1000)    > 0) { words += ConvertNumbertoWords(number / 1000)   + " THOUSAND "; number %= 1000; }
+ +        if ((number / 100)     > 0) { words += ConvertNumbertoWords(number / 100)    + " HUNDRED "; number %= 100; }
+++=======
++         if ((number / 1000000) > 0)
++         {
++             words += ConvertNumbertoWords(number / 100000) + " LAKH ";
++             number %= 1000000;
++         }
++         if ((number / 1000) > 0)
++         {
++             words += ConvertNumbertoWords(number / 1000) + " THOUSAND ";
++             number %= 1000;
++         }
++         if ((number / 100) > 0)
++         {
++             words += ConvertNumbertoWords(number / 100) + " HUNDRED ";
++             number %= 100;
++         }
+++>>>>>>> bfc9489 (operator testing completed)
+          if (number > 0)
+          {
+              if (words != "") words += "AND ";
+@@@ -810,56 -1041,97 +1544,120 @@@
+          }
+          return words;
+      }
+ +
+      public int PartyValidation()
+      {
+ -        int i = 1;
+          if (sPartyName.SelectedItem.Text.Trim() == "Other")
+ -        {
+ -            if (pName.Value.Trim() == "" || pMN.Value.Trim() == "")
+ -            {
+ -                i = 0;
+ -            }
+ -            else
+ -            {
+ -                i = 1;
+ -            }
+ -
+ -        }
+ -        else
+ -        {
+ -            i = 1;
+ -        }
+ -        return i;
+ +            return (pName.Value.Trim() == "" || pMN.Value.Trim() == "") ? 0 : 1;
+ +        return 1;
+      }
+ +
+      public void Party()
+      {
+++<<<<<<< HEAD
+ +        dt = new DataTable();
+ +        param = new List<SqlParameter>();
+ +        param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
+ +        string q = "select concat(Party_Name, ' (Mobile No.: ',Party_Mobile,')') as PartyName from prabha.Purchase_Party_Info where CompanyID=@CompanyID order by PartyName";
+ +        dac = new DataAccessLayer();
+ +        dt  = dac.GetDataTable(q, param);
+ +
+ +        sPartyName.DataSource     = dt;
+ +        sPartyName.DataTextField  = "PartyName";
+ +        sPartyName.DataValueField = "PartyName";
+ +        sPartyName.DataBind();
+ +        sPartyName.Items.Add("Other");
+++=======
++         try
++         {
++             dt = new DataTable();
++             string q = "";
++             param = new List<SqlParameter>();//Emp_Id
++             param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
++             q = "select concat(Party_Name, ' (Mobile No.: ',Party_Mobile,')') as PartyName from prabha.Purchase_Party_Info where CompanyID=@CompanyID order by PartyName";
++             dac = new DataAccessLayer();
++             dt = dac.GetDataTable(q, param);
++ 
++             sPartyName.DataSource = dt;
++             sPartyName.DataTextField = "PartyName";
++             sPartyName.DataValueField = "PartyName";
++             sPartyName.DataBind();
++             sPartyName.Items.Add("Other");
++         }
++         catch (Exception)
++         {
++             ShowAlert("Error loading party list!");
++         }
+++>>>>>>> bfc9489 (operator testing completed)
+      }
+ +
+      [WebMethod]
+      public static List<string> GetEmployeeName(string empName)
+      {
+          List<string> empResult = new List<string>();
+-         using (SqlConnection con = new SqlConnection(@"Server=ws241.win.arvixe.com;Database=sati1983_farming;User ID=prabha;Password=prabha@#*2022;Trusted_Connection=False;"))
++         try
+          {
+-             using (SqlCommand cmd = new SqlCommand())
++             using (SqlConnection con = new SqlConnection(@"Server=ws241.win.arvixe.com;Database=sati1983_farming;User ID=prabha;Password=prabha@#*2022;Trusted_Connection=False;"))
+              {
+++<<<<<<< HEAD
+ +                cmd.CommandText = "SELECT [BrokerName] FROM [prabha].[BrokerInfo] where [BrokerName] like ''+@SearchEmpName+'%'";
+ +                cmd.Connection  = con;
+ +                con.Open();
+ +                cmd.Parameters.AddWithValue("@SearchEmpName", empName);
+ +                SqlDataReader dr = cmd.ExecuteReader();
+ +                while (dr.Read())
+ +                    empResult.Add(dr["BrokerName"].ToString());
+ +                con.Close();
+ +                return empResult;
+ +            }
+ +        }
+++=======
++                 using (SqlCommand cmd = new SqlCommand())
++                 {
++                     cmd.CommandText = "SELECT [BrokerName] FROM [prabha].[BrokerInfo] where [BrokerName] like ''+@SearchEmpName+'%'";
++                     cmd.Connection = con;
++                     con.Open();
++                     cmd.Parameters.AddWithValue("@SearchEmpName", empName);
++                     SqlDataReader dr = cmd.ExecuteReader();
++                     while (dr.Read())
++                     {
++                         empResult.Add(dr["BrokerName"].ToString());
++                     }
++                     con.Close();
++                 }
++             }
++         }
++         catch (Exception)
++         {
++             // Autocomplete ke liye crash nahi karna
++         }
++         return empResult;
+++>>>>>>> bfc9489 (operator testing completed)
+      }
+ +
+      protected void sPartyName_SelectedIndexChanged(object sender, EventArgs e)
+      {
+++<<<<<<< HEAD
+ +        Panel1.Visible = (sPartyName.SelectedItem.Text.Trim() == "Other");
+++=======
++         try
++         {
++             if (sPartyName.SelectedItem.Text.Trim() == "Other")
++             {
++                 Panel1.Visible = true;
++             }
++             else
++             {
++                 Panel1.Visible = false;
++             }
++         }
++         catch (Exception)
++         {
++             ShowAlert("Error selecting party!");
++         }
+++>>>>>>> bfc9489 (operator testing completed)
+      }
+ +
+      public string GenInvoiceNo()
+      {
+          int mon = Convert.ToDateTime(sdate.Value.Trim()).Month;
+@@@ -996,30 -1305,46 +1793,40 @@@
+          }
+          else
+          {
+-             script = "alert('Data Already Exist!!');";
+-             ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
++             ShowAlert("Data Already Exists!");
+          }
+ -
+      }
+ +
+      public int chkData(string DDate, string TNo, string PN, string KN)
+      {
+ -        int tst = 0;
+          DataTable dtOut = new DataTable();
+ -        string q = "";
+ -        param = new List<SqlParameter>();//Emp_Id
+ +        param = new List<SqlParameter>();
+          param.Add(new SqlParameter("@CompanyID", Convert.ToInt32(Session["CompanyID"])));
+ -
+ -        param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(DDate).ToString("dd-MMM-yyyy")));
+ -        param.Add(new SqlParameter("@TruckNo", TNo));
+ +        param.Add(new SqlParameter("@DataDate",  Convert.ToDateTime(DDate).ToString("dd-MMM-yyyy")));
+ +        param.Add(new SqlParameter("@TruckNo",   TNo));
+          param.Add(new SqlParameter("@PartyName", PN));
+ -        param.Add(new SqlParameter("@KantaNo", KN));
+ +        param.Add(new SqlParameter("@KantaNo",   KN));
+  
+ -        q = "select * from prabha.Purchase_Master_Data where CompanyID=@CompanyID and DataDate=@DataDate and TruckNo=@TruckNo and PartyName=@PartyName and KantaNo=@KantaNo";
+ -        dac = new DataAccessLayer();
+ +        string q = "select * from prabha.Purchase_Master_Data where CompanyID=@CompanyID and DataDate=@DataDate and TruckNo=@TruckNo and PartyName=@PartyName and KantaNo=@KantaNo";
+ +        dac  = new DataAccessLayer();
+          dtOut = dac.GetDataTable(q, param);
+ -        if (dtOut.Rows.Count > 0)
+ -        {
+ -            tst = 1;
+ -        }
+ -        else
+ -        {
+ -            tst = 0;
+ -        }
+ -        return tst;
+ +        return (dtOut.Rows.Count > 0) ? 1 : 0;
+      }
+ +
+      protected void sPaddyType_SelectedIndexChanged(object sender, EventArgs e)
+      {
+          calBalance();
+          dataDisplay();
+      }
+++<<<<<<< HEAD
+++}
+++=======
++ 
++     private void ShowAlert(string message)
++     {
++         ClientScript.RegisterStartupScript(this.GetType(), "Alert",
++             "$(document).ready(function(){ showAlert('" + message.Replace("'", "\\'") + "'); });",
++             true);
++     }
+ -}
+ +}
+++>>>>>>> bfc9489 (operator testing completed)

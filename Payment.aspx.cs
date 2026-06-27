@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -131,7 +131,7 @@ public partial class Payment : System.Web.UI.Page
     }
 
     /* ================================================================
-       SERVER-SIDE VALIDATION  — returns error string or ""
+       SERVER-SIDE VALIDATION  â€” returns error string or ""
     ================================================================ */
     private string ServerValidate()
     {
@@ -223,6 +223,29 @@ public partial class Payment : System.Web.UI.Page
         else
         {
             dt = (DataTable)Session["Data"];
+
+            // âœ… FIX: Agar DataTable mein required columns nahi hain ya rows nahi hain
+            // toh session clear karo aur empty table dikhao
+            if (dt == null
+                || dt.Rows.Count == 0
+                || !dt.Columns.Contains("No")
+                || !dt.Columns.Contains("DataDate")
+                || !dt.Columns.Contains("PName")
+                || !dt.Columns.Contains("AmountPaid")
+                || !dt.Columns.Contains("PaymentMode")
+                || !dt.Columns.Contains("Transaction")
+                || !dt.Columns.Contains("Bank")
+                || !dt.Columns.Contains("MPVNo"))
+            {
+                Session["Data"] = null;
+                htmlTable = new StringBuilder();
+                htmlTable.Append("<table class='table' cellspacing='0'>");
+                htmlTable.Append("<tr><td align='center' style='color:#94a3b8;padding:30px;'>No data added yet...</td></tr></table>");
+                DBDataPlaceHolder.Controls.Clear();
+                DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
+                return;
+            }
+
             htmlTable = new StringBuilder();
             htmlTable.Append("<div id='prntContent'>");
             htmlTable.Append("<table runat='server' style='font-size:10pt; min-width:600px;' id='printTable' cellspacing='0' border='1'>");
@@ -240,7 +263,8 @@ public partial class Payment : System.Web.UI.Page
             htmlTable.Append("<tr><td colspan='2' align='center'><span style='font-size:10pt; font-weight:bold;'> PAYMENT VOUCHER </span></td></tr>");
 
             // Voucher No
-            if (dt.Rows[0]["MPVNo"].ToString().Trim() == "")
+            string mpvNo = dt.Rows[0]["MPVNo"].ToString().Trim();
+            if (mpvNo == "")
             {
                 htmlTable.Append("<tr><td colspan='2' align='right'>Voucher No.: <b>" + dt.Rows[0]["No"] + "</b></td></tr>");
             }
@@ -463,7 +487,7 @@ public partial class Payment : System.Web.UI.Page
         return prefix + next.ToString("D4");
     }
 
-    /* overload — for display in list */
+    /* overload â€” for display in list */
     public string GenInvoiceNo(string a, string b)
     {
         DateTime d = Convert.ToDateTime(b);
@@ -476,7 +500,7 @@ public partial class Payment : System.Web.UI.Page
     }
 
     /* ================================================================
-       BANK VALIDATE — 0 = ok, 1 = error
+       BANK VALIDATE â€” 0 = ok, 1 = error
     ================================================================ */
     public int bankvalidate()
     {
@@ -585,7 +609,7 @@ public partial class Payment : System.Web.UI.Page
     }
 
     /* ================================================================
-       LINK BUTTON — PARTY PAYMENT HISTORY
+       LINK BUTTON â€” PARTY PAYMENT HISTORY
     ================================================================ */
     protected void LinkButton1_Click(object sender, EventArgs e)
     {

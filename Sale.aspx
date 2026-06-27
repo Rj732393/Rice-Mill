@@ -127,6 +127,41 @@ body{
     box-shadow:0 0 0 4px rgba(22,163,74,0.12) !important;
 }
 
+/* ===== VALIDATION (same pattern as Payment.aspx) ===== */
+
+.form-control.is-invalid{
+    border-color:#dc2626 !important;
+    box-shadow:0 0 0 3px rgba(220,38,38,0.15) !important;
+}
+
+.err-msg{
+    color:#dc2626;
+    font-size:12px;
+    margin-top:5px;
+    display:none;
+}
+
+.alert-custom{
+    border-radius:12px;
+    padding:14px 18px;
+    margin-bottom:20px;
+    font-size:13px;
+    font-weight:600;
+    display:none;
+}
+
+.alert-danger-custom{
+    background:#fef2f2;
+    border:1px solid #fca5a5;
+    color:#b91c1c;
+}
+
+.alert-success-custom{
+    background:#f0fdf4;
+    border:1px solid #86efac;
+    color:#15803d;
+}
+
 /* ===== BUTTON ===== */
 
 .btn-card{
@@ -202,6 +237,88 @@ body{
 
     }
 
+    /* ===== SHOW ERROR (same pattern as Payment.aspx) ===== */
+    function showErr(fieldId, msg) {
+        $("#" + fieldId).addClass("is-invalid");
+        $("#err_" + fieldId).text(msg).show();
+    }
+
+    /* ===== CLEAR ERROR ===== */
+    function clearErr(fieldId) {
+        $("#" + fieldId).removeClass("is-invalid");
+        $("#err_" + fieldId).hide();
+    }
+
+    /* ===== CLEAR ALL ERRORS ===== */
+    function clearErrors() {
+        $(".form-control").removeClass("is-invalid");
+        $(".err-msg").hide();
+        $("#topAlert").hide();
+    }
+
+    /* ===== SHOW TOP ALERT ===== */
+    function showAlert(msg, type) {
+        var el = $("#topAlert");
+        el.removeClass("alert-danger-custom alert-success-custom");
+        if (type == "success") {
+            el.addClass("alert-success-custom");
+        } else {
+            el.addClass("alert-danger-custom");
+        }
+        el.text(msg).show();
+        $("html,body").animate({ scrollTop: 0 }, 300);
+    }
+
+    /* ===== VALIDATE SALE ENTRY ===== */
+    function validateSale() {
+
+        clearErrors();
+        var valid = true;
+
+        /* Sauda No */
+        var saudaNo = $("#<%= SaudaNo.ClientID %>").val();
+        if (saudaNo == null || saudaNo.trim() == "") {
+            showErr("<%= SaudaNo.ClientID %>", "Please enter Sauda No.");
+            valid = false;
+        }
+
+        /* Sauda Date */
+        var saudaDate = $("#<%= SaudaDate.ClientID %>").val();
+        if (saudaDate == null || saudaDate.trim() == "") {
+            showErr("<%= SaudaDate.ClientID %>", "Please select Sauda Date.");
+            valid = false;
+        } else if (isNaN(new Date(saudaDate).getTime())) {
+            showErr("<%= SaudaDate.ClientID %>", "Please enter a valid Sauda Date.");
+            valid = false;
+        }
+
+        /* Despatch No */
+        var despatchNo = $("#<%= DespatchNo.ClientID %>").val();
+        if (despatchNo == null || despatchNo.trim() == "") {
+            showErr("<%= DespatchNo.ClientID %>", "Please enter Despatch No.");
+            valid = false;
+        }
+
+        /* PMN */
+        var pmnVal = $("#<%= pMN.ClientID %>").val();
+        if (pmnVal == null || pmnVal.trim() == "") {
+            showErr("<%= pMN.ClientID %>", "Please enter PMN.");
+            valid = false;
+        } else if (isNaN(pmnVal)) {
+            showErr("<%= pMN.ClientID %>", "PMN must be a valid number.");
+            valid = false;
+        } else if (parseInt(pmnVal) <= 0) {
+            showErr("<%= pMN.ClientID %>", "PMN must be greater than zero.");
+            valid = false;
+        }
+
+        if (!valid) {
+            showAlert("Please fill all required fields correctly.", "error");
+        }
+
+        return valid;
+    }
+
 </script>
 
 </head>
@@ -232,6 +349,10 @@ body{
 
                 </div>
 
+                <!-- TOP ALERT -->
+
+                <div id="topAlert" class="alert-custom alert-danger-custom"></div>
+
                 <!-- ROW 1 -->
 
                 <div class="row">
@@ -240,7 +361,7 @@ body{
 
                         <div class="input-group-custom">
 
-                            <label>Sauda No</label>
+                            <label>Sauda No <span style="color:red">*</span></label>
 
                             <div class="input-box">
 
@@ -253,6 +374,8 @@ body{
 
                             </div>
 
+                            <div class="err-msg" id="err_<%= SaudaNo.ClientID %>"></div>
+
                         </div>
 
                     </div>
@@ -261,7 +384,7 @@ body{
 
                         <div class="input-group-custom">
 
-                            <label>Sauda Date</label>
+                            <label>Sauda Date <span style="color:red">*</span></label>
 
                             <div class="input-box">
 
@@ -274,6 +397,8 @@ body{
 
                             </div>
 
+                            <div class="err-msg" id="err_<%= SaudaDate.ClientID %>"></div>
+
                         </div>
 
                     </div>
@@ -282,7 +407,7 @@ body{
 
                         <div class="input-group-custom">
 
-                            <label>Despatch No</label>
+                            <label>Despatch No <span style="color:red">*</span></label>
 
                             <div class="input-box">
 
@@ -294,6 +419,8 @@ body{
                                 </asp:TextBox>
 
                             </div>
+
+                            <div class="err-msg" id="err_<%= DespatchNo.ClientID %>"></div>
 
                         </div>
 
@@ -309,7 +436,7 @@ body{
 
                         <div class="input-group-custom">
 
-                            <label>PMN</label>
+                            <label>PMN <span style="color:red">*</span></label>
 
                             <div class="input-box">
 
@@ -321,6 +448,8 @@ body{
                                 </asp:TextBox>
 
                             </div>
+
+                            <div class="err-msg" id="err_<%= pMN.ClientID %>"></div>
 
                         </div>
 
@@ -337,6 +466,7 @@ body{
                         runat="server"
                         Text="Save Sale Entry"
                         CssClass="btn btn-card"
+                        OnClientClick="return validateSale();"
                         OnClick="btnSave_Click" />
 
                 </div>

@@ -58,7 +58,7 @@
 
             <div class="page-title">
                 <h1><i class="fas fa-warehouse" style="color:#2563eb;"></i> Rice Stock Report</h1>
-                <p><asp:Label ID="lblCompanyName" runat="server" Text="Rice Mills"></asp:Label></p>
+                <p>Rice inventory tracking and stock management</p>
             </div>
 
             <div class="row">

@@ -26,13 +26,11 @@
 
     <!-- JQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
     <!-- JQuery UI -->
     <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.css"
         rel="stylesheet" />
-
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
 <style>
@@ -45,8 +43,6 @@ body{
     overflow-x:hidden;
 }
 
-/* ===== MAIN CONTENT ===== */
-
 .main-content{
     margin-left:120px;
     padding:110px 25px 30px;
@@ -57,14 +53,10 @@ body{
     margin-left:0;
 }
 
-/* ===== WRAPPER ===== */
-
 .purchase-wrapper{
     max-width:1400px;
     margin:auto;
 }
-
-/* ===== BOX ===== */
 
 .purchase-box{
     background:#ffffff;
@@ -73,8 +65,6 @@ body{
     box-shadow:0 8px 28px rgba(0,0,0,0.08);
     border:1px solid #e5e7eb;
 }
-
-/* ===== TITLE ===== */
 
 .purchase-title{
     text-align:center;
@@ -93,8 +83,6 @@ body{
     color:#64748b;
     font-size:14px;
 }
-
-/* ===== INPUT ===== */
 
 .input-group-custom{
     margin-bottom:24px;
@@ -138,7 +126,35 @@ select:focus{
     box-shadow:0 0 0 4px rgba(22,163,74,0.12) !important;
 }
 
-/* ===== BUTTON ===== */
+/* Validation error style */
+.form-control.is-invalid,
+select.is-invalid{
+    border-color:#dc2626 !important;
+    box-shadow:0 0 0 3px rgba(220,38,38,0.15) !important;
+}
+
+.err-msg{
+    color:#dc2626;
+    font-size:12px;
+    margin-top:5px;
+    display:none;
+}
+
+/* Alert box */
+.alert-custom{
+    border-radius:12px;
+    padding:14px 18px;
+    margin-bottom:20px;
+    font-size:13px;
+    font-weight:600;
+    display:none;
+}
+
+.alert-danger-custom{
+    background:#fef2f2;
+    border:1px solid #fca5a5;
+    color:#b91c1c;
+}
 
 .btn-card{
     background:linear-gradient(135deg,#16a34a,#15803d) !important;
@@ -152,6 +168,7 @@ select:focus{
     box-shadow:0 6px 16px rgba(22,163,74,0.22);
     transition:all 0.3s ease;
     margin:5px;
+    outline:none !important;
 }
 
 .btn-card:hover{
@@ -160,7 +177,14 @@ select:focus{
     color:#fff !important;
 }
 
-/* ===== BUTTON COLORS ===== */
+.btn-card:focus{
+    color:#ffffff !important;
+    outline:none !important;
+}
+
+.btn-card:active{
+    transform:scale(0.98);
+}
 
 #btnSave{
     background:linear-gradient(135deg,#0f766e,#0d9488) !important;
@@ -178,8 +202,6 @@ select:focus{
     background:linear-gradient(135deg,#b91c1c,#991b1b) !important;
 }
 
-/* ===== TABLE ===== */
-
 .table-box{
     background:#ffffff;
     border-radius:18px;
@@ -190,23 +212,17 @@ select:focus{
     border:1px solid #e5e7eb;
 }
 
-/* ===== MOBILE ===== */
-
 @media(max-width:768px){
-
     .main-content{
         margin-left:0;
         padding:95px 12px 20px;
     }
-
     .purchase-box{
         padding:20px;
     }
-
     .purchase-title h2{
         font-size:26px;
     }
-
 }
 
 </style>
@@ -220,39 +236,135 @@ select:focus{
         // Reset Button
         $("#btnReset").click(function () {
 
-            $("#form1")[0].reset();
+            clearErrors();
+
+            $("#sdate").val("");
+            $("#MPNo").val("");
+            $("#txtEmpName").val("");
+            $("#QIKG").val("");
+            $("#avgrate").val("");
+
+            $("#pName").val("");
+            $("#pMN").val("");
+
+            $("#<%= sPartyName.ClientID %>").prop("selectedIndex", 0);
 
             return false;
         });
 
     });
 
+    /* ===== AUTOCOMPLETE ===== */
     function SearchText() {
-
         $("#txtEmpName").autocomplete({
-
             source: function (request, response) {
-
                 $.ajax({
-
                     type: "POST",
-
                     contentType: "application/json; charset=utf-8",
-
                     url: "PurchaseSauda.aspx/GetEmployeeName",
-
                     data: "{'empName':'" + document.getElementById('txtEmpName').value + "'}",
-
                     dataType: "json",
-
                     success: function (data) {
-
                         response(data.d);
-
                     }
                 });
             }
         });
+    }
+
+    /* ===== SHOW ERROR ===== */
+    function showErr(fieldId, msg) {
+        $("#" + fieldId).addClass("is-invalid");
+        $("#err_" + fieldId).text(msg).show();
+    }
+
+    /* ===== CLEAR ERROR ===== */
+    function clearErr(fieldId) {
+        $("#" + fieldId).removeClass("is-invalid");
+        $("#err_" + fieldId).hide();
+    }
+
+    /* ===== CLEAR ALL ERRORS ===== */
+    function clearErrors() {
+        $(".form-control, select").removeClass("is-invalid");
+        $(".err-msg").hide();
+        $("#topAlert").hide();
+    }
+
+    /* ===== SHOW TOP ALERT ===== */
+    function showAlert(msg) {
+        var el = $("#topAlert");
+        el.removeClass("alert-danger-custom");
+        el.addClass("alert-danger-custom");
+        el.text(msg).show();
+        $("html,body").animate({ scrollTop: 0 }, 300);
+    }
+
+    /* ===== VALIDATE ADD PURCHASE DATA ===== */
+    function validateSauda() {
+        clearErrors();
+        var valid = true;
+
+        /* Date */
+        if ($("#sdate").val() == "") {
+            showErr("sdate", "Please fill this required field.");
+
+            valid = false;
+        }
+
+        /* Supplier Ref */
+        
+
+        /* Party Name DropDownList */
+        var partyVal = $("#<%= sPartyName.ClientID %>").val();
+        if (partyVal == "" || partyVal == null) {
+            showErr("<%= sPartyName.ClientID %>", "Please fill this required field.");
+            valid = false;
+        }
+
+        /* Panel1 fields — sirf tab validate karo jab panel visible ho */
+        if ($("#<%= Panel1.ClientID %>").is(":visible")) {
+
+            if ($("#pName").val().trim() == "") {
+                showErr("pName", "Please fill this required field.");
+                valid = false;
+            }
+
+            var mob = $("#pMN").val().trim();
+            if (mob == "") {
+                showErr("pMN", "Please fill this required field.");
+                valid = false;
+            } else if (!/^\d{10}$/.test(mob)) {
+                showErr("pMN", "Please fill this required field.");
+                valid = false;
+            }
+        }
+
+        /* Quantity */
+        var qty = $("#QIKG").val().trim();
+        if (qty == "") {
+            showErr("QIKG", "Please fill this required field.");
+            valid = false;
+        } else if (isNaN(qty) || parseFloat(qty) <= 0) {
+            showErr("QIKG", "Quantity should be greater than zero.");
+            valid = false;
+        }
+
+        /* Rate */
+        var rate = $("#avgrate").val().trim();
+        if (rate == "") {
+            showErr("avgrate", "Please fill this required field.");
+            valid = false;
+        } else if (isNaN(rate) || parseFloat(rate) <= 0) {
+            showErr("avgrate", "Rate should be greater than zero.");
+            valid = false;
+        }
+
+        if (!valid) {
+            showAlert("Please fill all required fields.");
+        }
+
+        return valid;
     }
 
 </script>
@@ -275,80 +387,56 @@ select:focus{
 
                 <!-- TITLE -->
                 <div class="purchase-title">
-
                     <h2>Purchase Sauda Entry</h2>
-
-                    <p>
-                        Enter paddy purchase details
-                    </p>
-
+                    <p>Enter paddy purchase details</p>
                 </div>
+
+                <!-- TOP ALERT -->
+                <div id="topAlert" class="alert-custom alert-danger-custom"></div>
 
                 <!-- ROW 1 -->
                 <div class="row">
 
                     <div class="col-md-4">
-
                         <div class="input-group-custom">
-
-                            <label>Select Date</label>
-
+                            <label>Select Date <span style="color:red">*</span></label>
                             <div class="input-box">
-
                                 <i class="fa fa-calendar"></i>
-
                                 <input id="sdate"
                                     runat="server"
                                     class="form-control"
-                                    required />
-
+                                    placeholder="Select date" />
                             </div>
-
+                            <div class="err-msg" id="err_sdate"></div>
                         </div>
-
                     </div>
 
                     <div class="col-md-4">
-
                         <div class="input-group-custom">
-
                             <label>Manual Sauda No</label>
-
                             <div class="input-box">
-
                                 <i class="fa fa-file"></i>
-
                                 <input id="MPNo"
                                     runat="server"
                                     type="text"
                                     class="form-control" />
-
                             </div>
-
                         </div>
-
                     </div>
 
                     <div class="col-md-4">
-
                         <div class="input-group-custom">
-
-                            <label>Supplier Ref.</label>
-
+                            <label>Supplier Ref. </label>
                             <div class="input-box">
-
                                 <i class="fa fa-user"></i>
-
                                 <asp:TextBox ID="txtEmpName"
                                     runat="server"
                                     CssClass="form-control"
-                                    required>
+                                    placeholder="Type to search...">
                                 </asp:TextBox>
-
                             </div>
-
+                            <div class="err-msg" id="err_<%= txtEmpName.ClientID %>"></div>
                         </div>
-
                     </div>
 
                 </div>
@@ -357,91 +445,66 @@ select:focus{
                 <div class="row">
 
                     <div class="col-md-6">
-
                         <div class="input-group-custom">
-
-                            <label>Party Name</label>
-
+                            <label>Party Name <span style="color:red">*</span></label>
                             <div class="input-box">
-
                                 <i class="fa fa-users"></i>
-
                                 <asp:DropDownList ID="sPartyName"
                                     runat="server"
                                     CssClass="form-control"
                                     AutoPostBack="true"
-                                    onselectedindexchanged="sPartyName_SelectedIndexChanged"
-                                    required>
+                                    onselectedindexchanged="sPartyName_SelectedIndexChanged">
                                 </asp:DropDownList>
-
                             </div>
-
+                            <div class="err-msg" id="err_<%= sPartyName.ClientID %>"></div>
                         </div>
-
                     </div>
 
                     <div class="col-md-6" style="padding-top:31px;">
-
                         <asp:LinkButton ID="lBtnSaudaParty"
                             runat="server"
                             CssClass="btn btn-card"
                             onclick="lBtnSaudaParty_Click">
-
                             <i class="fa fa-list"></i>
                             &nbsp; Sauda List
-
                         </asp:LinkButton>
-
                     </div>
 
                 </div>
 
-                <!-- PANEL -->
+                <!-- PANEL 1 — Party Details (conditionally visible) -->
                 <asp:Panel ID="Panel1" runat="server">
 
                     <div class="row">
 
                         <div class="col-md-6">
-
                             <div class="input-group-custom">
-
-                                <label>Party Name</label>
-
+                                <label>Party Name <span style="color:red">*</span></label>
                                 <div class="input-box">
-
                                     <i class="fa fa-user"></i>
-
                                     <input id="pName"
                                         runat="server"
                                         type="text"
                                         class="form-control"
-                                        required />
-
+                                        placeholder="Enter party name" />
                                 </div>
-
+                                <div class="err-msg" id="err_pName"></div>
                             </div>
-
                         </div>
 
                         <div class="col-md-6">
-
                             <div class="input-group-custom">
-
-                                <label>Party Mobile No.</label>
-
+                                <label>Party Mobile No. <span style="color:red">*</span></label>
                                 <div class="input-box">
-
                                     <i class="fa fa-phone"></i>
-
                                     <input id="pMN"
                                         runat="server"
                                         class="form-control"
-                                        required />
-
+                                        placeholder="10 digit mobile no."
+                                        maxlength="10" />
                                 </div>
-
+                                <div class="err-msg" id="err_pMN"></div>
                             </div>
-
                         </div>
 
                     </div>
@@ -452,73 +515,48 @@ select:focus{
                 <div class="row">
 
                     <div class="col-md-4">
-
                         <div class="input-group-custom">
-
-                            <label>Paddy Type</label>
-
+                            <label>Paddy Type <span style="color:red">*</span></label>
                             <div class="input-box">
-
                                 <i class="fa fa-seedling"></i>
-
                                 <select id="sPaddyType"
                                     runat="server"
-                                    class="form-control"
-                                    required>
-
+                                    class="form-control">
                                     <option>Rupali</option>
                                     <option>Mansuri</option>
                                     <option>Sonam</option>
                                     <option>Hybrid</option>
-
                                 </select>
-
                             </div>
-
                         </div>
-
                     </div>
 
                     <div class="col-md-4">
-
                         <div class="input-group-custom">
-
-                            <label>Quantity (KG)</label>
-
+                            <label>Quantity (KG) <span style="color:red">*</span></label>
                             <div class="input-box">
-
                                 <i class="fa fa-weight-hanging"></i>
-
                                 <input id="QIKG"
                                     runat="server"
                                     class="form-control"
-                                    required />
-
+                                    placeholder="Enter quantity in KG" />
                             </div>
-
+                            <div class="err-msg" id="err_QIKG"></div>
                         </div>
-
                     </div>
 
                     <div class="col-md-4">
-
                         <div class="input-group-custom">
-
-                            <label>Rate (₹)</label>
-
+                            <label>Rate (&#8377;) <span style="color:red">*</span></label>
                             <div class="input-box">
-
                                 <i class="fa fa-indian-rupee-sign"></i>
-
                                 <input id="avgrate"
                                     runat="server"
                                     class="form-control"
-                                    required />
-
+                                    placeholder="Enter rate per KG" />
                             </div>
-
+                            <div class="err-msg" id="err_avgrate"></div>
                         </div>
-
                     </div>
 
                 </div>
@@ -531,7 +569,10 @@ select:focus{
                         value="Add Purchase Data"
                         runat="server"
                         class="btn btn-card"
-                        onserverclick="btnContinue_ServerClick" />
+                        onserverclick="btnContinue_ServerClick"
+                        onclick="return validateSauda();" />
+
+                    &nbsp;&nbsp;
 
                     <input type="submit"
                         id="btnSave"
@@ -539,6 +580,8 @@ select:focus{
                         runat="server"
                         class="btn btn-card"
                         onserverclick="btnSave_ServerClick" />
+
+                    &nbsp;&nbsp;
 
                     <input type="button"
                         id="btnReset"
@@ -549,11 +592,9 @@ select:focus{
 
                 <!-- TABLE -->
                 <div class="table-box" id="prntContent">
-
                     <asp:PlaceHolder ID="DBDataPlaceHolder"
                         runat="server">
                     </asp:PlaceHolder>
-
                 </div>
 
             </div>

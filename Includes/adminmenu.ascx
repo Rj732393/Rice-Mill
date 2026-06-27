@@ -3,6 +3,8 @@
     Inherits="Includes_AdminMenu" %>
 
 <!-- SIDEBAR -->
+<div class="rm-overlay" id="rmOverlay" onclick="toggleSidebar()"></div>
+
 <div class="rm-sidebar" id="rmSidebar">
 
     <div class="rm-logo">
@@ -15,39 +17,39 @@
     <ul class="rm-menu">
 
         <li>
-            <a href="Dashboard.aspx">
-                <i class="fas fa-home"></i>
-                Dashboard
-            </a>
-        </li>
+    <a id="lnkDashboard" runat="server" href="~/admin/Dashboard.aspx">
+        <i class="fas fa-home"></i>
+        Dashboard
+    </a>
+</li>
 
-        <li>
-            <a href="RiceStock.aspx" class="active">
-                <i class="fas fa-seedling"></i>
-                Rice Stock
-            </a>
-        </li>
+<li>
+    <a id="lnkRiceStock" runat="server" href="~/admin/RiceStock.aspx">
+        <i class="fas fa-seedling"></i>
+        Rice Stock
+    </a>
+</li>
 
-        <li>
-            <a href="PaddyStock.aspx">
-                <i class="fas fa-boxes"></i>
-                Paddy Stock
-            </a>
-        </li>
+<li>
+    <a id="lnkPaddyStock" runat="server" href="~/admin/PaddyStock.aspx">
+        <i class="fas fa-boxes"></i>
+        Paddy Stock
+    </a>
+</li>
 
-        <li>
-            <a href="SalePurchaseExpense.aspx">
-                <i class="fas fa-shopping-cart"></i>
-                Sale Purchase
-            </a>
-        </li>
+<li>
+    <a id="lnkSalePurchase" runat="server" href="~/admin/SalePurchaseExpense.aspx">
+        <i class="fas fa-shopping-cart"></i>
+        Sale Purchase
+    </a>
+</li>
 
-        <li>
-            <a href="EditBySauda.aspx">
-                <i class="fas fa-boxes"></i>
-                Edit Sauda
-            </a>
-        </li>
+<li>
+    <a id="lnkEditSauda" runat="server" href="~/admin/EditBySauda.aspx">
+        <i class="fas fa-boxes"></i>
+        Edit Sauda
+    </a>
+</li>
 
         <li>
             <a href="logout.aspx">
@@ -359,13 +361,23 @@
 
     function toggleSidebar() {
         var sidebar = document.getElementById("rmSidebar");
+        var overlay = document.getElementById("rmOverlay");
         var navbar = document.getElementById("rmNavbar");
         var main = document.querySelector(".main-wrapper");
-        sidebar.classList.toggle("hideSidebar");
-        navbar.classList.toggle("fullNavbar");
-        main.classList.toggle("fullMain");
-    }
 
+        var isMobile = window.innerWidth <= 768;
+
+        if (isMobile) {
+            // Mobile: showSidebar class toggle karo
+            sidebar.classList.toggle("showSidebar");
+            if (overlay) overlay.classList.toggle("active");
+        } else {
+            // Desktop: purana behavior same rahega
+            sidebar.classList.toggle("hideSidebar");
+            navbar.classList.toggle("fullNavbar");
+            main.classList.toggle("fullMain");
+        }
+    }
     function toggleAdminMenu() {
         var dropdown = document.getElementById("adminDropdown");
         dropdown.style.display =

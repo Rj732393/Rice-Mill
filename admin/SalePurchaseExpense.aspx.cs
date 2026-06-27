@@ -33,10 +33,7 @@ public partial class admin_SalePurchaseExpense : System.Web.UI.Page
         {
 
             // Company naam session se set karo
-            string companyName = Session["CompanyName"] != null
-                ? Session["CompanyName"].ToString()
-                : "Rice Mills";
-            lblCompanyName.Text = companyName;
+            
         }
     }
     public void btnReport_ServerClick(object sender, EventArgs e)

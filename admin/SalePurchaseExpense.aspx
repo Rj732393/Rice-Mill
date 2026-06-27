@@ -333,7 +333,7 @@
                 </h1>
 
                 <p>
-                    <asp:Label ID="lblCompanyName" runat="server" Text="Rice Mills"></asp:Label>
+                    Track all sales, purchases and expenses
                 </p>
 
             </div>

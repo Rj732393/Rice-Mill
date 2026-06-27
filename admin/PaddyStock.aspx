@@ -288,7 +288,7 @@
                 </h1>
 
                 <p>
-                    <asp:Label ID="lblCompanyName" runat="server" Text="Rice Mills"></asp:Label>
+                    Paddy inventory tracking and stock management
                 </p>
 
             </div>

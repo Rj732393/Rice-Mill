@@ -52,22 +52,15 @@
 /* MENU BUTTON */
 
 .menu-toggle{
-    width:40px;
-    height:40px;
-
+    width:48px;
+    height:48px;
     border:none;
     outline:none;
-
     border-radius:12px;
-
     background:rgba(255,255,255,0.12);
-
     color:white;
-
-    font-size:16px;
-
+    font-size:20px;
     cursor:pointer;
-
     transition:0.25s;
 }
 
@@ -205,7 +198,9 @@
     background:#f0fdf4;
     color:#15803d;
 }
-
+.mobile-spacer{
+    display:none;
+}
 /* ===================================================
    USER CHIP
 =================================================== */
@@ -274,7 +269,7 @@
 
     transition:0.3s;
 
-    z-index:999;
+    z-index:1000;
 
     box-shadow:
     4px 0 20px rgba(0,0,0,0.08);
@@ -409,11 +404,16 @@
 @media(max-width:768px){
 
     .sidebar{
-        left:-120px;
+        left:-150px;
+        width:100px;
     }
 
     .sidebar.show{
         left:0;
+    }
+
+    .side-card{
+        width:80px;
     }
 
     .main-content{
@@ -423,18 +423,43 @@
 
     .navbar-brand{
         font-size:15px;
+        margin-bottom:20px;
+        margin-left:0px;
+                
+        
     }
+    .mobile-spacer{
+    display:block;
+    height:20px;
+    width:100%;
+}
 
+.nav-left{
+    gap:15;
+}
     .nav-link-item,
     .nav-dropdown{
         display:none;
     }
-
+.mobile-spacer{
+    display:none;
+}
     .user-name{
         display:none;
     }
 
     .nav-user{
         padding:5px;
+    }
+     .btn-card{
+        margin:3px 2px;
+    }
+
+    
+    .text-center{
+        display:flex;
+        flex-wrap:wrap;
+        justify-content:center;
+        gap:10px;
     }
 }

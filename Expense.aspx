@@ -39,7 +39,6 @@ body{
     overflow-x:hidden;
 }
 
-
 /* ===== MAIN ===== */
 
 .main-content{
@@ -79,6 +78,29 @@ body{
 .expense-title p{
     color:#64748b;
     font-size:15px;
+}
+
+/* ===== ALERT ===== */
+
+.alert-custom {
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    display: none;
+}
+
+.alert-danger-custom {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    color: #b91c1c;
+}
+
+.alert-success-custom {
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    color: #15803d;
 }
 
 /* ===== INPUT ===== */
@@ -137,6 +159,22 @@ textarea:focus{
     box-shadow:0 0 0 4px rgba(249,115,22,0.12) !important;
 }
 
+/* ===== VALIDATION ===== */
+
+.form-control.is-invalid,
+select.is-invalid,
+textarea.is-invalid {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.10) !important;
+}
+
+.err-msg {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
+}
+
 /* ===== BUTTON ===== */
 
 .btn-card{
@@ -163,7 +201,6 @@ textarea:focus{
     margin-left:8px;
 }
 
-
 /* ===== TABLE ===== */
 
 .table-box{
@@ -178,8 +215,6 @@ textarea:focus{
 /* ===== MOBILE ===== */
 
 @media(max-width:768px){
-
-    
 
     .main-content{
         margin-left:0;
@@ -204,11 +239,67 @@ textarea:focus{
 <script>
 
     function toggleSidebar() {
-
-
-
         $(".main-content").toggleClass("full");
+    }
 
+    /* ===== VALIDATION HELPERS ===== */
+
+    function showErr(fieldId, msg) {
+        $("#" + fieldId).addClass("is-invalid");
+        var errEl = $("#err_" + fieldId);
+        if (errEl.length) { errEl.text(msg).show(); }
+    }
+
+    function clearErrors() {
+        $(".form-control, select, textarea").removeClass("is-invalid");
+        $(".err-msg").hide();
+        $("#topAlert").hide();
+    }
+
+    function showAlert(msg, type) {
+        var el = $("#topAlert");
+        el.removeClass("alert-danger-custom alert-success-custom");
+        el.addClass(type === "success" ? "alert-success-custom" : "alert-danger-custom");
+        el.text(msg).show();
+        $("html,body").animate({ scrollTop: 0 }, 300);
+    }
+
+    /* ===== MAIN VALIDATION ===== */
+
+    function validateSave() {
+
+        clearErrors();
+        var valid = true;
+
+        /* Date */
+        var sdateVal = $.trim($("#sdate").val());
+        if (sdateVal === "") {
+            showErr("sdate", "Please select Date.");
+            valid = false;
+        }
+
+        /* Amount */
+        var amountVal = $.trim($("#EAmount").val());
+        if (amountVal === "") {
+            showErr("EAmount", "Please enter Amount.");
+            valid = false;
+        } else if (isNaN(amountVal) || parseFloat(amountVal) <= 0) {
+            showErr("EAmount", "Amount must be a positive number.");
+            valid = false;
+        }
+
+        /* Remarks */
+        var remarksVal = $.trim($("#ERemarks").val());
+        if (remarksVal === "") {
+            showErr("ERemarks", "Please enter Remarks.");
+            valid = false;
+        }
+
+        if (!valid) {
+            showAlert("Please fill all required fields correctly.", "error");
+        }
+
+        return valid;
     }
 
 </script>
@@ -239,6 +330,9 @@ textarea:focus{
 
             </div>
 
+            <!-- TOP ALERT -->
+            <div id="topAlert" class="alert-custom alert-danger-custom"></div>
+
             <!-- ROW 1 -->
 
             <div class="row">
@@ -247,7 +341,7 @@ textarea:focus{
 
                     <div class="input-group-custom">
 
-                        <label>Select Date</label>
+                        <label>Select Date <span style="color:#dc2626;">*</span></label>
 
                         <div class="input-box">
 
@@ -255,10 +349,10 @@ textarea:focus{
 
                             <input id="sdate"
                                 runat="server"
-                                class="form-control"
-                                required />
+                                class="form-control" />
 
                         </div>
+                        <div class="err-msg" id="err_sdate"></div>
 
                     </div>
 
@@ -303,7 +397,7 @@ textarea:focus{
                                 <asp:ListItem>Electric Bill</asp:ListItem>
                                 <asp:ListItem>Bank Interest</asp:ListItem>
                                 <asp:ListItem>Salary to Staff ( Mill)</asp:ListItem>
-                                <asp:ListItem>Repair & Maintenance</asp:ListItem>
+                                <asp:ListItem>Repair &amp; Maintenance</asp:ListItem>
                                 <asp:ListItem>Mobile Recharge Exp</asp:ListItem>
                                 <asp:ListItem>Petrol Exp</asp:ListItem>
                                 <asp:ListItem>Misc.Exp</asp:ListItem>
@@ -327,7 +421,7 @@ textarea:focus{
 
                     <div class="input-group-custom">
 
-                        <label>Amount (₹)</label>
+                        <label>Amount (₹) <span style="color:#dc2626;">*</span></label>
 
                         <div class="input-box">
 
@@ -335,10 +429,10 @@ textarea:focus{
 
                             <input id="EAmount"
                                 runat="server"
-                                class="form-control"
-                                required />
+                                class="form-control" />
 
                         </div>
+                        <div class="err-msg" id="err_EAmount"></div>
 
                     </div>
 
@@ -354,7 +448,7 @@ textarea:focus{
 
                     <div class="input-group-custom">
 
-                        <label>Remarks</label>
+                        <label>Remarks <span style="color:#dc2626;">*</span></label>
 
                         <div class="input-box">
 
@@ -362,10 +456,10 @@ textarea:focus{
 
                             <textarea id="ERemarks"
                                 runat="server"
-                                class="form-control"
-                                required></textarea>
+                                class="form-control"></textarea>
 
                         </div>
+                        <div class="err-msg" id="err_ERemarks"></div>
 
                     </div>
 
@@ -383,7 +477,8 @@ textarea:focus{
                     value="Save Expense"
                     runat="server"
                     class="btn btn-card"
-                    onserverclick="btnSave_ServerClick" />
+                    onserverclick="btnSave_ServerClick"
+                    onclick="return validateSave();" />
 
             </div>
 

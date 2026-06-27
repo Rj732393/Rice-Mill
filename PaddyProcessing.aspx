@@ -43,8 +43,6 @@ body{
     overflow-x:hidden;
 }
 
-
-
 /* ===== MAIN ===== */
 
 .main-content{
@@ -84,6 +82,29 @@ body{
 .processing-title p{
     color:#64748b;
     font-size:15px;
+}
+
+/* ===== ALERT ===== */
+
+.alert-custom {
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    display: none;
+}
+
+.alert-danger-custom {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    color: #b91c1c;
+}
+
+.alert-success-custom {
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    color: #15803d;
 }
 
 /* ===== INPUT ===== */
@@ -130,6 +151,21 @@ select:focus{
     box-shadow:0 0 0 4px rgba(249,115,22,0.12) !important;
 }
 
+/* ===== VALIDATION ===== */
+
+.form-control.is-invalid,
+select.is-invalid {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.10) !important;
+}
+
+.err-msg {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
+}
+
 /* ===== BUTTON ===== */
 
 .btn-card{
@@ -144,7 +180,6 @@ select:focus{
     box-shadow:0 8px 20px rgba(37,99,235,0.35);
     transition:all 0.3s ease;
 }
-
 
 .btn-card:hover{
    background:linear-gradient(135deg,#15803d,#166534);
@@ -172,8 +207,6 @@ select:focus{
 
 @media(max-width:768px){
 
-    
-
     .main-content{
         margin-left:0;
     }
@@ -197,11 +230,63 @@ select:focus{
 <script>
 
     function toggleSidebar() {
-
-
-
         $(".main-content").toggleClass("full");
+    }
 
+    /* ===== VALIDATION HELPERS ===== */
+    function showErr(fieldId, msg) {
+        $("#" + fieldId).addClass("is-invalid");
+        var errEl = $("#err_" + fieldId);
+        if (errEl.length) { errEl.text(msg).show(); }
+    }
+
+    function clearErr(fieldId) {
+        $("#" + fieldId).removeClass("is-invalid");
+        $("#err_" + fieldId).hide();
+    }
+
+    function clearErrors() {
+        $(".form-control, select").removeClass("is-invalid");
+        $(".err-msg").hide();
+        $("#topAlert").hide();
+    }
+
+    function showAlert(msg, type) {
+        var el = $("#topAlert");
+        el.removeClass("alert-danger-custom alert-success-custom");
+        el.addClass(type === "success" ? "alert-success-custom" : "alert-danger-custom");
+        el.text(msg).show();
+        $("html,body").animate({ scrollTop: 0 }, 300);
+    }
+
+    /* ===== MAIN VALIDATION : sirf Date + Paddy (KG) required ===== */
+    function validateSave() {
+
+        clearErrors();
+        var valid = true;
+
+        /* Date */
+        var sdateVal = $.trim($("#sdate").val());
+        if (sdateVal === "") {
+            showErr("sdate", "Please select Date.");
+            valid = false;
+        }
+
+        /* Paddy (KG) */
+        var paddyVal = $.trim($("#<%= PaddyWt.ClientID %>").val());
+        if (paddyVal === "") {
+            showErr("<%= PaddyWt.ClientID %>", "Please enter Paddy (KG).");
+            valid = false;
+        } else if (isNaN(paddyVal) || parseFloat(paddyVal) <= 0) {
+            showErr("<%= PaddyWt.ClientID %>", "Paddy (KG) must be a positive number.");
+            valid = false;
+        }
+
+        if (!valid) {
+            showAlert("Please fill all required fields correctly.", "error");
+        }
+
+        return valid;
     }
 
 </script>
@@ -212,9 +297,7 @@ select:focus{
 
 <form id="form1" runat="server">
 
-
-        <uc1:Menu ID="Menu1" runat="server" />
-
+    <uc1:Menu ID="Menu1" runat="server" />
 
 <!-- MAIN -->
 
@@ -234,6 +317,9 @@ select:focus{
 
             </div>
 
+            <!-- TOP ALERT -->
+            <div id="topAlert" class="alert-custom alert-danger-custom"></div>
+
             <!-- ROW 1 -->
 
             <div class="row">
@@ -242,7 +328,7 @@ select:focus{
 
                     <div class="input-group-custom">
 
-                        <label>Select Date</label>
+                        <label>Select Date <span style="color:#dc2626;">*</span></label>
 
                         <div class="input-box">
 
@@ -255,6 +341,7 @@ select:focus{
                                 class="form-control" />
 
                         </div>
+                        <div class="err-msg" id="err_sdate"></div>
 
                     </div>
 
@@ -344,7 +431,7 @@ select:focus{
 
                     <div class="input-group-custom">
 
-                        <label>Paddy (KG)</label>
+                        <label>Paddy (KG) <span style="color:#dc2626;">*</span></label>
 
                         <div class="input-box">
 
@@ -359,6 +446,7 @@ select:focus{
                             </asp:TextBox>
 
                         </div>
+                        <div class="err-msg" id="err_<%= PaddyWt.ClientID %>"></div>
 
                     </div>
 
@@ -542,7 +630,8 @@ select:focus{
                     value="Submit"
                     runat="server"
                     class="btn btn-card"
-                    onserverclick="btnSave_ServerClick" />
+                    onserverclick="btnSave_ServerClick"
+                    onclick="return validateSave();" />
 
             </div>
 

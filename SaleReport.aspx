@@ -84,6 +84,29 @@ body{
     font-size:15px;
 }
 
+/* ===== ALERT ===== */
+
+.alert-custom {
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    display: none;
+}
+
+.alert-danger-custom {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    color: #b91c1c;
+}
+
+.alert-success-custom {
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    color: #15803d;
+}
+
 /* ===== INPUT ===== */
 
 .input-group-custom{
@@ -118,11 +141,26 @@ body{
     padding-left:42px !important;
     box-shadow:none !important;
     font-size:13px !important;
+    width:100%;
 }
 
 .form-control:focus{
-    border-color:#2563eb !important;
-    box-shadow:0 0 0 4px rgba(37,99,235,0.15) !important;
+    border-color:#f97316 !important;
+    box-shadow:0 0 0 4px rgba(249,115,22,0.12) !important;
+}
+
+/* ===== VALIDATION ===== */
+
+.form-control.is-invalid {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.10) !important;
+}
+
+.err-msg {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
 }
 
 /* ===== BUTTON ===== */
@@ -189,9 +227,62 @@ body{
 <script>
 
     function toggleSidebar() {
-
         $(".main-content").toggleClass("full");
+    }
 
+    /* ===== VALIDATION HELPERS ===== */
+
+    function showErr(fieldId, msg) {
+        $("#" + fieldId).addClass("is-invalid");
+        var errEl = $("#err_" + fieldId);
+        if (errEl.length) { errEl.text(msg).show(); }
+    }
+
+    function clearErrors() {
+        $(".form-control").removeClass("is-invalid");
+        $(".err-msg").hide();
+        $("#topAlert").hide();
+    }
+
+    function showAlert(msg, type) {
+        var el = $("#topAlert");
+        el.removeClass("alert-danger-custom alert-success-custom");
+        el.addClass(type === "success" ? "alert-success-custom" : "alert-danger-custom");
+        el.text(msg).show();
+        $("html,body").animate({ scrollTop: 0 }, 300);
+    }
+
+    /* ===== VALIDATE FROM DATE & TO DATE ===== */
+
+    function validateReport() {
+
+        clearErrors();
+        var valid = true;
+
+        var fdateVal = $.trim($("#fdate").val());
+        if (fdateVal === "") {
+            showErr("fdate", "Please select From Date.");
+            valid = false;
+        }
+
+        var tdateVal = $.trim($("#tdate").val());
+        if (tdateVal === "") {
+            showErr("tdate", "Please select To Date.");
+            valid = false;
+        }
+
+        if (fdateVal !== "" && tdateVal !== "") {
+            if (new Date(tdateVal) < new Date(fdateVal)) {
+                showErr("tdate", "To Date cannot be before From Date.");
+                valid = false;
+            }
+        }
+
+        if (!valid) {
+            showAlert("Please fill all required fields correctly.", "error");
+        }
+
+        return valid;
     }
 
 </script>
@@ -222,6 +313,9 @@ body{
 
             </div>
 
+            <!-- TOP ALERT -->
+            <div id="topAlert" class="alert-custom alert-danger-custom"></div>
+
             <!-- ROW -->
 
             <div class="row">
@@ -230,7 +324,7 @@ body{
 
                     <div class="input-group-custom">
 
-                        <label>From Date</label>
+                        <label>From Date <span style="color:#dc2626;">*</span></label>
 
                         <div class="input-box">
 
@@ -239,10 +333,10 @@ body{
                             <input id="fdate"
                                 name="fdate"
                                 runat="server"
-                                required
                                 class="form-control" />
 
                         </div>
+                        <div class="err-msg" id="err_fdate"></div>
 
                     </div>
 
@@ -252,7 +346,7 @@ body{
 
                     <div class="input-group-custom">
 
-                        <label>To Date</label>
+                        <label>To Date <span style="color:#dc2626;">*</span></label>
 
                         <div class="input-box">
 
@@ -261,10 +355,10 @@ body{
                             <input id="tdate"
                                 name="tdate"
                                 runat="server"
-                                required
                                 class="form-control" />
 
                         </div>
+                        <div class="err-msg" id="err_tdate"></div>
 
                     </div>
 
@@ -309,7 +403,8 @@ body{
                     value="Generate Report"
                     runat="server"
                     class="btn btn-card"
-                    onserverclick="btnContinue_ServerClick" />
+                    onserverclick="btnContinue_ServerClick"
+                    onclick="return validateReport();" />
 
                 &nbsp;&nbsp;
 
@@ -317,7 +412,8 @@ body{
                     id="Export"
                     runat="server"
                     class="btn btn-card"
-                    onserverclick="Export_ServerClick">
+                    onserverclick="Export_ServerClick"
+                    onclick="return validateReport();">
 
                     Export Excel
                     <i class="fa fa-file-excel"></i>

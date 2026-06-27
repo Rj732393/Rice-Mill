@@ -19,9 +19,7 @@
     <div class="login-card">
 
         <!-- LOGO -->
-        <div class="logo">
-            <img src="Images/logo_circle.png" />
-        </div>
+       
 
         <!-- TITLE -->
         <h2>Rice Mill Management System</h2>

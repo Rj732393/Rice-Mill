@@ -20,8 +20,7 @@ public partial class PurchaseSauda : System.Web.UI.Page
     List<SqlParameter> param;
     DataAccessLayer dac;
     string script = "";
-    DataRow companyRow;   // <-- NAYA: current logged-in company ki details yaha store hongi
-
+DataRow companyRow;
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!Page.IsPostBack)
@@ -32,8 +31,6 @@ public partial class PurchaseSauda : System.Web.UI.Page
             }
 
             sdate.Attributes["type"] = "date";
-            //sdate.Value = System.DateTime.Now.Day.ToString() + "-" + System.DateTime.Now.Month.ToString() + "-" + System.DateTime.Now.Year.ToString();
-
 
             pMN.Attributes["type"] = "number";
             pMN.Attributes["step"] = "1";
@@ -60,6 +57,7 @@ public partial class PurchaseSauda : System.Web.UI.Page
             dataDisplay();
         }
     }
+
 
     // ===== NAYA METHOD: Session["CompanyID"] se current company ki details DB se uthata hai =====
     private void LoadCompanyDetails()
@@ -97,6 +95,8 @@ public partial class PurchaseSauda : System.Web.UI.Page
         return row[colName] == DBNull.Value ? "" : row[colName].ToString();
     }
 
+
+
     public void Submit1_ServerClick(object sender, EventArgs e)
     {
         try
@@ -107,20 +107,25 @@ public partial class PurchaseSauda : System.Web.UI.Page
         }
         catch (Exception)
         {
-            ShowAlert("Kuch error aa gaya, page reload karein!!");
+            ShowAlert("An error occurred. Please reload the page!");
         }
     }
+
     public void btnSave_ServerClick(object sender, EventArgs e)
     {
         try
         {
             if (Session["Data"] == null)
             {
-                ShowAlert("Please add atleast one data!!");
+                ClientScript.RegisterStartupScript(this.GetType(), "Alert",
+                    "$(document).ready(function(){ showAlert('Please add at least one data first!'); });",
+                    true);
             }
             else if (Session["User"] == null)
             {
-                ShowAlert("Your Sessioin has expired!!");
+                ClientScript.RegisterStartupScript(this.GetType(), "Alert",
+                    "$(document).ready(function(){ showAlert('Your session has expired!'); });",
+                    true);
             }
             else
             {
@@ -131,50 +136,52 @@ public partial class PurchaseSauda : System.Web.UI.Page
         }
         catch (Exception)
         {
-            ShowAlert("Save karte waqt error aa gaya, dobara try karein!!");
+            ClientScript.RegisterStartupScript(this.GetType(), "Alert",
+                "$(document).ready(function(){ showAlert('An error occurred while saving. Please try again!'); });",
+                true);
         }
     }
+
     public void btnContinue_ServerClick(object sender, EventArgs e)
     {
         try
         {
-            // ===== Server-side safety checks (prevents crash if a field is empty/invalid) =====
-
             if (string.IsNullOrWhiteSpace(sdate.Value) || chkDate() == 1)
             {
-                ShowAlert("Sahi Date select karein!!");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(txtEmpName.Text))
-            {
-                ShowAlert("Supplier Ref. zaroori hai!!");
                 return;
             }
 
             if (sPartyName.SelectedItem == null || string.IsNullOrWhiteSpace(sPartyName.SelectedItem.Text))
             {
-                ShowAlert("Party Name select karein!!");
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(sPaddyType.Value))
+            if (sPartyName.SelectedItem.Text.Trim() == "Other")
             {
-                ShowAlert("Paddy Type select karein!!");
-                return;
+                if (string.IsNullOrWhiteSpace(pName.Value))
+                {
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(pMN.Value) || pMN.Value.Trim().Length != 10)
+                {
+                    return;
+                }
             }
 
             double qtyCheck;
-            if (string.IsNullOrWhiteSpace(QIKG.Value) || !double.TryParse(QIKG.Value.Trim(), out qtyCheck) || qtyCheck <= 0)
+            if (string.IsNullOrWhiteSpace(QIKG.Value) ||
+                !double.TryParse(QIKG.Value.Trim(), out qtyCheck) ||
+                qtyCheck <= 0)
             {
-                ShowAlert("Quantity ek valid positive number honi chahiye!!");
                 return;
             }
 
             double rateCheck;
-            if (string.IsNullOrWhiteSpace(avgrate.Value) || !double.TryParse(avgrate.Value.Trim(), out rateCheck) || rateCheck <= 0)
+            if (string.IsNullOrWhiteSpace(avgrate.Value) ||
+                !double.TryParse(avgrate.Value.Trim(), out rateCheck) ||
+                rateCheck <= 0)
             {
-                ShowAlert("Rate ek valid positive number honi chahiye!!");
                 return;
             }
 
@@ -243,17 +250,16 @@ public partial class PurchaseSauda : System.Web.UI.Page
                     Session["Data"] = dtData;
                 }
 
-
                 dataDisplay();
             }
             else
             {
-                ShowAlert("Please fill all filed of Party!!");
+                ShowAlert("Please fill all fields of Party!");
             }
         }
         catch (Exception)
         {
-            ShowAlert("Data add karte waqt error aa gaya, sab field check karein!!");
+            ShowAlert("An error occurred while adding data. Please check all fields!");
         }
     }
 
@@ -268,13 +274,9 @@ public partial class PurchaseSauda : System.Web.UI.Page
         {
             i = i + 1;
         }
-        finally
-        {
-
-
-        }
         return i;
     }
+
     public void dataDisplay()
     {
         StringBuilder htmlTable;
@@ -302,13 +304,13 @@ public partial class PurchaseSauda : System.Web.UI.Page
                 string compCIN = SafeCol(companyRow, "CINNumber");
                 string compPAN = SafeCol(companyRow, "PANNumber");
                 string compGST = SafeCol(companyRow, "GSTNumber");
+
                 htmlTable = new StringBuilder();
                 htmlTable.Append("<table class='table' runat='server' style='font-size:10pt; noWrap' id='printTable' cellspacing='0' border='1px'>");
 
                 // ===== CHANGE: hardcoded "Rashmi Rice Mills" hata kar company ki dynamic details daali gayi hain =====
                 htmlTable.Append("<tr><td colspan='3' align='center'><span style='display:table-cell; vertical-align:top;'><span style='font-size:16pt; font-weight:bold;'> " + compName + " </span></br><span style='font-size:8pt;'>" + compAddress + " </br>Mob.: " + compPhone + "</br>Email: " + compEmail + "</br>CIN: " + compCIN + "</br>PAN No.: " + compPAN + "</br>GSTIN: " + compGST + "</span></span></td></tr>");
                 htmlTable.Append("<tr><td colspan='3' align='center'><span style='font-size:10pt; font-weight:bold;'>PURCHASE SAUDA REPORT </span></td></tr>");
-
 
                 string source = dtMain.Rows[0]["PartyName"].ToString();
                 string[] stringSeparators = new string[] { " (Mobile No.: " };
@@ -343,15 +345,15 @@ public partial class PurchaseSauda : System.Web.UI.Page
                 // ===== CHANGE: footer me hardcoded "Rashmi Rice Mills" ki jagah dynamic compName =====
                 htmlTable.Append("<td colspan='2' align='center'><b>For " + compName + "</br></br></br>Authorised Signatory</b></td>");
                 htmlTable.Append("</table>");
-
             }
             DBDataPlaceHolder.Controls.Add(new Literal { Text = htmlTable.ToString() });
         }
         catch (Exception)
         {
-            DBDataPlaceHolder.Controls.Add(new Literal { Text = "<table class='table'><tr><td align='center'>Data load karne mein error aaya, page refresh karein.</td></tr></table>" });
+            DBDataPlaceHolder.Controls.Add(new Literal { Text = "<table class='table'><tr><td align='center'>Error loading data. Please refresh the page.</td></tr></table>" });
         }
     }
+
     public void CallPrint(string strid)
     {
         StringBuilder sb = new StringBuilder();
@@ -363,15 +365,12 @@ public partial class PurchaseSauda : System.Web.UI.Page
         sb.Append("WinPrint.focus();");
         sb.Append("setTimeout(function() {");
         sb.Append("WinPrint.print();");
-        //sb.Append("return false;");
         sb.Append("WinPrint.close();");
         sb.Append("}, 250);");
-
         sb.Append("</script>");
         ClientScript.RegisterStartupScript(this.GetType(), "Print", sb.ToString());
-
-
     }
+
     public string ConvertNumbertoWords(long number)
     {
         if (number == 0) return "ZERO";
@@ -392,22 +391,11 @@ public partial class PurchaseSauda : System.Web.UI.Page
             words += ConvertNumbertoWords(number / 100) + " HUNDRED ";
             number %= 100;
         }
-        //if ((number / 10) > 0)  
-        //{  
-        // words += ConvertNumbertoWords(number / 10) + " RUPEES ";  
-        // number %= 10;  
-        //}  
         if (number > 0)
         {
             if (words != "") words += "AND ";
-            var unitsMap = new[]   
-        {  
-            "ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVEN", "TWELVE", "THIRTEEN", "FOURTEEN", "FIFTEEN", "SIXTEEN", "SEVENTEEN", "EIGHTEEN", "NINETEEN"  
-        };
-            var tensMap = new[]   
-        {  
-            "ZERO", "TEN", "TWENTY", "THIRTY", "FORTY", "FIFTY", "SIXTY", "SEVENTY", "EIGHTY", "NINETY"  
-        };
+            var unitsMap = new[] { "ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVEN", "TWELVE", "THIRTEEN", "FOURTEEN", "FIFTEEN", "SIXTEEN", "SEVENTEEN", "EIGHTEEN", "NINETEEN" };
+            var tensMap = new[] { "ZERO", "TEN", "TWENTY", "THIRTY", "FORTY", "FIFTY", "SIXTY", "SEVENTY", "EIGHTY", "NINETY" };
             if (number < 20) words += unitsMap[number];
             else
             {
@@ -417,6 +405,7 @@ public partial class PurchaseSauda : System.Web.UI.Page
         }
         return words;
     }
+
     public int PartyValidation()
     {
         int i = 1;
@@ -430,7 +419,6 @@ public partial class PurchaseSauda : System.Web.UI.Page
             {
                 i = 1;
             }
-
         }
         else
         {
@@ -438,13 +426,14 @@ public partial class PurchaseSauda : System.Web.UI.Page
         }
         return i;
     }
+
     public void Party()
     {
         try
         {
             dt = new DataTable();
             string q = "";
-            param = new List<SqlParameter>();//Emp_Id
+            param = new List<SqlParameter>();
             q = "select concat(Party_Name, ' (Mobile No.: ',Party_Mobile,')') as PartyName from prabha.Purchase_Party_Info order by PartyName";
             dac = new DataAccessLayer();
             dt = dac.GetDataTable(q, param);
@@ -457,9 +446,10 @@ public partial class PurchaseSauda : System.Web.UI.Page
         }
         catch (Exception)
         {
-            ShowAlert("Party list load karne mein error aaya!!");
+            ShowAlert("Error loading party list!");
         }
     }
+
     [WebMethod]
     public static List<string> GetEmployeeName(string empName)
     {
@@ -485,10 +475,11 @@ public partial class PurchaseSauda : System.Web.UI.Page
         }
         catch (Exception)
         {
-            // Autocomplete ke liye crash nahi karna - empty list return kar do
+            // Autocomplete ke liye crash nahi karna
         }
         return empResult;
     }
+
     protected void sPartyName_SelectedIndexChanged(object sender, EventArgs e)
     {
         try
@@ -504,9 +495,10 @@ public partial class PurchaseSauda : System.Web.UI.Page
         }
         catch (Exception)
         {
-            ShowAlert("Party select karne mein error aaya!!");
+            ShowAlert("Error selecting party!");
         }
     }
+
     public string GenInvoiceNo()
     {
         int mon = Convert.ToDateTime(sdate.Value.Trim()).Month;
@@ -534,8 +526,7 @@ public partial class PurchaseSauda : System.Web.UI.Page
         string invoiceNo = "";
         string q = "";
 
-        param = new List<SqlParameter>();//Emp_Id
-
+        param = new List<SqlParameter>();
         param.Add(new SqlParameter("@DataDate1", Convert.ToDateTime(dtFrom).ToString("dd-MMM-yyyy")));
         param.Add(new SqlParameter("@DataDate2", Convert.ToDateTime(dtTo).ToString("dd-MMM-yyyy")));
 
@@ -549,28 +540,19 @@ public partial class PurchaseSauda : System.Web.UI.Page
         else
         {
             if ((Convert.ToInt32(test) + 1).ToString().Length == 1)
-            {
                 invoiceNo = "RR/PS/" + yr1 + "-" + yr2 + "/000" + (Convert.ToInt32(test) + 1);
-            }
             else if ((Convert.ToInt32(test) + 1).ToString().Length == 2)
-            {
                 invoiceNo = "RR/PS/" + yr1 + "-" + yr2 + "/00" + (Convert.ToInt32(test) + 1);
-            }
             else if ((Convert.ToInt32(test) + 1).ToString().Length == 3)
-            {
                 invoiceNo = "RR/PS/" + yr1 + "-" + yr2 + "/0" + (Convert.ToInt32(test) + 1);
-            }
             else
-            {
                 invoiceNo = "RR/PS/" + yr1 + "-" + yr2 + "/" + Convert.ToInt32(test) + 1;
-            }
-
         }
         return invoiceNo;
     }
+
     public void insertPurchaseData()
     {
-
         dtMain = (DataTable)Session["DataMain"];
         dt = (DataTable)Session["Data"];
 
@@ -580,7 +562,7 @@ public partial class PurchaseSauda : System.Web.UI.Page
         {
             int msg = 0;
             string q = "";
-            param = new List<SqlParameter>();//Emp_Id
+            param = new List<SqlParameter>();
 
             string[] Inv = dtMain.Rows[0]["No"].ToString().Split('/');
             param.Add(new SqlParameter("@No", Inv[3]));
@@ -589,38 +571,21 @@ public partial class PurchaseSauda : System.Web.UI.Page
             param.Add(new SqlParameter("@PartyName", dtMain.Rows[0]["PartyName"].ToString()));
             param.Add(new SqlParameter("@BrokerName", dtMain.Rows[0]["BrokerName"].ToString()));
 
-            double RWt = 0;
-            double RRate = 0;
-            double MWt = 0;
-            double MRate = 0;
-            double SWt = 0;
-            double SRate = 0;
-            double HWt = 0;
-            double HRate = 0;
+            double RWt = 0, RRate = 0, MWt = 0, MRate = 0;
+            double SWt = 0, SRate = 0, HWt = 0, HRate = 0;
 
             for (int i = 0; i < dt.Rows.Count; i++)
             {
                 if (dt.Rows[i]["PaddyType"].ToString() == "Rupali")
-                {
-                    RWt = Convert.ToDouble(dt.Rows[i]["QIKG"].ToString());
-                    RRate = Convert.ToDouble(dt.Rows[i]["Rate"].ToString());
-                }
+                { RWt = Convert.ToDouble(dt.Rows[i]["QIKG"].ToString()); RRate = Convert.ToDouble(dt.Rows[i]["Rate"].ToString()); }
                 if (dt.Rows[i]["PaddyType"].ToString() == "Mansuri")
-                {
-                    MWt = Convert.ToDouble(dt.Rows[i]["QIKG"].ToString());
-                    MRate = Convert.ToDouble(dt.Rows[i]["Rate"].ToString());
-                }
+                { MWt = Convert.ToDouble(dt.Rows[i]["QIKG"].ToString()); MRate = Convert.ToDouble(dt.Rows[i]["Rate"].ToString()); }
                 if (dt.Rows[i]["PaddyType"].ToString() == "Sonam")
-                {
-                    SWt = Convert.ToDouble(dt.Rows[i]["QIKG"].ToString());
-                    SRate = Convert.ToDouble(dt.Rows[i]["Rate"].ToString());
-                }
+                { SWt = Convert.ToDouble(dt.Rows[i]["QIKG"].ToString()); SRate = Convert.ToDouble(dt.Rows[i]["Rate"].ToString()); }
                 if (dt.Rows[i]["PaddyType"].ToString() == "Hybrid")
-                {
-                    HWt = Convert.ToDouble(dt.Rows[i]["QIKG"].ToString());
-                    HRate = Convert.ToDouble(dt.Rows[i]["Rate"].ToString());
-                }
+                { HWt = Convert.ToDouble(dt.Rows[i]["QIKG"].ToString()); HRate = Convert.ToDouble(dt.Rows[i]["Rate"].ToString()); }
             }
+
             param.Add(new SqlParameter("@RupaliWt", RWt.ToString()));
             param.Add(new SqlParameter("@RupaliRate", RRate.ToString()));
             param.Add(new SqlParameter("@MansuriWt", MWt.ToString()));
@@ -635,22 +600,18 @@ public partial class PurchaseSauda : System.Web.UI.Page
 
             q = "insert into prabha.Purchase_Sauda_Info([No],DataDate,MNo,PartyName,BrokerName,";
             q += "RupaliWt,RupaliRate,MansuriWt,MansuriRate,SonamWt,SonamRate,HybridWt,HybridRate,OperatorName,EntryDate,IsActive) ";
-            q += " values(@No,@DataDate,@MNo,@PartyName,@BrokerName,";
-            q += "@RupaliWt,@RupaliRate,@MansuriWt,@MansuriRate,@SonamWt,@SonamRate,@HybridWt,@HybridRate,@OperatorName,@EntryDate,@IsActive) ";
+            q += "values(@No,@DataDate,@MNo,@PartyName,@BrokerName,";
+            q += "@RupaliWt,@RupaliRate,@MansuriWt,@MansuriRate,@SonamWt,@SonamRate,@HybridWt,@HybridRate,@OperatorName,@EntryDate,@IsActive)";
             dac = new DataAccessLayer();
-
             msg = dac.update(q, param);
-
 
             if (msg > 0)
             {
-
                 if (sPartyName.SelectedItem.Text.Trim() == "Other")
                 {
                     string source = dtMain.Rows[0]["PartyName"].ToString();
                     string[] stringSeparators = new string[] { " (Mobile No.: " };
                     var result = source.Split(stringSeparators, StringSplitOptions.None);
-
                     string Pname = result[0];
                     string PMobile = result[1].Substring(0, (result[1].Length - 1));
 
@@ -665,46 +626,42 @@ public partial class PurchaseSauda : System.Web.UI.Page
             }
             else
             {
-                ShowAlert("Error!!");
+                ShowAlert("Error saving data!");
             }
         }
         else
         {
-            ShowAlert("Data Already Exist!!");
+            ShowAlert("Data Already Exists!");
         }
-
     }
+
     public int chkData(string DDate, string PN)
     {
         int tst = 0;
         DataTable dtOut = new DataTable();
         string q = "";
-        param = new List<SqlParameter>();//Emp_Id
+        param = new List<SqlParameter>();
 
         param.Add(new SqlParameter("@DataDate", Convert.ToDateTime(DDate).ToString("dd-MMM-yyyy")));
-
         param.Add(new SqlParameter("@PartyName", PN));
 
         q = "select * from prabha.Purchase_Sauda_Info where DataDate=@DataDate and PartyName=@PartyName";
         dac = new DataAccessLayer();
         dtOut = dac.GetDataTable(q, param);
         if (dtOut.Rows.Count > 0)
-        {
             tst = 1;
-        }
         else
-        {
             tst = 0;
-        }
         return tst;
     }
+
     protected void lBtnSaudaParty_Click(object sender, EventArgs e)
     {
         try
         {
             dt = new DataTable();
             string q = "";
-            param = new List<SqlParameter>();//Emp_Id
+            param = new List<SqlParameter>();
 
             param.Add(new SqlParameter("@PartyName", sPartyName.SelectedItem.Text.Trim()));
 
@@ -725,7 +682,6 @@ public partial class PurchaseSauda : System.Web.UI.Page
                 htmlTable.Append("<td><a href='PO.aspx?ID=" + dt.Rows[i]["ID"].ToString() + "' target='_blank'>" + INVNo + ", " + Convert.ToDateTime(dt.Rows[i]["DataDate"].ToString()).ToString("dd/MM/yyyy") + "</a></td>");
                 htmlTable.Append("<td>" + dt.Rows[i]["PartyName"].ToString() + "</td>");
                 htmlTable.Append("<td>" + dt.Rows[i]["BrokerName"].ToString() + "</td>");
-
                 htmlTable.Append("<td><a href='PurchaseUnloading.aspx?ID=" + dt.Rows[i]["ID"].ToString() + "' target='_blank'>Purchase Entry</a></td></tr>");
             }
             htmlTable.Append("</tbody></table>");
@@ -733,9 +689,10 @@ public partial class PurchaseSauda : System.Web.UI.Page
         }
         catch (Exception)
         {
-            ShowAlert("Sauda List load karne mein error aaya!!");
+            ShowAlert("Error loading Sauda List!");
         }
     }
+
     public string GenInvoiceNo(string a, string b)
     {
         int mon = Convert.ToDateTime(b).Month;
@@ -743,44 +700,27 @@ public partial class PurchaseSauda : System.Web.UI.Page
         int yr1 = 0;
         int yr2 = 0;
 
-        if (mon <= 3)
-        {
-            yr1 = yr - 1;
-            yr2 = yr;
-        }
-        else
-        {
-            yr1 = yr;
-            yr2 = yr + 1;
-        }
+        if (mon <= 3) { yr1 = yr - 1; yr2 = yr; }
+        else { yr1 = yr; yr2 = yr + 1; }
 
         string invoiceNo = "";
 
         if (a.Length == 1)
-        {
             invoiceNo = "RR/PS/" + yr1 + "-" + yr2 + "/000" + a;
-        }
         else if (a.Length == 2)
-        {
             invoiceNo = "RR/PS/" + yr1 + "-" + yr2 + "/00" + a;
-        }
         else if (a.Length == 3)
-        {
             invoiceNo = "RR/PS/" + yr1 + "-" + yr2 + "/0" + a;
-        }
         else
-        {
             invoiceNo = "RR/PS/" + yr1 + "-" + yr2 + "/" + a;
-        }
-
 
         return invoiceNo;
     }
 
-    /* ===== Helper: show a friendly alert instead of letting the page crash ===== */
     private void ShowAlert(string message)
     {
-        script = "alert('" + message.Replace("'", "\\'") + "');";
-        ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", script, true);
+        ClientScript.RegisterStartupScript(this.GetType(), "Alert",
+            "$(document).ready(function(){ showAlert('" + message.Replace("'", "\\'") + "'); });",
+            true);
     }
 }

@@ -31,41 +31,38 @@ public partial class admin_PaddyStock : System.Web.UI.Page
 
         if (!Page.IsPostBack)
         {
-         
+
 
             // Company naam session se set karo
-            string companyName = Session["CompanyName"] != null
-                ? Session["CompanyName"].ToString()
-                : "Rice Mills";
-            lblCompanyName.Text = companyName;
+            
         }
     }
-   public void btnReport_ServerClick(object sender, EventArgs e)
-{
-    lblFromDateError.Text = "";
-    lblToDateError.Text = "";
-
-    if (string.IsNullOrWhiteSpace(fdate.Value))
+    public void btnReport_ServerClick(object sender, EventArgs e)
     {
-        lblFromDateError.Text = "Please Select From Date";
-        return;
-    }
+        lblFromDateError.Text = "";
+        lblToDateError.Text = "";
 
-    if (string.IsNullOrWhiteSpace(tdate.Value))
-    {
-        lblToDateError.Text = "Please Select To Date";
-        return;
-    }
+        if (string.IsNullOrWhiteSpace(fdate.Value))
+        {
+            lblFromDateError.Text = "Please Select From Date";
+            return;
+        }
 
-    dt = new DataTable();
-    string q = "";
-    param = new List<SqlParameter>();
+        if (string.IsNullOrWhiteSpace(tdate.Value))
+        {
+            lblToDateError.Text = "Please Select To Date";
+            return;
+        }
 
-    param.Add(new SqlParameter("@Entry_Date1",
-        Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
+        dt = new DataTable();
+        string q = "";
+        param = new List<SqlParameter>();
 
-    param.Add(new SqlParameter("@Entry_Date2",
-        Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
+        param.Add(new SqlParameter("@Entry_Date1",
+            Convert.ToDateTime(fdate.Value.Trim()).ToString("dd-MMM-yyyy")));
+
+        param.Add(new SqlParameter("@Entry_Date2",
+            Convert.ToDateTime(tdate.Value.Trim()).ToString("dd-MMM-yyyy")));
 
         if (srType.Value.Trim() == "Daily")
         {

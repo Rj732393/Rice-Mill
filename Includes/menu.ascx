@@ -8,16 +8,23 @@
 <script type="text/javascript">
 
     function toggleSidebar() {
-        $(".sidebar").toggleClass("hide");
-        $(".main-content").toggleClass("sidebar-hidden");
+        var isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            $(".sidebar").toggleClass("show");
+        } else {
+            $(".sidebar").toggleClass("hide");
+            $(".main-content").toggleClass("sidebar-hidden");
+        }
     }
-
     // Highlight active sidebar card based on current page
     $(document).ready(function () {
+
+        
         var path = window.location.pathname.toLowerCase();
         $(".side-card").each(function () {
             var href = $(this).closest("a").attr("href");
-            if (href && path.indexOf(href.toLowerCase().replace(".aspx", "")) !== -1) {
+            if (href && path.indexOf(href.toLowerCase()
+               .replace(".aspx", "")) !== -1) {
                 $(".side-card").removeClass("active-side-card");
                 $(this).addClass("active-side-card");
             }
@@ -32,7 +39,7 @@
 
         <!-- Left: Hamburger + Logo -->
         <div class="nav-left">
-            <button class="menu-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">
+           <button type="button" class="menu-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">
                 <i class="fa fa-bars"></i>
             </button>
 
@@ -134,7 +141,8 @@
     </div>
 </nav>
 
-
+<!-- MOBILE SPACER -->
+<div class="mobile-spacer"></div>
 <!-- ===== LEFT SIDEBAR ===== -->
 <div class="sidebar" id="mainSidebar">
 
